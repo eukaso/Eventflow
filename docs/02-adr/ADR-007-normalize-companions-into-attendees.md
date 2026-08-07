@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-007 - Normalize Companions into Attendees
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** Database  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+Companion submissions shall become attendee records when attendee-level operations are required.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+Avoids permanent JSON-only companion storage and simplifies seating/check-in.
 
 ## Alternatives Considered
 

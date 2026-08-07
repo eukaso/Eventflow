@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-003 - Separate Invitation and Attendee Entities
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** Domain Model  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+Invitation represents invitation entitlement/context; Attendee represents a person.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+Supports couples/groups, individual seating, check-in, badges, and reporting.
 
 ## Alternatives Considered
 

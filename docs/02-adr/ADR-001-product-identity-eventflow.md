@@ -1,19 +1,51 @@
-# ADR-001 — Product Identity is EventFlow
+# ADR-001 - Product Identity: EventFlow
 
 **Status:** Accepted  
-**Date:** 2026-08-06  
-**Category:** Product
+**Category:** Product  
+**Date:** 2026-08-06
 
 ## Context
 
-The initial implementation began as a guest-management solution for the Lui @ 60 celebration. The feature set and intended reuse expanded beyond a single event.
+EventFlow requires a stable, reusable architecture that can grow beyond the initial reference implementation while preserving product clarity and operational reliability.
 
 ## Decision
 
-The product will be developed under the generic name **EventFlow**. Lui @ 60 is the first implementation/event, not the product identity.
+Develop the platform as the generic product EventFlow rather than Lui60 Event Manager.
+
+## Rationale
+
+Preserves reusability across event types and separates event branding from product identity.
+
+## Alternatives Considered
+
+- Keep the current behavior implicit and undocumented.
+- Implement the opposite design and compensate later through feature-specific workarounds.
+- Defer the decision until implementation pressure forces a local solution.
+
+These alternatives were rejected because they increase ambiguity, coupling, or future migration cost.
 
 ## Consequences
 
-- Event-specific values move to configuration.
-- Source code and database naming should progressively become event-neutral.
-- Future workflows should support multiple event types without event-specific code forks.
+### Positive
+- The decision becomes explicit and reviewable.
+- Future implementation can trace back to an approved architectural rationale.
+- Conflicting feature requests can be evaluated against a stable baseline.
+
+### Trade-offs
+- The architecture may require additional up-front structure.
+- Future changes must use a superseding ADR rather than silently modifying history.
+
+## Related Documents
+
+- EF-DOC-000 - EventFlow Constitution
+- EF-DOC-001 - Vision & Design Principles
+- EF-DOC-002 - ADR Register
+- EF-DOC-003 - Product Requirements Document
+
+## Supersedes
+
+None.
+
+## Superseded By
+
+None.

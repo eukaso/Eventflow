@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-009 - Provider-Agnostic Communications
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** Integration  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+Email/SMS providers are adapters behind EventFlow communication services.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+Allows Brevo/Twilio or future providers to be replaced without changing the domain model.
 
 ## Alternatives Considered
 

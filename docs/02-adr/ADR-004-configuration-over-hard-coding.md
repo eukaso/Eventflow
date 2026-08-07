@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-004 - Configuration Over Hard-Coding
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** Architecture  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+Event-specific names, dates, venue, branding, wording, artwork, deadlines, and templates are configuration.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+A new event should not require code edits.
 
 ## Alternatives Considered
 

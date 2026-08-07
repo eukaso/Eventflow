@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-006 - Mobile-First Public Experience
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** UX  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+Guest-facing flows are designed for smartphones first.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+Matches dominant guest access pattern and reduces support burden.
 
 ## Alternatives Considered
 

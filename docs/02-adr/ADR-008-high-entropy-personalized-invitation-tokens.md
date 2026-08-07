@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-008 - High-Entropy Personalized Invitation Tokens
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** Security  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+Use unique high-entropy tokens in personalized invitation links; do not expose email/password as public credentials.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+Reduces guessing risk and removes guest password friction.
 
 ## Alternatives Considered
 

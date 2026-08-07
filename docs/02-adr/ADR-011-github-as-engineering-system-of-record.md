@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-011 - GitHub as Engineering System of Record
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** Governance  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+GitHub repository history is the authoritative engineering history for source, controlled markdown documentation, tags, and release metadata.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+Provides versioned traceability; formal DOCX/PDF remain release artifacts.
 
 ## Alternatives Considered
 

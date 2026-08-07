@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-005 - Documentation as First-Class Deliverable
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** Governance  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+Documentation must be updated as part of releases and architectural change.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+Preserves traceability and institutional memory.
 
 ## Alternatives Considered
 

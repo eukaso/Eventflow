@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-002 - Event as Root Business Entity
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** Architecture  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+All event-scoped business objects shall explicitly belong to an Event.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+Enables multi-event growth and prevents ambiguous data ownership.
 
 ## Alternatives Considered
 

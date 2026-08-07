@@ -1,7 +1,7 @@
-# ADR-010 - Staged Release Model
+# ADR-012 - Capacity Tiers A-C for v1.x
 
 **Status:** Accepted  
-**Category:** Delivery  
+**Category:** Scalability  
 **Date:** 2026-08-06
 
 ## Context
@@ -10,11 +10,11 @@ EventFlow requires a stable, reusable architecture that can grow beyond the init
 
 ## Decision
 
-Use documented sprint/release gates, semantic versioning, tags, and controlled migrations.
+Design v1.x primarily for up to 5,000 attendees per event, with Tier D treated as future platform scale.
 
 ## Rationale
 
-Reduces uncontrolled change and creates recoverable milestones.
+Creates a measurable design target without prematurely engineering SaaS-scale infrastructure.
 
 ## Alternatives Considered
 
