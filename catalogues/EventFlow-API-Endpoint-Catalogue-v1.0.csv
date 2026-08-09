@@ -1,0 +1,53 @@
+method,endpoint,purpose,owner
+GET,/events,List accessible Events,EventService
+POST,/events,Create Event,EventService
+GET/PATCH,/events/{event_id},Read/update Event,EventService
+POST,/events/{event_id}/activate|complete|cancel|archive|restore,Lifecycle command,EventService
+GET/POST,/venues,List/create Venues,VenueService
+GET/PATCH,/venues/{venue_id},Read/update Venue,VenueService
+GET/PATCH,/events/{event_id}/configuration,Event configuration,EventConfigurationService
+GET/POST,/events/{event_id}/memberships,List/grant memberships,MembershipService
+PATCH,/events/{event_id}/memberships/{membership_id},Change role/attributes,MembershipService
+POST,/events/{event_id}/memberships/{membership_id}/suspend|reactivate|revoke|make-primary-owner,Membership commands,MembershipService
+GET/POST,/events/{event_id}/invitations,List/create Invitations,InvitationService
+GET/PATCH,/events/{event_id}/invitations/{invitation_id},Read/update Invitation,InvitationService
+POST,/events/{event_id}/invitations/{invitation_id}/activate|revoke|rotate-token|archive|restore,Invitation lifecycle/security,InvitationService
+GET/POST,/events/{event_id}/attendees,List/create Attendees,AttendeeService
+GET/PATCH,/events/{event_id}/attendees/{attendee_id},Read/update Attendee,AttendeeService
+POST,/events/{event_id}/attendees/{attendee_id}/cancel|restore|make-primary,Attendee commands,AttendeeService
+POST,/public/invitations/bootstrap,Invitation-token bootstrap,GuestAccessService
+GET,/public/invitation,Guest-safe Event/Invitation context,GuestAccessService
+GET/PUT,/public/invitation/response,Read/submit complete RSVP,RSVPService
+POST,/public/session/logout,End guest session,GuestAccessService
+GET/POST,/events/{event_id}/seating-groups,List/create seating groups,SeatingGroupService
+GET/PATCH,/events/{event_id}/seating-groups/{group_id},Read/update seating group,SeatingGroupService
+GET/POST,/events/{event_id}/tables,List/create Tables,SeatingService
+GET/PATCH,/events/{event_id}/tables/{table_id},Read/update Table,SeatingService
+GET/POST,/events/{event_id}/tables/{table_id}/seats,Seats,SeatingService
+GET,/events/{event_id}/seating/readiness,Non-mutating seating preflight,SeatingService
+POST,/events/{event_id}/seating/recommendations,Generate recommendations,SeatingService
+GET,/events/{event_id}/seating/recommendations/{recommendation_id},Review recommendation,SeatingService
+POST,/events/{event_id}/seating/recommendations/{recommendation_id}/apply,Apply approved recommendation,SeatingService
+POST,/events/{event_id}/attendees/{attendee_id}/seating/move,Manual attendee move,SeatingService
+POST,/events/{event_id}/seating-groups/{group_id}/move,Group move,SeatingService
+GET,/events/{event_id}/reception/attendees,Least-privilege reception search,CheckInService/query
+POST,/events/{event_id}/check-ins,Individual check-in,CheckInService
+POST,/events/{event_id}/check-ins/bulk,Atomic bulk check-in,CheckInService
+POST,/events/{event_id}/check-ins/{checkin_id}/reverse,Check-in reversal,CheckInService
+GET/POST,/events/{event_id}/communication-templates,List/create Templates,TemplateService
+GET/PATCH,/events/{event_id}/communication-templates/{template_id},Read/update draft Template,TemplateService
+POST,/events/{event_id}/communication-templates/{template_id}/publish|new-version|archive|preview,Template commands,TemplateService
+GET/POST,/events/{event_id}/campaigns,List/create Campaigns,CampaignService
+GET/PATCH,/events/{event_id}/campaigns/{campaign_id},Read/update Campaign draft,CampaignService
+POST,/events/{event_id}/campaigns/{campaign_id}/audience-preview|schedule|queue|cancel,Campaign commands,CampaignService
+GET,/events/{event_id}/messages,List Messages,MessageService
+GET,/events/{event_id}/messages/{message_id},Message detail,MessageService
+POST,/events/{event_id}/messages/{message_id}/retry,Retry logical Message,MessageService
+POST,/webhooks/{provider},Provider callback ingress,ProviderEventProcessor
+GET/POST,/events/{event_id}/imports,List/create Import Jobs,ImportService
+PUT,/events/{event_id}/imports/{import_job_id}/mapping,Column mapping,ImportService
+POST,/events/{event_id}/imports/{import_job_id}/parse|validate|dry-run|apply|cancel,Import commands,ImportService
+GET,/events/{event_id}/imports/{import_job_id}/rows|result,Review/results,ImportService
+GET,/events/{event_id}/audit,Read Event audit history,Audit query
+GET,/system/health|readiness,Operational health/readiness,System
+GET,/system/migrations|system/migrations/readiness,Migration status/readiness,MigrationService

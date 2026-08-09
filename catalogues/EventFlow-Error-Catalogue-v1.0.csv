@@ -1,0 +1,26 @@
+code,http_status,retryability,meaning
+malformed_json,400,No,Malformed JSON request.
+authentication_required,401,No,Authentication is required.
+guest_session_invalid,401,No,Guest session invalid/expired/token-version mismatch.
+insufficient_event_permission,403,No,Known principal lacks Event permission.
+rsvp_window_closed,403,No,Guest RSVP window is closed.
+resource_not_found,404,No,Resource absent or concealed.
+resource_modified,412,Conditional,ETag/If-Match stale.
+precondition_required,428,Conditional,Required If-Match omitted.
+validation_failed,422,No,Field/schema/domain validation failed.
+invitation_capacity_exceeded,422,No,Invitation capacity would be exceeded.
+table_capacity_exceeded,422,No,Table capacity exceeded.
+seat_already_occupied,409,Conditional,Seat is currently occupied.
+guest_response_modified,409,Conditional,Guest response revision is stale.
+seating_recommendation_stale,409,Conditional,Recommendation input changed.
+seating_group_override_required,409,Conditional,Required grouping would be violated.
+attendee_already_checked_in,409,No,Attendee is already effectively checked in.
+checkin_already_reversed,409,No,Check-in already reversed.
+campaign_already_queued,409,No,Campaign has already been frozen/queued.
+message_not_retryable,409,No,Message is not eligible for retry.
+import_not_ready,409,Conditional,Import has unresolved readiness conditions.
+idempotency_key_conflict,409,No,Same key was reused for a different canonical request.
+idempotency_request_in_progress,409,Yes,Matching idempotent request is still processing.
+rate_limit_exceeded,429,Yes,Caller exceeded rate limit.
+internal_error,500,Conditional,Unexpected server failure; use request_id for diagnostics.
+temporarily_unavailable,503,Yes,Known temporary infrastructure/service issue.
