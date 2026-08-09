@@ -1,0 +1,44 @@
+PDM,Child/Owner Table,Relationship / Rule
+PDM-001,eventflow_events,venue_id -> eventflow_venues.venue_id ON DELETE RESTRICT ON UPDATE RESTRICT
+PDM-003,eventflow_event_configurations,event_id -> eventflow_events.event_id RESTRICT
+PDM-004,eventflow_invitations,event_id -> eventflow_events.event_id RESTRICT
+PDM-005,eventflow_attendees,event_id -> events RESTRICT
+PDM-005,eventflow_attendees,"(event_id, invitation_id) -> invitations(event_id, invitation_id) RESTRICT"
+PDM-006,eventflow_seating_groups,event_id -> events RESTRICT
+PDM-006,eventflow_seating_groups,"(event_id, source_invitation_id) -> invitations composite RESTRICT"
+PDM-007,eventflow_seating_group_members,event_id -> events RESTRICT
+PDM-007,eventflow_seating_group_members,"(event_id,seating_group_id) -> seating_groups composite"
+PDM-007,eventflow_seating_group_members,"(event_id,attendee_id) -> attendees composite"
+PDM-008,eventflow_tables,event_id -> events RESTRICT
+PDM-009,eventflow_seats,event_id -> events RESTRICT
+PDM-009,eventflow_seats,"(event_id,table_id) -> tables composite RESTRICT"
+PDM-010,eventflow_seating_assignments,event_id -> events
+PDM-010,eventflow_seating_assignments,"(event_id,attendee_id)->attendees"
+PDM-010,eventflow_seating_assignments,"(event_id,table_id)->tables"
+PDM-010,eventflow_seating_assignments,"(event_id,table_id,seat_id)->seats"
+PDM-011,eventflow_checkin_stations,event_id -> events RESTRICT
+PDM-012,eventflow_checkins,event_id -> events
+PDM-012,eventflow_checkins,"(event_id,attendee_id)->attendees"
+PDM-012,eventflow_checkins,"(event_id,station_id)->checkin_stations"
+PDM-012,eventflow_checkins,"(event_id,reversal_of_checkin_id)->checkins"
+PDM-013,eventflow_communication_templates,event_id -> events RESTRICT
+PDM-014,eventflow_campaigns,event_id -> events
+PDM-014,eventflow_campaigns,"(event_id,template_id)->templates composite"
+PDM-015,eventflow_messages,event_id -> events
+PDM-015,eventflow_messages,"(event_id,campaign_id)->campaigns"
+PDM-015,eventflow_messages,"(event_id,invitation_id)->invitations"
+PDM-015,eventflow_messages,"(event_id,attendee_id)->attendees"
+PDM-016,eventflow_message_delivery_attempts,event_id -> events
+PDM-016,eventflow_message_delivery_attempts,"(event_id,message_id)->messages composite"
+PDM-017 / 017A,eventflow_provider_events,event_id -> events
+PDM-017 / 017A,eventflow_provider_events,"(event_id,message_id)->messages"
+PDM-017 / 017A,eventflow_provider_events,"(event_id,delivery_attempt_id)->delivery_attempts"
+PDM-018,eventflow_audit_logs,event_id -> events RESTRICT when non-null
+PDM-019,eventflow_event_venue_snapshots,event_id -> events RESTRICT
+PDM-019,eventflow_event_venue_snapshots,venue_id -> venues RESTRICT
+PDM-021A,eventflow_import_jobs,event_id -> events RESTRICT
+PDM-021B,eventflow_import_rows,event_id -> events
+PDM-021B,eventflow_import_rows,"(event_id,import_job_id)->import_jobs"
+PDM-021B,eventflow_import_rows,"(event_id,matched_invitation_id)->invitations"
+PDM-021B,eventflow_import_rows,"(event_id,applied_invitation_id)->invitations"
+PDM-022,eventflow_event_memberships,event_id -> events RESTRICT

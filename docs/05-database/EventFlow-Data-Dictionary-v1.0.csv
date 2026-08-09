@@ -1,0 +1,410 @@
+PDM,Table,Column,MySQL Type,Nullable,Default,Purpose
+PDM-002,eventflow_venues,venue_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-002,eventflow_venues,venue_name,VARCHAR(190),NO,-,Display name
+PDM-002,eventflow_venues,venue_status,VARCHAR(32),NO,'active',Lifecycle state
+PDM-002,eventflow_venues,address_line_1,VARCHAR(190),YES,NULL,Primary street address
+PDM-002,eventflow_venues,address_line_2,VARCHAR(190),YES,NULL,Suite/unit/additional address
+PDM-002,eventflow_venues,city,VARCHAR(120),YES,NULL,City/locality
+PDM-002,eventflow_venues,region,VARCHAR(120),YES,NULL,Province/state/region
+PDM-002,eventflow_venues,postal_code,VARCHAR(32),YES,NULL,Postal/ZIP code
+PDM-002,eventflow_venues,country_code,CHAR(2),YES,NULL,ISO-style two-letter country code
+PDM-002,eventflow_venues,latitude,"DECIMAL(10,7)",YES,NULL,Optional latitude
+PDM-002,eventflow_venues,longitude,"DECIMAL(10,7)",YES,NULL,Optional longitude
+PDM-002,eventflow_venues,phone,VARCHAR(40),YES,NULL,Venue phone
+PDM-002,eventflow_venues,email,VARCHAR(190),YES,NULL,Venue email
+PDM-002,eventflow_venues,website_url,VARCHAR(500),YES,NULL,Venue website
+PDM-002,eventflow_venues,default_capacity,INT UNSIGNED,YES,NULL,Informational normal capacity
+PDM-002,eventflow_venues,notes,TEXT,YES,NULL,Organizer notes
+PDM-002,eventflow_venues,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-002,eventflow_venues,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-002,eventflow_venues,created_at,DATETIME,NO,-,UTC creation time
+PDM-002,eventflow_venues,updated_at,DATETIME,NO,-,UTC modification time
+PDM-002,eventflow_venues,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-001,eventflow_events,event_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-001,eventflow_events,event_name,VARCHAR(190),NO,-,Official event name
+PDM-001,eventflow_events,event_slug,VARCHAR(190),NO,-,Installation-unique stable slug
+PDM-001,eventflow_events,event_status,VARCHAR(32),NO,'draft',draft/active/completed/cancelled/archived
+PDM-001,eventflow_events,starts_at,DATETIME,YES,NULL,UTC event start
+PDM-001,eventflow_events,ends_at,DATETIME,YES,NULL,UTC event end
+PDM-001,eventflow_events,timezone,VARCHAR(64),NO,-,IANA timezone
+PDM-001,eventflow_events,venue_id,BIGINT UNSIGNED,YES,NULL,Primary reusable Venue
+PDM-001,eventflow_events,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-001,eventflow_events,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-001,eventflow_events,created_at,DATETIME,NO,-,UTC creation time
+PDM-001,eventflow_events,updated_at,DATETIME,NO,-,UTC modification time
+PDM-001,eventflow_events,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-003,eventflow_event_configurations,event_configuration_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-003,eventflow_event_configurations,event_id,BIGINT UNSIGNED,NO,-,One-to-one Event
+PDM-003,eventflow_event_configurations,logo_media_id,BIGINT UNSIGNED,YES,NULL,WordPress attachment reference
+PDM-003,eventflow_event_configurations,invitation_media_id,BIGINT UNSIGNED,YES,NULL,WordPress attachment reference
+PDM-003,eventflow_event_configurations,primary_theme,VARCHAR(64),YES,NULL,Theme identifier
+PDM-003,eventflow_event_configurations,secondary_theme,VARCHAR(64),YES,NULL,Optional secondary theme
+PDM-003,eventflow_event_configurations,welcome_message,TEXT,YES,NULL,Guest landing message
+PDM-003,eventflow_event_configurations,confirmation_message,TEXT,YES,NULL,Post-confirmation message
+PDM-003,eventflow_event_configurations,surprise_notice,TEXT,YES,NULL,Optional guest notice
+PDM-003,eventflow_event_configurations,dress_code,VARCHAR(255),YES,NULL,Guest-facing dress code
+PDM-003,eventflow_event_configurations,confirmation_opens_at,DATETIME,YES,NULL,UTC confirmation opening
+PDM-003,eventflow_event_configurations,confirmation_closes_at,DATETIME,YES,NULL,UTC confirmation closing
+PDM-003,eventflow_event_configurations,allow_guest_edits,TINYINT(1),NO,0,Guest post-submission edits enabled
+PDM-003,eventflow_event_configurations,seating_mode,VARCHAR(32),NO,'table',table or seat
+PDM-003,eventflow_event_configurations,automatic_seating_enabled,TINYINT(1),NO,0,Automatic seating recommendations enabled
+PDM-003,eventflow_event_configurations,default_from_name,VARCHAR(190),YES,NULL,Email sender display name
+PDM-003,eventflow_event_configurations,reply_to_email,VARCHAR(190),YES,NULL,Event-level reply-to
+PDM-003,eventflow_event_configurations,default_sms_sender,VARCHAR(64),YES,NULL,SMS sender identifier
+PDM-003,eventflow_event_configurations,created_at,DATETIME,NO,-,UTC creation time
+PDM-003,eventflow_event_configurations,updated_at,DATETIME,NO,-,UTC modification time
+PDM-003,eventflow_event_configurations,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-003,eventflow_event_configurations,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-004,eventflow_invitations,invitation_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-004,eventflow_invitations,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-004,eventflow_invitations,invitation_code,VARCHAR(32),NO,-,Organizer-friendly code
+PDM-004,eventflow_invitations,primary_name,VARCHAR(190),NO,-,Primary invitee display name
+PDM-004,eventflow_invitations,primary_email,VARCHAR(190),YES,NULL,Delivery email
+PDM-004,eventflow_invitations,primary_email_normalized,VARCHAR(190),YES,NULL,Normalized email
+PDM-004,eventflow_invitations,primary_phone,VARCHAR(40),YES,NULL,Delivery phone
+PDM-004,eventflow_invitations,primary_phone_normalized,VARCHAR(32),YES,NULL,Normalized phone
+PDM-004,eventflow_invitations,capacity,SMALLINT UNSIGNED,NO,1,Maximum active attendees
+PDM-004,eventflow_invitations,invitation_status,VARCHAR(32),NO,'active',Invitation lifecycle
+PDM-004,eventflow_invitations,response_status,VARCHAR(32),NO,'pending',pending/accepted/declined
+PDM-004,eventflow_invitations,token_lookup,BINARY(32),NO,-,SHA-256 digest for indexed token lookup
+PDM-004,eventflow_invitations,token_version,SMALLINT UNSIGNED,NO,1,Token rotation generation
+PDM-004,eventflow_invitations,token_expires_at,DATETIME,YES,NULL,UTC optional expiry
+PDM-004,eventflow_invitations,token_revoked_at,DATETIME,YES,NULL,UTC revocation
+PDM-004,eventflow_invitations,first_accessed_at,DATETIME,YES,NULL,First successful guest access
+PDM-004,eventflow_invitations,last_accessed_at,DATETIME,YES,NULL,Latest successful guest access
+PDM-004,eventflow_invitations,submitted_at,DATETIME,YES,NULL,Latest completed confirmation submission
+PDM-004,eventflow_invitations,declined_at,DATETIME,YES,NULL,Decline time
+PDM-004,eventflow_invitations,organizer_notes,TEXT,YES,NULL,Internal notes
+PDM-004,eventflow_invitations,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-004,eventflow_invitations,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-004,eventflow_invitations,created_at,DATETIME,NO,-,UTC creation time
+PDM-004,eventflow_invitations,updated_at,DATETIME,NO,-,UTC modification time
+PDM-004,eventflow_invitations,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-005,eventflow_attendees,attendee_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-005,eventflow_attendees,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-005,eventflow_attendees,invitation_id,BIGINT UNSIGNED,NO,-,Parent Invitation
+PDM-005,eventflow_attendees,first_name,VARCHAR(120),YES,NULL,Given name
+PDM-005,eventflow_attendees,last_name,VARCHAR(120),YES,NULL,Family name
+PDM-005,eventflow_attendees,display_name,VARCHAR(190),NO,-,Canonical display name
+PDM-005,eventflow_attendees,attendee_role,VARCHAR(32),NO,'companion',primary/companion/future roles
+PDM-005,eventflow_attendees,email,VARCHAR(190),YES,NULL,Person-level email
+PDM-005,eventflow_attendees,email_normalized,VARCHAR(190),YES,NULL,Normalized email
+PDM-005,eventflow_attendees,phone,VARCHAR(40),YES,NULL,Person-level phone
+PDM-005,eventflow_attendees,phone_normalized,VARCHAR(32),YES,NULL,Normalized phone
+PDM-005,eventflow_attendees,attendance_status,VARCHAR(32),NO,'pending',pending/confirmed/declined/cancelled
+PDM-005,eventflow_attendees,confirmed_at,DATETIME,YES,NULL,UTC confirmation time
+PDM-005,eventflow_attendees,declined_at,DATETIME,YES,NULL,UTC decline time
+PDM-005,eventflow_attendees,cancelled_at,DATETIME,YES,NULL,UTC cancellation time
+PDM-005,eventflow_attendees,dietary_requirements,TEXT,YES,NULL,Dietary requirements
+PDM-005,eventflow_attendees,accessibility_requirements,TEXT,YES,NULL,Accessibility/accommodation requirements
+PDM-005,eventflow_attendees,organizer_notes,TEXT,YES,NULL,Internal organizer notes
+PDM-005,eventflow_attendees,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-005,eventflow_attendees,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-005,eventflow_attendees,created_at,DATETIME,NO,-,UTC creation time
+PDM-005,eventflow_attendees,updated_at,DATETIME,NO,-,UTC modification time
+PDM-005,eventflow_attendees,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-006,eventflow_seating_groups,seating_group_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-006,eventflow_seating_groups,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-006,eventflow_seating_groups,group_name,VARCHAR(190),NO,-,Group display name
+PDM-006,eventflow_seating_groups,group_category,VARCHAR(64),NO,'custom',family/church/school/work/friends/association/community/vip/custom
+PDM-006,eventflow_seating_groups,group_source,VARCHAR(32),NO,'host_defined',invitation/host_defined/system
+PDM-006,eventflow_seating_groups,source_invitation_id,BIGINT UNSIGNED,YES,NULL,Invitation source when derived
+PDM-006,eventflow_seating_groups,constraint_level,VARCHAR(32),NO,'preferred',required/preferred/informational
+PDM-006,eventflow_seating_groups,priority,SMALLINT UNSIGNED,NO,100,Relative recommendation priority
+PDM-006,eventflow_seating_groups,group_status,VARCHAR(32),NO,'active',Lifecycle state
+PDM-006,eventflow_seating_groups,organizer_notes,TEXT,YES,NULL,Internal notes
+PDM-006,eventflow_seating_groups,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-006,eventflow_seating_groups,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-006,eventflow_seating_groups,created_at,DATETIME,NO,-,UTC creation time
+PDM-006,eventflow_seating_groups,updated_at,DATETIME,NO,-,UTC modification time
+PDM-006,eventflow_seating_groups,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-007,eventflow_seating_group_members,seating_group_member_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-007,eventflow_seating_group_members,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-007,eventflow_seating_group_members,seating_group_id,BIGINT UNSIGNED,NO,-,Group
+PDM-007,eventflow_seating_group_members,attendee_id,BIGINT UNSIGNED,NO,-,Attendee member
+PDM-007,eventflow_seating_group_members,membership_source,VARCHAR(32),NO,'manual',invitation/manual/system/import
+PDM-007,eventflow_seating_group_members,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-007,eventflow_seating_group_members,created_at,DATETIME,NO,-,UTC creation time
+PDM-008,eventflow_tables,table_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-008,eventflow_tables,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-008,eventflow_tables,table_name,VARCHAR(190),NO,-,Display label
+PDM-008,eventflow_tables,table_number,INT UNSIGNED,YES,NULL,Optional numeric identity
+PDM-008,eventflow_tables,table_type,VARCHAR(64),NO,'standard',standard/VIP/head/future types
+PDM-008,eventflow_tables,capacity,SMALLINT UNSIGNED,NO,-,Maximum active occupancy
+PDM-008,eventflow_tables,table_status,VARCHAR(32),NO,'active',Lifecycle state
+PDM-008,eventflow_tables,sort_order,INT UNSIGNED,NO,100,Display order
+PDM-008,eventflow_tables,position_x,"DECIMAL(10,4)",YES,NULL,Future floor-plan X
+PDM-008,eventflow_tables,position_y,"DECIMAL(10,4)",YES,NULL,Future floor-plan Y
+PDM-008,eventflow_tables,organizer_notes,TEXT,YES,NULL,Internal notes
+PDM-008,eventflow_tables,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-008,eventflow_tables,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-008,eventflow_tables,created_at,DATETIME,NO,-,UTC creation time
+PDM-008,eventflow_tables,updated_at,DATETIME,NO,-,UTC modification time
+PDM-008,eventflow_tables,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-009,eventflow_seats,seat_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-009,eventflow_seats,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-009,eventflow_seats,table_id,BIGINT UNSIGNED,NO,-,Parent Table
+PDM-009,eventflow_seats,seat_number,SMALLINT UNSIGNED,YES,NULL,Optional numeric seat position
+PDM-009,eventflow_seats,seat_label,VARCHAR(64),NO,-,Human-friendly label
+PDM-009,eventflow_seats,sort_order,SMALLINT UNSIGNED,NO,100,Display order
+PDM-009,eventflow_seats,seat_status,VARCHAR(32),NO,'active',active/inactive/reserved/blocked
+PDM-009,eventflow_seats,is_accessible,TINYINT(1),NO,0,Accessibility-designated seat
+PDM-009,eventflow_seats,organizer_notes,TEXT,YES,NULL,Internal notes
+PDM-009,eventflow_seats,created_at,DATETIME,NO,-,UTC creation time
+PDM-009,eventflow_seats,updated_at,DATETIME,NO,-,UTC modification time
+PDM-009,eventflow_seats,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-010,eventflow_seating_assignments,seating_assignment_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-010,eventflow_seating_assignments,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-010,eventflow_seating_assignments,attendee_id,BIGINT UNSIGNED,NO,-,Assigned Attendee
+PDM-010,eventflow_seating_assignments,table_id,BIGINT UNSIGNED,NO,-,Assigned Table
+PDM-010,eventflow_seating_assignments,seat_id,BIGINT UNSIGNED,YES,NULL,Optional assigned Seat
+PDM-010,eventflow_seating_assignments,assignment_source,VARCHAR(32),NO,'manual',manual/automatic/imported/system
+PDM-010,eventflow_seating_assignments,assignment_status,VARCHAR(32),NO,'active',active/released/superseded
+PDM-010,eventflow_seating_assignments,has_group_override,TINYINT(1),NO,0,Host intentionally overrode grouping
+PDM-010,eventflow_seating_assignments,override_reason,VARCHAR(500),YES,NULL,Override reason
+PDM-010,eventflow_seating_assignments,assignment_reason,VARCHAR(500),YES,NULL,Placement rationale
+PDM-010,eventflow_seating_assignments,assigned_at,DATETIME,NO,-,UTC assignment time
+PDM-010,eventflow_seating_assignments,released_at,DATETIME,YES,NULL,UTC release time
+PDM-010,eventflow_seating_assignments,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-010,eventflow_seating_assignments,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-010,eventflow_seating_assignments,created_at,DATETIME,NO,-,UTC creation time
+PDM-010,eventflow_seating_assignments,updated_at,DATETIME,NO,-,UTC modification time
+PDM-011,eventflow_checkin_stations,station_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-011,eventflow_checkin_stations,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-011,eventflow_checkin_stations,station_name,VARCHAR(190),NO,-,Display name
+PDM-011,eventflow_checkin_stations,station_code,VARCHAR(32),YES,NULL,Optional short code
+PDM-011,eventflow_checkin_stations,station_type,VARCHAR(32),NO,'staffed',staffed/self_service/future
+PDM-011,eventflow_checkin_stations,station_status,VARCHAR(32),NO,'active',Lifecycle state
+PDM-011,eventflow_checkin_stations,sort_order,INT UNSIGNED,NO,100,Display order
+PDM-011,eventflow_checkin_stations,organizer_notes,TEXT,YES,NULL,Internal notes
+PDM-011,eventflow_checkin_stations,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-011,eventflow_checkin_stations,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-011,eventflow_checkin_stations,created_at,DATETIME,NO,-,UTC creation time
+PDM-011,eventflow_checkin_stations,updated_at,DATETIME,NO,-,UTC modification time
+PDM-011,eventflow_checkin_stations,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-012,eventflow_checkins,checkin_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-012,eventflow_checkins,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-012,eventflow_checkins,attendee_id,BIGINT UNSIGNED,NO,-,Attendee
+PDM-012,eventflow_checkins,station_id,BIGINT UNSIGNED,YES,NULL,Optional Station
+PDM-012,eventflow_checkins,action_type,VARCHAR(32),NO,'check_in',check_in/reversal/future actions
+PDM-012,eventflow_checkins,checkin_method,VARCHAR(32),NO,'manual',manual/search/guest_list/qr_code
+PDM-012,eventflow_checkins,reversal_of_checkin_id,BIGINT UNSIGNED,YES,NULL,Original action being reversed
+PDM-012,eventflow_checkins,performed_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress operator
+PDM-012,eventflow_checkins,operation_id,CHAR(36),YES,NULL,Groups multi-attendee operation
+PDM-012,eventflow_checkins,reason,VARCHAR(500),YES,NULL,Correction/reversal reason
+PDM-012,eventflow_checkins,notes,TEXT,YES,NULL,Operational notes
+PDM-012,eventflow_checkins,occurred_at,DATETIME,NO,-,UTC business occurrence
+PDM-012,eventflow_checkins,created_at,DATETIME,NO,-,UTC persistence time
+PDM-013,eventflow_communication_templates,template_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-013,eventflow_communication_templates,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-013,eventflow_communication_templates,template_key,VARCHAR(100),NO,-,Stable logical template identifier
+PDM-013,eventflow_communication_templates,template_name,VARCHAR(190),NO,-,Organizer-facing name
+PDM-013,eventflow_communication_templates,channel,VARCHAR(32),NO,-,email/sms/future
+PDM-013,eventflow_communication_templates,template_type,VARCHAR(64),NO,'general',invitation/reminder/update/etc.
+PDM-013,eventflow_communication_templates,template_status,VARCHAR(32),NO,'draft',draft/published/archived
+PDM-013,eventflow_communication_templates,version_number,INT UNSIGNED,NO,1,Content version
+PDM-013,eventflow_communication_templates,subject_template,VARCHAR(500),YES,NULL,Email subject source
+PDM-013,eventflow_communication_templates,body_template,LONGTEXT,NO,-,Body source
+PDM-013,eventflow_communication_templates,plain_text_template,LONGTEXT,YES,NULL,Plain-text fallback
+PDM-013,eventflow_communication_templates,allowed_merge_fields,JSON,YES,NULL,Controlled merge field metadata
+PDM-013,eventflow_communication_templates,published_at,DATETIME,YES,NULL,UTC publication
+PDM-013,eventflow_communication_templates,archived_at,DATETIME,YES,NULL,UTC archive
+PDM-013,eventflow_communication_templates,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-013,eventflow_communication_templates,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-013,eventflow_communication_templates,created_at,DATETIME,NO,-,UTC creation time
+PDM-013,eventflow_communication_templates,updated_at,DATETIME,NO,-,UTC modification time
+PDM-013,eventflow_communication_templates,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-014,eventflow_campaigns,campaign_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-014,eventflow_campaigns,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-014,eventflow_campaigns,template_id,BIGINT UNSIGNED,YES,NULL,Selected template version
+PDM-014,eventflow_campaigns,campaign_name,VARCHAR(190),NO,-,Organizer-facing name
+PDM-014,eventflow_campaigns,channel,VARCHAR(32),NO,-,Delivery channel
+PDM-014,eventflow_campaigns,campaign_type,VARCHAR(64),NO,'general',Business purpose
+PDM-014,eventflow_campaigns,campaign_status,VARCHAR(32),NO,'draft',Campaign lifecycle
+PDM-014,eventflow_campaigns,audience_definition,JSON,NO,-,Structured selection rule
+PDM-014,eventflow_campaigns,audience_snapshot_count,INT UNSIGNED,YES,NULL,Resolved recipient count
+PDM-014,eventflow_campaigns,scheduled_at,DATETIME,YES,NULL,UTC schedule
+PDM-014,eventflow_campaigns,started_at,DATETIME,YES,NULL,UTC start
+PDM-014,eventflow_campaigns,completed_at,DATETIME,YES,NULL,UTC completion
+PDM-014,eventflow_campaigns,cancelled_at,DATETIME,YES,NULL,UTC cancellation
+PDM-014,eventflow_campaigns,queued_count,INT UNSIGNED,NO,0,Derived summary
+PDM-014,eventflow_campaigns,provider_accepted_count,INT UNSIGNED,NO,0,Derived summary
+PDM-014,eventflow_campaigns,delivered_count,INT UNSIGNED,NO,0,Derived summary
+PDM-014,eventflow_campaigns,failed_count,INT UNSIGNED,NO,0,Derived summary
+PDM-014,eventflow_campaigns,bounced_count,INT UNSIGNED,NO,0,Derived summary
+PDM-014,eventflow_campaigns,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-014,eventflow_campaigns,updated_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-014,eventflow_campaigns,created_at,DATETIME,NO,-,UTC creation time
+PDM-014,eventflow_campaigns,updated_at,DATETIME,NO,-,UTC modification time
+PDM-014,eventflow_campaigns,deleted_at,DATETIME,YES,NULL,Soft deletion
+PDM-015,eventflow_messages,message_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-015,eventflow_messages,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-015,eventflow_messages,campaign_id,BIGINT UNSIGNED,YES,NULL,Parent Campaign
+PDM-015,eventflow_messages,invitation_id,BIGINT UNSIGNED,YES,NULL,Invitation recipient context
+PDM-015,eventflow_messages,attendee_id,BIGINT UNSIGNED,YES,NULL,Attendee recipient context
+PDM-015,eventflow_messages,channel,VARCHAR(32),NO,-,Delivery channel
+PDM-015,eventflow_messages,recipient_name,VARCHAR(190),YES,NULL,Historical recipient name
+PDM-015,eventflow_messages,recipient_address,VARCHAR(500),NO,-,Historical destination
+PDM-015,eventflow_messages,recipient_address_normalized,VARCHAR(190),YES,NULL,Canonical destination
+PDM-015,eventflow_messages,subject,VARCHAR(500),YES,NULL,Rendered email subject
+PDM-015,eventflow_messages,rendered_content,LONGTEXT,NO,-,Exact rendered content
+PDM-015,eventflow_messages,plain_text_content,LONGTEXT,YES,NULL,Plain-text snapshot
+PDM-015,eventflow_messages,delivery_status,VARCHAR(32),NO,'draft',Message delivery lifecycle
+PDM-015,eventflow_messages,idempotency_key,CHAR(64),NO,-,Logical-send idempotency key
+PDM-015,eventflow_messages,provider,VARCHAR(64),YES,NULL,Selected provider adapter
+PDM-015,eventflow_messages,provider_message_id,VARCHAR(190),YES,NULL,Primary provider correlation
+PDM-015,eventflow_messages,attempt_count,SMALLINT UNSIGNED,NO,0,Derived attempt count
+PDM-015,eventflow_messages,queued_at,DATETIME,YES,NULL,UTC queue time
+PDM-015,eventflow_messages,processing_at,DATETIME,YES,NULL,UTC worker start
+PDM-015,eventflow_messages,provider_accepted_at,DATETIME,YES,NULL,UTC provider acceptance
+PDM-015,eventflow_messages,delivered_at,DATETIME,YES,NULL,UTC delivery confirmation
+PDM-015,eventflow_messages,failed_at,DATETIME,YES,NULL,UTC final failure
+PDM-015,eventflow_messages,bounced_at,DATETIME,YES,NULL,UTC bounce
+PDM-015,eventflow_messages,cancelled_at,DATETIME,YES,NULL,UTC cancellation
+PDM-015,eventflow_messages,created_at,DATETIME,NO,-,UTC creation time
+PDM-015,eventflow_messages,updated_at,DATETIME,NO,-,UTC update time
+PDM-016,eventflow_message_delivery_attempts,delivery_attempt_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-016,eventflow_message_delivery_attempts,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-016,eventflow_message_delivery_attempts,message_id,BIGINT UNSIGNED,NO,-,Parent Message
+PDM-016,eventflow_message_delivery_attempts,attempt_number,SMALLINT UNSIGNED,NO,-,Sequential attempt number
+PDM-016,eventflow_message_delivery_attempts,provider,VARCHAR(64),NO,-,Provider adapter
+PDM-016,eventflow_message_delivery_attempts,attempt_status,VARCHAR(32),NO,'started',started/provider_accepted/failed/timed_out/cancelled
+PDM-016,eventflow_message_delivery_attempts,provider_message_id,VARCHAR(190),YES,NULL,Provider message reference
+PDM-016,eventflow_message_delivery_attempts,provider_request_id,VARCHAR(190),YES,NULL,Provider request correlation
+PDM-016,eventflow_message_delivery_attempts,response_code,VARCHAR(64),YES,NULL,HTTP/provider response code
+PDM-016,eventflow_message_delivery_attempts,error_code,VARCHAR(190),YES,NULL,Sanitized error code
+PDM-016,eventflow_message_delivery_attempts,error_message,TEXT,YES,NULL,Sanitized error summary
+PDM-016,eventflow_message_delivery_attempts,attempted_at,DATETIME,NO,-,UTC attempt start
+PDM-016,eventflow_message_delivery_attempts,provider_accepted_at,DATETIME,YES,NULL,UTC provider acceptance
+PDM-016,eventflow_message_delivery_attempts,completed_at,DATETIME,YES,NULL,UTC completion
+PDM-016,eventflow_message_delivery_attempts,created_at,DATETIME,NO,-,UTC persistence time
+PDM-017 / 017A,eventflow_provider_events,provider_event_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-017 / 017A,eventflow_provider_events,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-017 / 017A,eventflow_provider_events,message_id,BIGINT UNSIGNED,NO,-,Related Message
+PDM-017 / 017A,eventflow_provider_events,delivery_attempt_id,BIGINT UNSIGNED,YES,NULL,Related attempt when identifiable
+PDM-017 / 017A,eventflow_provider_events,provider,VARCHAR(64),NO,-,Provider adapter
+PDM-017 / 017A,eventflow_provider_events,provider_event_key,VARCHAR(190),YES,NULL,Provider-native event ID when available
+PDM-017 / 017A,eventflow_provider_events,event_dedupe_key,CHAR(64),NO,-,Mandatory EventFlow SHA-256 dedupe key
+PDM-017 / 017A,eventflow_provider_events,provider_event_type,VARCHAR(100),NO,-,Provider-specific event type
+PDM-017 / 017A,eventflow_provider_events,normalized_event_type,VARCHAR(64),NO,-,EventFlow normalized event
+PDM-017 / 017A,eventflow_provider_events,provider_status,VARCHAR(100),YES,NULL,Provider status detail
+PDM-017 / 017A,eventflow_provider_events,reason_code,VARCHAR(190),YES,NULL,Structured reason code
+PDM-017 / 017A,eventflow_provider_events,reason_message,TEXT,YES,NULL,Sanitized reason
+PDM-017 / 017A,eventflow_provider_events,provider_occurred_at,DATETIME,YES,NULL,Provider occurrence time
+PDM-017 / 017A,eventflow_provider_events,received_at,DATETIME,NO,-,UTC EventFlow receipt time
+PDM-017 / 017A,eventflow_provider_events,processed_at,DATETIME,YES,NULL,UTC processing completion
+PDM-017 / 017A,eventflow_provider_events,processing_status,VARCHAR(32),NO,'pending',pending/processing/processed/failed/ignored
+PDM-017 / 017A,eventflow_provider_events,created_at,DATETIME,NO,-,UTC persistence time
+PDM-018,eventflow_audit_logs,audit_log_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-018,eventflow_audit_logs,event_id,BIGINT UNSIGNED,YES,NULL,Event scope where applicable
+PDM-018,eventflow_audit_logs,actor_type,VARCHAR(32),NO,-,user/guest/system/background_job/webhook/migration
+PDM-018,eventflow_audit_logs,actor_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-018,eventflow_audit_logs,actor_reference,VARCHAR(190),YES,NULL,Non-user actor reference
+PDM-018,eventflow_audit_logs,action_type,VARCHAR(100),NO,-,Business action
+PDM-018,eventflow_audit_logs,entity_type,VARCHAR(64),NO,-,Affected entity type
+PDM-018,eventflow_audit_logs,entity_id,BIGINT UNSIGNED,YES,NULL,Polymorphic entity ID
+PDM-018,eventflow_audit_logs,operation_id,CHAR(36),YES,NULL,Business operation correlation
+PDM-018,eventflow_audit_logs,correlation_id,VARCHAR(100),YES,NULL,Technical request/job correlation
+PDM-018,eventflow_audit_logs,change_summary,VARCHAR(500),YES,NULL,Human-readable summary
+PDM-018,eventflow_audit_logs,before_data,JSON,YES,NULL,Relevant pre-change fields only
+PDM-018,eventflow_audit_logs,after_data,JSON,YES,NULL,Relevant post-change fields only
+PDM-018,eventflow_audit_logs,source_type,VARCHAR(32),NO,'application',admin_ui/guest_portal/rest_api/background_job/webhook/migration/system
+PDM-018,eventflow_audit_logs,ip_address,VARCHAR(45),YES,NULL,Optional security context
+PDM-018,eventflow_audit_logs,user_agent,VARCHAR(500),YES,NULL,Optional client context
+PDM-018,eventflow_audit_logs,reason,VARCHAR(500),YES,NULL,Business reason
+PDM-018,eventflow_audit_logs,occurred_at,DATETIME,NO,-,UTC business occurrence
+PDM-018,eventflow_audit_logs,created_at,DATETIME,NO,-,UTC persistence time
+PDM-019,eventflow_event_venue_snapshots,venue_snapshot_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-019,eventflow_event_venue_snapshots,event_id,BIGINT UNSIGNED,NO,-,Event
+PDM-019,eventflow_event_venue_snapshots,venue_id,BIGINT UNSIGNED,YES,NULL,Source reusable Venue
+PDM-019,eventflow_event_venue_snapshots,venue_name,VARCHAR(190),NO,-,Historical venue name
+PDM-019,eventflow_event_venue_snapshots,address_line_1,VARCHAR(190),YES,NULL,Historical address
+PDM-019,eventflow_event_venue_snapshots,address_line_2,VARCHAR(190),YES,NULL,Historical address
+PDM-019,eventflow_event_venue_snapshots,city,VARCHAR(120),YES,NULL,Historical city
+PDM-019,eventflow_event_venue_snapshots,region,VARCHAR(120),YES,NULL,Historical region
+PDM-019,eventflow_event_venue_snapshots,postal_code,VARCHAR(32),YES,NULL,Historical postal code
+PDM-019,eventflow_event_venue_snapshots,country_code,CHAR(2),YES,NULL,Historical country code
+PDM-019,eventflow_event_venue_snapshots,latitude,"DECIMAL(10,7)",YES,NULL,Historical latitude
+PDM-019,eventflow_event_venue_snapshots,longitude,"DECIMAL(10,7)",YES,NULL,Historical longitude
+PDM-019,eventflow_event_venue_snapshots,phone,VARCHAR(40),YES,NULL,Historical venue phone
+PDM-019,eventflow_event_venue_snapshots,email,VARCHAR(190),YES,NULL,Historical venue email
+PDM-019,eventflow_event_venue_snapshots,website_url,VARCHAR(500),YES,NULL,Historical venue website
+PDM-019,eventflow_event_venue_snapshots,snapshot_reason,VARCHAR(64),NO,-,event_activated/event_published/manual_lock/migration/legacy_import
+PDM-019,eventflow_event_venue_snapshots,snapshot_at,DATETIME,NO,-,UTC snapshot time
+PDM-019,eventflow_event_venue_snapshots,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-019,eventflow_event_venue_snapshots,created_at,DATETIME,NO,-,UTC persistence time
+PDM-020,eventflow_schema_migrations,migration_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-020,eventflow_schema_migrations,migration_key,VARCHAR(100),NO,-,Stable unique migration identifier
+PDM-020,eventflow_schema_migrations,migration_version,VARCHAR(32),NO,-,Application/schema milestone
+PDM-020,eventflow_schema_migrations,migration_type,VARCHAR(32),NO,'schema',schema/data/mixed
+PDM-020,eventflow_schema_migrations,migration_status,VARCHAR(32),NO,'pending',pending/running/completed/failed/rolled_back/partially_completed
+PDM-020,eventflow_schema_migrations,checksum,CHAR(64),NO,-,SHA-256 migration checksum
+PDM-020,eventflow_schema_migrations,description,VARCHAR(500),NO,-,Human-readable purpose
+PDM-020,eventflow_schema_migrations,started_at,DATETIME,YES,NULL,UTC start
+PDM-020,eventflow_schema_migrations,completed_at,DATETIME,YES,NULL,UTC completion
+PDM-020,eventflow_schema_migrations,failed_at,DATETIME,YES,NULL,UTC failure
+PDM-020,eventflow_schema_migrations,duration_ms,BIGINT UNSIGNED,YES,NULL,Duration milliseconds
+PDM-020,eventflow_schema_migrations,executed_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress operator
+PDM-020,eventflow_schema_migrations,execution_source,VARCHAR(32),NO,'system',plugin_upgrade/cli/admin_ui/deployment/system
+PDM-020,eventflow_schema_migrations,from_schema_version,VARCHAR(32),YES,NULL,Previous schema version
+PDM-020,eventflow_schema_migrations,to_schema_version,VARCHAR(32),YES,NULL,Resulting schema version
+PDM-020,eventflow_schema_migrations,records_examined,BIGINT UNSIGNED,YES,NULL,Optional reconciliation count
+PDM-020,eventflow_schema_migrations,records_changed,BIGINT UNSIGNED,YES,NULL,Optional reconciliation count
+PDM-020,eventflow_schema_migrations,records_failed,BIGINT UNSIGNED,YES,NULL,Optional reconciliation count
+PDM-020,eventflow_schema_migrations,validation_status,VARCHAR(32),YES,NULL,pending/passed/failed/warning
+PDM-020,eventflow_schema_migrations,rollback_available,TINYINT(1),NO,0,Automated rollback available
+PDM-020,eventflow_schema_migrations,rollback_reference,VARCHAR(190),YES,NULL,Recovery plan reference
+PDM-020,eventflow_schema_migrations,error_code,VARCHAR(190),YES,NULL,Sanitized failure code
+PDM-020,eventflow_schema_migrations,error_message,TEXT,YES,NULL,Sanitized failure summary
+PDM-020,eventflow_schema_migrations,created_at,DATETIME,NO,-,UTC record creation
+PDM-021A,eventflow_import_jobs,import_job_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-021A,eventflow_import_jobs,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-021A,eventflow_import_jobs,import_type,VARCHAR(64),NO,'invitations',Import domain
+PDM-021A,eventflow_import_jobs,import_status,VARCHAR(32),NO,'uploaded',Import lifecycle
+PDM-021A,eventflow_import_jobs,source_filename,VARCHAR(255),NO,-,Original file name
+PDM-021A,eventflow_import_jobs,source_file_hash,CHAR(64),YES,NULL,SHA-256 source file hash
+PDM-021A,eventflow_import_jobs,source_media_id,BIGINT UNSIGNED,YES,NULL,Optional WordPress media reference
+PDM-021A,eventflow_import_jobs,mapping_definition,JSON,YES,NULL,Source-to-domain column mapping
+PDM-021A,eventflow_import_jobs,options_definition,JSON,YES,NULL,Import options
+PDM-021A,eventflow_import_jobs,total_rows,INT UNSIGNED,NO,0,Parsed count
+PDM-021A,eventflow_import_jobs,valid_rows,INT UNSIGNED,NO,0,Valid count
+PDM-021A,eventflow_import_jobs,warning_rows,INT UNSIGNED,NO,0,Warning count
+PDM-021A,eventflow_import_jobs,invalid_rows,INT UNSIGNED,NO,0,Invalid count
+PDM-021A,eventflow_import_jobs,applied_rows,INT UNSIGNED,NO,0,Applied count
+PDM-021A,eventflow_import_jobs,skipped_rows,INT UNSIGNED,NO,0,Skipped count
+PDM-021A,eventflow_import_jobs,failed_rows,INT UNSIGNED,NO,0,Failed count
+PDM-021A,eventflow_import_jobs,uploaded_at,DATETIME,NO,-,UTC upload time
+PDM-021A,eventflow_import_jobs,validated_at,DATETIME,YES,NULL,UTC validation completion
+PDM-021A,eventflow_import_jobs,applied_at,DATETIME,YES,NULL,UTC apply completion
+PDM-021A,eventflow_import_jobs,completed_at,DATETIME,YES,NULL,UTC overall completion
+PDM-021A,eventflow_import_jobs,created_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress user reference
+PDM-021A,eventflow_import_jobs,created_at,DATETIME,NO,-,UTC creation time
+PDM-021A,eventflow_import_jobs,updated_at,DATETIME,NO,-,UTC update time
+PDM-021B,eventflow_import_rows,import_row_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-021B,eventflow_import_rows,import_job_id,BIGINT UNSIGNED,NO,-,Parent Import Job
+PDM-021B,eventflow_import_rows,event_id,BIGINT UNSIGNED,NO,-,Owning Event
+PDM-021B,eventflow_import_rows,source_row_number,INT UNSIGNED,NO,-,Source spreadsheet row number
+PDM-021B,eventflow_import_rows,raw_data,JSON,NO,-,Original parsed row
+PDM-021B,eventflow_import_rows,normalized_data,JSON,YES,NULL,Canonical EventFlow values
+PDM-021B,eventflow_import_rows,row_status,VARCHAR(32),NO,'pending',pending/valid/warning/invalid/ready/applied/skipped/failed
+PDM-021B,eventflow_import_rows,validation_errors,JSON,YES,NULL,Blocking validation errors
+PDM-021B,eventflow_import_rows,validation_warnings,JSON,YES,NULL,Non-blocking warnings
+PDM-021B,eventflow_import_rows,duplicate_match_type,VARCHAR(32),YES,NULL,exact/probable/possible/none
+PDM-021B,eventflow_import_rows,matched_invitation_id,BIGINT UNSIGNED,YES,NULL,Existing Invitation candidate
+PDM-021B,eventflow_import_rows,apply_action,VARCHAR(32),YES,NULL,create/update/skip/reject
+PDM-021B,eventflow_import_rows,applied_invitation_id,BIGINT UNSIGNED,YES,NULL,Resulting Invitation
+PDM-021B,eventflow_import_rows,applied_at,DATETIME,YES,NULL,UTC apply time
+PDM-021B,eventflow_import_rows,created_at,DATETIME,NO,-,UTC staging creation
+PDM-021B,eventflow_import_rows,updated_at,DATETIME,NO,-,UTC update time
+PDM-022,eventflow_event_memberships,event_membership_id,BIGINT UNSIGNED,NO,AUTO_INCREMENT,Internal primary key
+PDM-022,eventflow_event_memberships,event_id,BIGINT UNSIGNED,NO,-,Event
+PDM-022,eventflow_event_memberships,user_id,BIGINT UNSIGNED,NO,-,WordPress user ID
+PDM-022,eventflow_event_memberships,event_role,VARCHAR(32),NO,-,owner/organizer/coordinator/reception/reporting
+PDM-022,eventflow_event_memberships,membership_status,VARCHAR(32),NO,'active',invited/active/suspended/revoked/expired
+PDM-022,eventflow_event_memberships,is_primary_owner,TINYINT(1),NO,0,Primary Event owner flag
+PDM-022,eventflow_event_memberships,granted_by_user_id,BIGINT UNSIGNED,YES,NULL,WordPress granting user
+PDM-022,eventflow_event_memberships,granted_at,DATETIME,NO,-,UTC access grant
+PDM-022,eventflow_event_memberships,revoked_at,DATETIME,YES,NULL,UTC revocation
+PDM-022,eventflow_event_memberships,expires_at,DATETIME,YES,NULL,Optional temporary-access expiry
+PDM-022,eventflow_event_memberships,created_at,DATETIME,NO,-,UTC creation time
+PDM-022,eventflow_event_memberships,updated_at,DATETIME,NO,-,UTC update time

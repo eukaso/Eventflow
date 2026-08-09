@@ -1,0 +1,22 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad=0.2, nodesep=0.35, ranksep=0.7];
+  node [shape=box, style="rounded", fontname="Arial", fontsize=9];
+  edge [fontname="Arial", fontsize=8, arrowsize=0.7];
+  venues -> events [label="1:N"];
+  events -> event_configurations [label="1:1"];
+  events -> event_memberships [label="1:N"];
+  events -> invitations [label="1:N"];
+  invitations -> attendees [label="1:N"];
+  invitations -> seating_groups [label="0:N source"];
+  attendees -> seating_group_members [label="1:N"];
+  seating_groups -> seating_group_members [label="1:N"];
+  events -> tables [label="1:N"];
+  tables -> seats [label="1:N optional"];
+  attendees -> seating_assignments [label="1:N history"];
+  tables -> seating_assignments [label="1:N"];
+  seats -> seating_assignments [label="0:N"];
+  events -> checkin_stations [label="1:N"];
+  attendees -> checkins [label="1:N actions"];
+  checkin_stations -> checkins [label="0:N"];
+  events -> event_venue_snapshots [label="1:0..1"];
+}

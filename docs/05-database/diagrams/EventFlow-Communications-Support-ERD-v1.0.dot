@@ -1,0 +1,18 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad=0.2, nodesep=0.35, ranksep=0.7];
+  node [shape=box, style="rounded", fontname="Arial", fontsize=9];
+  edge [fontname="Arial", fontsize=8, arrowsize=0.7];
+  events -> communication_templates [label="1:N"];
+  communication_templates -> campaigns [label="0:N"];
+  events -> campaigns [label="1:N"];
+  campaigns -> messages [label="0:N"];
+  invitations -> messages [label="0:N"];
+  attendees -> messages [label="0:N"];
+  messages -> delivery_attempts [label="1:N"];
+  messages -> provider_events [label="1:N"];
+  delivery_attempts -> provider_events [label="0:N"];
+  events -> audit_logs [label="0:N"];
+  events -> import_jobs [label="1:N"];
+  import_jobs -> import_rows [label="1:N"];
+  schema_migrations [shape=box3d];
+}
