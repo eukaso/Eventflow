@@ -1,0 +1,76 @@
+﻿Refinement,Decision,Status
+S6-R01,Runtime schema compatibility gate,ACCEPTED
+S6-R02,Idempotent Event creation,ACCEPTED
+S6-R03,Request-authoritative membership authorization,ACCEPTED
+S6-R04,Revoked Invitation reactivation requires a new credential,ACCEPTED
+S6-R05,Supporting schema for server guest sessions and per-message guest-link credentials,ACCEPTED
+S6-R06,Persisted RSVP response revision,ACCEPTED
+S6-R07,Primary attendee continuity,ACCEPTED
+S6-R08,Idempotent organizer attendee creation,ACCEPTED
+S6-R09,Import row/application-unit idempotency,ACCEPTED
+S6-R10,Logical import-unit atomicity,ACCEPTED
+S6-R11,Imported Invitation credential handling without raw-token persistence/export,ACCEPTED
+S6-R12,Import worker lease,ACCEPTED
+S6-R13,Deterministic seating lock order,ACCEPTED
+S6-R14,Constraint override classes,ACCEPTED
+S6-R15,Recommendation algorithm versioning,ACCEPTED
+S6-R16,One active recommendation job per Event,ACCEPTED
+S6-R17,Planning assignment lock,ACCEPTED
+S6-R18,Recommendation reproducibility seed,ACCEPTED
+S6-R19,Mandatory check-in and bulk-check-in idempotency,ACCEPTED
+S6-R20,Dedicated reception lookup identifiers for QR/barcodes,ACCEPTED
+S6-R21,Optional rebuildable check-in current-state projection,ACCEPTED
+S6-R22,Template preview uses non-functional credentials,ACCEPTED
+S6-R23,Explicit dynamic versus snapshot audience mode,ACCEPTED
+S6-R24,Campaign-recipient Message idempotency,ACCEPTED
+S6-R25,Ambiguous provider outcome state,ACCEPTED
+S6-R26,Destination correction creates a new Message,ACCEPTED
+S6-R27,Explicit Campaign purpose,ACCEPTED
+S6-R28,Campaign execution immutability,ACCEPTED
+S6-R29,Durable webhook acknowledgement,ACCEPTED
+S6-R30,Provider dedupe algorithm versioning,ACCEPTED
+S6-R31,Unmatched ProviderEvent reconciliation,ACCEPTED
+S6-R32,Conflicting provider evidence preservation,ACCEPTED
+S6-R33,Delivery-attempt correlation metadata,ACCEPTED
+S6-R34,Engagement tracking opt-in design,ACCEPTED
+S6-R35,Webhook ingestion/processing separation,ACCEPTED
+S6-R36,Provider-event processing idempotency,ACCEPTED
+S6-R37,Provider correlation namespace,ACCEPTED
+S6-R38,Explicit nested transaction policy,ACCEPTED
+S6-R39,Explicit transactional retry eligibility,ACCEPTED
+S6-R40,Sensitive return-once idempotency semantics,ACCEPTED
+S6-R41,Transactional idempotency completion,ACCEPTED
+S6-R42,Typed audit event catalogue,ACCEPTED
+S6-R43,Versioned audit canonicalization,ACCEPTED
+S6-R44,Durable asynchronous intent reconciliation,ACCEPTED
+S6-R45,No distributed exactly-once assumption,ACCEPTED
+S6-R46,Idempotency execution lease,ACCEPTED
+S6-R47,Shared background-job lease model,ACCEPTED
+S6-R48,Explicit dead-letter handling,ACCEPTED
+S6-R49,Durable logical job deduplication,ACCEPTED
+S6-R50,Worker schema compatibility gate,ACCEPTED
+S6-R51,Versioned job payload contracts,ACCEPTED
+S6-R52,No executable job serialization,ACCEPTED
+S6-R53,Explicit sensitive-export purpose,ACCEPTED
+S6-R54,Explicit export temporal semantics,ACCEPTED
+S6-R55,Reauthorize sensitive export download,ACCEPTED
+S6-R56,Bounded export concurrency,ACCEPTED
+S6-R57,Atomic export artifact publication,ACCEPTED
+S6-R58,No long-lived export transaction,ACCEPTED
+S6-R59,Explicit Event Export resource,ACCEPTED
+S6-R60,Privacy-safe immutable audit strategy,ACCEPTED
+S6-R61,Retention/legal hold,ACCEPTED
+S6-R62,Restart-safe privacy orchestration,ACCEPTED
+S6-R63,Durable privacy tombstone/state marker,ACCEPTED
+S6-R64,Privacy reconciliation readiness gate,ACCEPTED
+S6-R65,Privacy action invalidates affected temporary exports,ACCEPTED
+S6-R66,Versioned privacy/retention policy decisions,ACCEPTED
+S6-R67,"Privacy failure uses forward completion, not PII rollback",ACCEPTED
+S6-R68,Privacy as explicit resource; routine retention execution non-public,ACCEPTED
+S6-R69,Typed public error details,ACCEPTED
+S6-R70,Central observability redaction policy,ACCEPTED
+S6-R71,Low-cardinality metrics discipline,ACCEPTED
+S6-R72,Sanitized diagnostic export,ACCEPTED
+S6-R73,Single authoritative error catalogue,ACCEPTED
+S6-R74,Cross-domain collaboration through narrow ports,ACCEPTED
+S6-R75,Optimized read models remain non-authoritative for mutation,ACCEPTED

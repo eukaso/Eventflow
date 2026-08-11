@@ -1,0 +1,21 @@
+﻿Surface,Extension,Disposition,Source
+Database,GuestSession,Supporting persistence if absent,S6-R05
+Database,GuestLinkCredential,Per-Message digest-only credential store,S6-R05
+Database,RSVP response_revision,Server-maintained stale-response revision,S6-R06
+Database,Job lease/priority/dedupe/payload version,Shared durable job model,S6-R47-R52
+Database,Idempotency record + execution lease,Scoped replay/recovery state,S6-R41/R46
+Database,Recommendation algorithm/seed/planning-lock metadata,Reproducible protected recommendations,S6-R15/R17/R18
+Database,CheckInStation,Event-day station identity,SVC-008
+Database,Check-in current-state projection,Optional rebuildable optimization,S6-R21
+Database,Campaign purpose/audience mode/message logical key,Communications execution semantics,S6-R23/R24/R27/R28
+Database,Provider reconciliation metadata,"Dedupe version, account namespace, processing/correlation status",S6-R30-R37
+Database,ExportRequest/ExportArtifact,Protected async export resources,S6-R53-R59
+Database,PrivacyAction/PrivacyState/RetentionHold,"Durable privacy, tombstone and hold workflow",S6-R61-R68
+Database,Audit integrity metadata/chain head,Versioned tamper-evident audit,S6-R43
+API,Event-scoped Export resource,Create/status/download/cancel protected exports,S6-R59
+API,PrivacyAction / RetentionHold resources,Privileged status/audit resources; routine retention non-public,S6-R68
+API,Import resume/retry-failed,Controlled recovery commands if exposed,SVC-006
+API,Privileged diagnostics/status,Sanitized only; no raw-log endpoint,S6-R72
+Catalogue,Error catalogue additions,Normalize all Sprint 6 codes into Sprint 4 authoritative catalogue,S6-R73
+Catalogue,Audit action additions,Normalize typed audit actions introduced across services,S6-R42
+Catalogue,Capability additions,Normalize names against SEC-003 capability vocabulary,SVC-016

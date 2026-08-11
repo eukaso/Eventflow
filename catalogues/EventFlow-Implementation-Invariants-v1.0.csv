@@ -1,0 +1,13 @@
+﻿Invariant,Rule
+IMP-INV-01,Business mutations occur only through authoritative Application Services.
+IMP-INV-02,"Controllers, WordPress hooks and workers do not directly perform domain persistence."
+IMP-INV-03,Repositories do not authorize callers or own external side effects.
+IMP-INV-04,Every Event-scoped mutation derives Event scope server-side and validates resource ownership.
+IMP-INV-05,Material business operations use explicit transaction boundaries.
+IMP-INV-06,External network calls do not execute inside authoritative business DB transactions.
+IMP-INV-07,Required Audit records commit atomically with the mutations they protect.
+IMP-INV-08,Background jobs assume at-least-once execution and are idempotent/restart-safe.
+IMP-INV-09,Raw reusable bearer credentials are never persisted as ordinary business data.
+IMP-INV-10,Optimized projections/read models do not bypass authoritative mutation services.
+IMP-INV-11,Unknown principal/provider/job/parser/report/policy identifiers fail closed.
+IMP-INV-12,"Earlier approved baselines change only through controlled refinements/migrations, never silent rewrites."

@@ -1,0 +1,16 @@
+﻿Operation,Boundary,Guarantee
+Event creation,Atomic,Event + default config + creator primary-owner membership + required audit
+Lifecycle transition,Atomic,Locked current Event state + readiness revalidation + audit
+Primary-owner transfer,Atomic,Relevant owner memberships locked; expected current primary
+Invitation token rotation,Atomic,Digest/version update + audit; old sessions/links invalid logically
+Guest RSVP,Atomic,Invitation lock + complete attendee reconciliation + group sync + audit
+Seating move/group move,Atomic,Destination validated before superseding prior assignment
+Recommendation generation,Asynchronous,No authoritative seating mutation until explicit apply
+Recommendation apply,Atomic selected plan,Fingerprint/current-state revalidation under deterministic locks
+Bulk check-in,Atomic selected set,Immutable actions + required audit + optional projection
+Campaign freeze,Atomic/bounded,Audience resolution freeze + immutable Message/guest-link creation; no provider call
+Provider dispatch,Asynchronous external,DeliveryAttempt recorded; provider call outside DB transaction
+ProviderEvent application,Atomic,ProviderEvent processing state + Message/attempt transition
+Import,Batched logical units,Each unit restart-safe/idempotent; not one giant transaction
+Large export,Asynchronous/batched read,No long-lived live DB transaction
+Privacy action,Restart-safe forward workflow,Irreversible PII minimization is not rolled back by restoring PII

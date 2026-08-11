@@ -1,0 +1,11 @@
+﻿Area,Result,Reconciliation
+Sprint 3 Database,PASS WITH CONTROLLED EXTENSIONS,Core physical model remains frozen. New support entities/metadata are introduced only through future versioned migrations.
+Sprint 4 API,PASS WITH CONTROLLED ADDITIONS,"Existing v1 endpoints remain compatible. Export, PrivacyAction/RetentionHold, import recovery/status and privileged diagnostics may extend the catalogue."
+Sprint 4 Error Catalogue,PASS WITH CONTROLLED ADDITIONS,Remains authoritative; Sprint 6 examples must be normalized/deduplicated before implementation.
+Sprint 5 Security,PASS,No Sprint 6 decision weakens the accepted security baseline; implementation contracts realize its controls.
+Authorization,PASS,PrincipalContext + current Event membership/global capability + lifecycle + resource policy + operation policy.
+Transactions,PASS,"Application-service ownership, no external side effects inside DB transactions, explicit retry eligibility."
+Audit,PASS,Required audit atomically protects material mutations; typed payloads and tamper-evident versioned chains.
+Jobs,PASS,"Durable typed at-least-once jobs with leases, dedupe, bounded retry, dead-letter and reconciliation."
+Privacy/Recovery,PASS,Archive/uninstall/user deletion are not purge; privacy tombstones and post-restore readiness reconciliation required.
+Dependency graph,PASS,Potential cycles resolved through narrow ports/orchestrators; optimized projections remain read-only.

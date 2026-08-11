@@ -1,0 +1,17 @@
+﻿ID,Service,Implementation Contract,Status
+SVC-001,Application Bootstrap & Dependency Composition,Single composition root; deterministic boot; explicit dependency injection; schema/runtime compatibility gate; thin WordPress adapters.,PASS
+SVC-002,Event Lifecycle Service,Atomic Event creation with default configuration and primary owner; explicit lifecycle commands/readiness; venue snapshotting; archive/restore semantics.,PASS
+SVC-003,Membership & Authorization Integration,Current server-side membership authority; capability/delegation policy; owner continuity; primary-owner transfer; request-authoritative authorization.,PASS
+SVC-004,Invitation & Guest-Access Service,Invitation lifecycle; return-once high-entropy credentials; guest-link indirection; server guest sessions; token-version invalidation; CSRF integration.,PASS
+SVC-005,Attendee & RSVP Service,Atomic complete-state RSVP reconciliation; response revision; capacity locking; attendee admin; primary-attendee continuity; seating-group synchronization.,PASS
+SVC-006,Import Pipeline Service,Secure staged CSV/XLSX pipeline; mapping/validation/dry-run; logical application units; domain-service application; restartable workers; retention.,PASS
+SVC-007,Seating & Recommendation Service,Flexible tables/seats/groups; authoritative manual assignment; deterministic locking; constraint classes; advisory versioned recommendations; stale detection.,PASS
+SVC-008,Reception & Check-In Service,Least-privilege reception projection; immutable attendee-level check-in/reversal actions; atomic bulk check-in; stations; mandatory idempotency.,PASS
+SVC-009,Communications & Campaign Service,Immutable template versions; explicit campaign purpose/audience mode; execution-time audience freeze; immutable Message snapshots; async provider dispatch.,PASS
+SVC-010,Provider & Webhook Processing,Provider-specific auth; durable-before-ack webhook capture; PDM-017A dedupe; normalization/correlation; out-of-order evidence; async reconciliation.,PASS
+SVC-011,"Audit, Idempotency & Transaction Infrastructure",Shared transaction/idempotency/audit model; typed audit; tamper-evident chains; retry policy; durable async intent; at-least-once correctness.,PASS
+SVC-012,Background Jobs & Scheduling,Durable typed jobs; leases/heartbeats; priorities; bounded retries/dead-letter; logical dedupe; payload versioning; scheduler reconciliation.,PASS
+SVC-013,Reporting & Export Service,Event-scoped report projections; separate PII export capability; protected expiring artifacts; streaming generation; download reauthorization; export audit.,PASS
+SVC-014,Privacy & Retention Operations,Policy-driven retention; holds; restart-safe anonymization; privacy tombstones; post-restore reconciliation; forward-completion privacy recovery.,PASS
+SVC-015,Error Handling & Observability Integration,Single error catalogue; typed public details; centralized redaction; structured logs/metrics; health vs readiness; sanitized diagnostics.,PASS
+SVC-016,Service Integration & Implementation Validation,Cross-service reconciliation; dependency-cycle controls; transaction/authorization integration; 20 integrated workflows; baseline extension register.,PASS

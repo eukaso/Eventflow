@@ -1,0 +1,21 @@
+﻿Scenario,Workflow,Validation Focus,Design Result
+IV-001,Create and activate Event,Event + default configuration + primary owner; readiness; venue snapshot; idempotent creation.,PASS
+IV-002,Invite guest securely,Return-once Invitation token; per-Message guest link; guest session; no raw-token persistence.,PASS
+IV-003,Guest RSVP amendment,"Complete-state reconciliation, capacity, response revision, invitation-group sync.",PASS
+IV-004,Concurrent RSVP capacity,Invitation locking prevents capacity overrun.,PASS
+IV-005,Organizer attendee correction,Attendee edit without unintended seating/check-in mutation.,PASS
+IV-006,Seating preparation,Variable tables/seats/groups; readiness and accessibility/capacity checks.,PASS
+IV-007,Recommendation workflow,Snapshot fingerprint; manual change causes stale apply rejection.,PASS
+IV-008,Host manual override,Authorized social-constraint override with reason; non-overrideable accessibility constraint remains blocked.,PASS
+IV-009,Reception event-day flow,Least-privilege search and atomic family/selected bulk check-in.,PASS
+IV-010,Check-in reversal,Elevated authority and reason; immutable reversal.,PASS
+IV-011,Scheduled Campaign,Dynamic execution-time audience; immutable Message freeze; guest-link issuance.,PASS
+IV-012,Provider outage,Circuit breaker/backoff; unrelated RSVP/seating/check-in remain available.,PASS
+IV-013,Provider webhook replay,Authenticated durable capture; PDM-017A dedupe; no duplicate Message transition.,PASS
+IV-014,Ambiguous provider result,No blind resend; bounded reconciliation.,PASS
+IV-015,Large import,"Secure parse, dry-run, logical units, worker crash/resume without duplicate domain mutations.",PASS
+IV-016,PII export,"Purpose, async protected artifact, download reauthorization, audit, expiry.",PASS
+IV-017,Privacy action,"Hold check, credential revocation, PII minimization, export invalidation, tombstone.",PASS
+IV-018,Backup restoration,Readiness block until privacy reconciliation reapplies prior privacy state.,PASS
+IV-019,Scheduler failure,Durable pending work survives scheduler failure and is re-enqueued.,PASS
+IV-020,Archive Event,Writes/check-in denied; reporting allowed; late provider evidence retained; restore to completed only.,PASS

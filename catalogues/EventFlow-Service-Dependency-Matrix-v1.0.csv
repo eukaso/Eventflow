@@ -1,0 +1,15 @@
+﻿Component,Depends On,Consumed By
+EventService,Event/Config/Membership/Venue repositories; lifecycle/readiness; Audit; Transaction,REST/admin adapters
+MembershipService,Membership/Event repositories; UserDirectory; capability/delegation/lifecycle; Audit; Transaction,AuthorizationService and admin APIs
+InvitationService,Invitation/Attendee/Event repositories; secure random/token hasher; Audit; Transaction,"GuestAccessService, Campaign/Import"
+RSVPService,Invitation/Attendee repositories; GuestRsvpPolicy; seating/check-in narrow ports; Idempotency; Audit,Guest API
+SeatingService,Table/Seat/Assignment/Attendee repositories; constraint policy; Audit; Transaction,Planning APIs; narrow release/group ports
+CheckInService,Attendee/CheckIn/Station repositories; lifecycle/policy; Idempotency; Audit,Reception API
+CampaignService,Campaign/Message/Event repositories; audience resolvers; Template/GuestAccess/Jobs,Admin communication API
+ProviderWebhookService,Provider registry; SecretProvider; ProviderEvent repository; normalization/dedupe,Webhook adapter; async ProviderEvent worker
+ImportService,Import repositories/store/parser/validator/reconciliation; JobService,Domain services through explicit ports
+ExportService,Export repositories/artifact store/schema registry; JobService; Audit,Reporting query layer
+PrivacyService,Privacy/Hold/Tombstone repositories; domain privacy ports; Jobs; Audit,Privileged privacy API/ops
+JobService,Job repository; handler registry; scheduler adapter; Clock/Logger,All async subsystems
+AuditService,Audit repository; integrity service; Clock/redaction,All material application services
+AuthorizationService,Membership/capability/lifecycle/resource policies,All protected application services
