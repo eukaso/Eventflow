@@ -1,0 +1,11 @@
+﻿Control ID,Control Area,Summary,Status
+SEC-001,Threat Model & Trust Boundaries,22 threats; 10 invariants; eight core trust boundaries; zero-assumed-trust request model,PASS
+SEC-002,Principal & Authentication Model,"WordPress users, guest sessions, jobs, provider webhooks, migration/system principals",PASS
+SEC-003,Authorization & Capability Matrix,"Explicit capabilities, role bundles, lifecycle/resource overlays, default deny",PASS
+SEC-004,Guest Token & Session Security,"High-entropy token digests, clean URL bootstrap, server sessions, rotation/revocation, anti-leakage",PASS
+SEC-005,API & Request Security,"HTTPS, CSRF/origin, same-origin CORS, bounded inputs, injection/output controls, upload/export security",PASS
+SEC-006,Secrets & Provider Security,"SecretProvider, least privilege, rotation, provider verification, guest-link indirection",PASS
+SEC-007,Data Protection & Privacy,"PII minimization, role-specific DTOs, retention, exports, archive/purge separation",PASS
+SEC-008,Audit & Security Logging,"Append-only audit, principal attribution, redaction, structured logs, tamper evidence",PASS
+SEC-009,Abuse & Operational Controls,"Risk-based throttling, containment, circuit breakers, event-day prioritization",PASS
+SEC-010,Security Validation Matrix,18 adversarial architectural scenarios; threat/invariant coverage,PASS

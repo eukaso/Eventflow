@@ -1,0 +1,21 @@
+﻿Capability Area,Primary Owner,Owner,Organizer,Coordinator,Reception,Reporting
+View Event,Yes,Yes,Yes,Yes,Limited,Yes
+Edit Event,Yes,Yes,Yes,Limited,No,No
+Activate/Complete,Yes,Yes,Policy,No,No,No
+Archive/Restore,Yes,Policy,No,No,No,No
+Manage staff memberships,Yes,Yes,Policy,No,No,No
+Manage owners,Yes,No,No,No,No,No
+Transfer primary owner,Yes,No,No,No,No,No
+Manage Invitations,Yes,Yes,Yes,Yes,No,No
+Rotate/Revoke token,Yes,Yes,Yes,Policy,No,No
+Manage Attendees,Yes,Yes,Yes,Yes,No,No
+Manage Seating,Yes,Yes,Yes,Yes,No,No
+Override required group,Yes,Yes,Yes,Policy,No,No
+Check-in,Yes,Yes,Yes,Yes,Yes,No
+Reverse check-in,Yes,Yes,Yes,Policy,No,No
+Manage Templates,Yes,Yes,Yes,Policy,No,No
+Queue Campaign,Yes,Yes,Yes,Policy,No,No
+Manage Imports,Yes,Yes,Yes,Policy,No,No
+View Audit,Yes,Yes,Yes,Limited,No,Limited
+View Reports,Yes,Yes,Yes,Yes,Limited,Yes
+Export PII,Yes,Yes,Policy,No,No,Policy

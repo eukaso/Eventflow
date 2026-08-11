@@ -1,0 +1,19 @@
+﻿Scenario ID,Scenario,Threats,Attack / Failure,Expected Security Outcome,Design Result
+SV-001,Cross-Event IDOR,"THR-001, THR-013",Organizer of Event A targets Event B resource,404 resource_not_found; no disclosure/mutation; probing telemetry,PASS
+SV-002,Role privilege escalation,"THR-002, THR-015",Coordinator attempts owner grant/self-elevation,403/default deny; repeated attempts signaled,PASS
+SV-003,Unauthorized primary-owner transfer,"THR-002, THR-015",Organizer/ordinary owner attempts transfer,403; only current primary owner/global recovery authority; audit legitimate transfer,PASS
+SV-004,Invitation-token enumeration,"THR-003, THR-004, THR-019",Automated random credential probing,"Generic failure, throttling, enumeration signal; no validity oracle",PASS
+SV-005,Old token after rotation,"THR-003, THR-007",Use v4 token/session after v5 rotation,401 invitation_access_invalid; prior sessions invalid,PASS
+SV-006,Guest scope escape,"THR-001, THR-005, THR-013",Guest for one Invitation targets other resources,Deny; server-bound Event+Invitation scope,PASS
+SV-007,Guest CSRF,THR-006,Cross-site RSVP mutation with valid guest cookie but no CSRF/origin evidence,Deny; telemetry; no mutation,PASS
+SV-008,Administrative CSRF,THR-006,External site targets logged-in WordPress user,Deny without required REST nonce/request protection,PASS
+SV-009,RSVP duplicate/replay,"THR-007, THR-016","Replay same key/request, then same key/different body",Replay prior outcome; conflict on fingerprint mismatch; scoped idempotency,PASS
+SV-010,Forged provider webhook,THR-008,Valid-looking JSON with invalid/missing provider signature,Deny before domain processing; security telemetry,PASS
+SV-011,Valid webhook replay,"THR-007, THR-009",Replay authentic provider callback,Dedupe; no duplicate transition; cheap acknowledgement,PASS
+SV-012,Malicious import,"THR-010, THR-011, THR-012, THR-019",Malformed/oversized/formula/script/archive-bomb payloads,Bounded parser/staging; no code/SQL execution; no direct production insert,PASS
+SV-013,Reception account compromise,"THR-002, THR-013, THR-018",Compromised Reception principal attempts broader access,Only reception search/check-in/limited seating read; broader actions denied,PASS
+SV-014,Archived Event mutation,THR-022,Valid owner attempts mutation on archived Event,Deny event_archived despite role capability,PASS
+SV-015,Secret leakage inspection,THR-014,Inspect logs/audit/errors/message history after credential operations,No reusable secrets; guest-link indirection used,PASS
+SV-016,PII export abuse,"THR-013, THR-018",Unauthorized broad export; repeated authorized exports,403 without export_pii; authorized artifact protected/expiring/audited; anomaly signal,PASS
+SV-017,Provider outage/retry storm,"THR-019, THR-020",Timeout/429/5xx repeatedly,"Bounded backoff, Retry-After, circuit breaker; unrelated domains remain available",PASS
+SV-018,Audit integrity failure,THR-017,Modify/delete/reorder test audit record then verify chain,Integrity failure and high/critical signal; no silent repair,PASS

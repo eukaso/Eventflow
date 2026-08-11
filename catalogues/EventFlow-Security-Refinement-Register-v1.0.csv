@@ -1,0 +1,17 @@
+﻿Refinement ID,Requirement
+S5-R01,Message history must not permanently store the underlying long-lived Invitation token; outbound links use secure indirection.
+S5-R02,Idempotency records are scoped by authoritative principal/operation/Event and canonical request fingerprint.
+S5-R03,Spreadsheet-compatible import/export explicitly protects against formula injection.
+S5-R04,"Security-sensitive absolute URLs are generated from trusted canonical application configuration, not untrusted Host headers."
+S5-R05,"Outbound invitation communications use purpose-scoped high-entropy guest-link credentials, preferably per logical Message recipient, stored only as digests."
+S5-R06,"Reusable provider, signing, encryption and runtime secrets are externalized behind a SecretProvider abstraction."
+S5-R07,Import source files and raw staging payloads receive explicit short-lived retention.
+S5-R08,PII exports are temporary protected artifacts with authorization-controlled retrieval and expiry.
+S5-R09,Backup/restore procedures account for privacy-state reconciliation after restoration.
+S5-R10,Plugin uninstall and WordPress-user deletion do not implicitly purge EventFlow history.
+S5-R11,Security-critical audit history should support tamper-evident chained integrity verification.
+S5-R12,Operational logging uses structured encoding or equivalent log-injection protection.
+S5-R13,"If a material mutation requires an audit record, inability to persist that audit fails/rolls back the mutation."
+S5-R14,"Import parsers enforce upload and expanded/parsing complexity limits, including XLSX archive expansion."
+S5-R15,External provider integrations support bounded backoff and circuit-breaker behavior.
+S5-R16,Event-day critical paths receive operational priority over non-critical heavy workloads.

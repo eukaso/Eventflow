@@ -1,0 +1,13 @@
+﻿Area,Existing Baseline,Sprint 5 Requirement,Reconciliation,Implementation Note
+Guest credential storage,Sprint 3 Invitation token digest + Sprint 4 return-once token,SEC-004/006,Compatible,No core redesign. Adds guest-link indirection for outbound Messages.
+Message immutability,Sprint 4 immutable rendered Message snapshot,S5-R01/R05,Compatible with refinement,"Message retains indirection URL, not underlying Invitation token."
+Guest-link persistence,No dedicated Sprint 3 entity,S5-R05,Controlled extension required,"Likely supporting table/store for per-Message opaque link digest, expiry/revocation/context. Implement via versioned migration."
+Idempotency,Sprint 4 generic Idempotency-Key semantics,S5-R02,Compatible,Implementation idempotency store must scope principal/operation/Event + request fingerprint.
+Audit,Sprint 3 audit model; Sprint 4 AuditService,S5-R11/R13,Compatible with possible extension,Tamper-evident chain may require hash/previous-hash metadata or companion integrity store; versioned migration if persisted.
+Imports,Sprint 3 staging + Sprint 4 staged/batched apply,S5-R07/R14,Compatible,Adds retention/complexity controls; no domain change.
+Exports,Sprint 4 report/export concepts,S5-R03/R08,Compatible,Protected expiring artifact semantics are implementation/ops concern.
+Provider adapters,Sprint 4 provider capability-aware retries,S5-R06/R15,Compatible,Externalized secrets + circuit breaker deepen existing adapter contract.
+Reception,Sprint 4 least-privilege DTO/check-in,SEC-003/007/009,Compatible,Security formalizes capability and abuse limits.
+Event lifecycle,Sprint 4 completed/archived overlays,SEC-003/005,Compatible,Archived mutation remains server-side denied; late historical evidence still permitted.
+Backup/restore,Future migration/recovery plan reserved,S5-R09,Deferred dependency,Must be carried into future migration/recovery documentation; no Sprint 3/4 contradiction.
+Plugin/user deletion,Not a normal API purge operation,S5-R10,Compatible,Implementation uninstall hooks must preserve data unless explicit governed destructive action.
