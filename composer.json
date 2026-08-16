@@ -22,9 +22,11 @@
   "scripts": {
     "test": [
       "@test:syntax",
-      "@test:unit"
+      "@test:unit",
+      "@test:integration"
     ],
     "test:syntax": "@php tests/bin/lint.php",
-    "test:unit": "phpunit --testsuite unit"
+    "test:unit": "phpunit --testsuite unit",
+    "test:integration": "phpunit --testsuite integration"
   }
 }

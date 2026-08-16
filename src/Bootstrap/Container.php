@@ -2,31 +2,44 @@
 
 namespace EventFlow\Bootstrap;
 
+use EventFlow\Application\Error\CoreErrorCatalogue;
+use EventFlow\Application\Error\ErrorCodeMapper;
+use EventFlow\Application\Error\RequestIdFactory;
+use EventFlow\Infrastructure\Clock\SystemClock;
 use EventFlow\Infrastructure\Config\Config;
+use EventFlow\Infrastructure\Security\PhpSecureRandom;
+use EventFlow\Presentation\Api\ApiErrorTranslator;
 
-final class Container
+final readonly class Container
 {
     private function __construct(
-        private Config $config,
-        private SchemaCompatibilityChecker $schemaCompatibilityChecker,
+        public Config $config,
+        public FoundationServices $services,
+        public ?DatabaseFoundation $database,
     ) {
     }
 
-    public static function createFoundation(Config $config): self
+    public static function createFoundation(Config $config, ?object $wpdb = null): self
     {
+        $clock = new SystemClock();
+        $random = new PhpSecureRandom();
+        $schemaCompatibility = new SchemaCompatibilityChecker();
+        $errors = CoreErrorCatalogue::create();
+        $errorCodeMapper = new ErrorCodeMapper($errors);
+        $services = new FoundationServices(
+            clock: $clock,
+            random: $random,
+            schemaCompatibility: $schemaCompatibility,
+            errors: $errors,
+            errorCodeMapper: $errorCodeMapper,
+            requestIds: new RequestIdFactory($random),
+            apiErrors: new ApiErrorTranslator($errors, $errorCodeMapper),
+        );
+
         return new self(
             $config,
-            new SchemaCompatibilityChecker(),
+            $services,
+            $wpdb === null ? null : DatabaseFoundation::create($wpdb, $config, $services),
         );
-    }
-
-    public function config(): Config
-    {
-        return $this->config;
-    }
-
-    public function schemaCompatibilityChecker(): SchemaCompatibilityChecker
-    {
-        return $this->schemaCompatibilityChecker;
     }
 }

@@ -4,9 +4,6 @@ namespace EventFlow\Bootstrap;
 
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
-use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
-use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
-use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
 use Throwable;
 
 final class ApplicationBootstrap
@@ -32,12 +29,14 @@ final class ApplicationBootstrap
             }
 
             $config = (new ConfigLoader())->load();
-            $container = Container::createFoundation($config);
+            global $wpdb;
+            $container = Container::createFoundation($config, is_object($wpdb) ? $wpdb : null);
 
-            $installedSchemaVersion = self::readInstalledSchemaVersion();
+            $installedSchemaVersion = $container->database?->migrations->currentSchemaVersion();
 
             $compatibility = $container
-                ->schemaCompatibilityChecker()
+                ->services
+                ->schemaCompatibility
                 ->check($config->expectedSchemaVersion, $installedSchemaVersion);
 
             return self::$result = match ($compatibility) {
@@ -79,7 +78,7 @@ final class ApplicationBootstrap
 
     private static function registerFullMode(): BootstrapResult
     {
-        // REST, workers, admin and CLI registration will be added in later IMP packages.
+        // Product routes and concrete job handlers are composed by their owning packages.
         return new BootstrapResult(
             BootstrapState::READY,
             true,
@@ -93,7 +92,7 @@ final class ApplicationBootstrap
      */
     private static function registerMinimalMode(BootstrapState $state, array $codes): BootstrapResult
     {
-        // Minimal health/readiness/admin migration surfaces are added later.
+        // Domain mutation surfaces remain disabled until compatibility is restored.
         return new BootstrapResult(
             $state,
             true,
@@ -102,21 +101,4 @@ final class ApplicationBootstrap
         );
     }
 
-    private static function readInstalledSchemaVersion(): ?int
-    {
-        // This is deliberately read-only. Migrations run only through explicit
-        // CLI/upgrade infrastructure, never during normal HTTP bootstrap.
-        global $wpdb;
-
-        if (!is_object($wpdb)) {
-            return null;
-        }
-
-        $database = new WpdbAdapter($wpdb);
-
-        return (new WpdbSchemaMetadataRepository(
-            $database,
-            new WpdbTableNames($database->tablePrefix()),
-        ))->currentSchemaVersion();
-    }
 }
