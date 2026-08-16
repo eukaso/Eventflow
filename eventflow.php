@@ -1,0 +1,19 @@
+<?php
+/**
+ * Plugin Name: EventFlow
+ * Description: Event management platform.
+ * Version: 0.8.0-dev
+ */
+
+defined('ABSPATH') || exit;
+
+define('EVENTFLOW_VERSION', '0.8.0-dev');
+define('EVENTFLOW_SCHEMA_VERSION', 1);
+define('EVENTFLOW_PLUGIN_FILE', __FILE__);
+define('EVENTFLOW_PLUGIN_DIR', __DIR__);
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+add_action('plugins_loaded', static function (): void {
+    \EventFlow\Bootstrap\ApplicationBootstrap::boot();
+});
