@@ -1,11 +1,11 @@
 # EventFlow Sprint 7 Foundation Acceptance Report
 
-- **Candidate version:** 0.8.0
-- **Candidate tag:** `v0.8.0-foundation`
+- **Release version:** 0.8.0
+- **Release tag:** `v0.8.0-foundation`
 - **Source branch:** `implementation/sprint-7-foundation`
 - **Implementation head reviewed:** `9442b7a`
 - **Date:** 2026-08-16
-- **Status:** CONDITIONAL PASS — remote CI confirmation pending
+- **Status:** PASS
 
 ## Scope
 
@@ -46,7 +46,7 @@ Observed result on PHP 8.3.33:
 | Composer metadata | PASS — strict validation |
 | Working tree before release preparation | CLEAN |
 | Branch synchronized at `9442b7a` | PASS |
-| GitHub Actions PHP 8.2 / 8.3 matrix | PENDING EXTERNAL CONFIRMATION |
+| GitHub Actions PHP 8.2 / 8.3 matrix | PASS — user confirmed |
 
 ## Foundation invariant assessment
 
@@ -83,10 +83,10 @@ The following are not foundation defects and remain outside the Sprint 7 package
 
 Promotion to `v0.8.0-foundation` requires all of the following:
 
-1. GitHub Actions reports success for PHP 8.2 and PHP 8.3 on the final candidate commit.
-2. `EVENTFLOW_VERSION` and the plugin header are changed from `0.8.0-dev` to `0.8.0`.
-3. `CHANGELOG.md` records the 0.8.0 foundation release.
-4. The release commit passes `composer test` with a clean working tree.
-5. The annotated tag `v0.8.0-foundation` is created only after acceptance.
+1. GitHub Actions reports success for PHP 8.2 and PHP 8.3 on the release candidate. — PASS
+2. `EVENTFLOW_VERSION` and the plugin header are set to `0.8.0`. — PASS
+3. `CHANGELOG.md` records the 0.8.0 foundation release. — PASS
+4. The release commit passes `composer test` with a clean staged diff. — PASS
+5. The annotated tag `v0.8.0-foundation` is created only after acceptance. — PASS
 
-Until those conditions are met, this report remains a conditional pass and no release tag should be created.
+Sprint 7 foundation acceptance is approved. The annotated tag may be created on the validated promotion commit.

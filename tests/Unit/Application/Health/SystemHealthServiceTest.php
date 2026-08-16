@@ -134,7 +134,7 @@ final class SystemHealthServiceTest extends TestCase
     /** @param iterable<ReadinessCheck> $checks */
     private function service(BootstrapResult $bootstrap, iterable $checks): SystemHealthService
     {
-        return new SystemHealthService($bootstrap, $checks, new HealthTestClock(), '0.8.0-dev');
+        return new SystemHealthService($bootstrap, $checks, new HealthTestClock(), '0.8.0');
     }
 
     private function readyBootstrap(): BootstrapResult
