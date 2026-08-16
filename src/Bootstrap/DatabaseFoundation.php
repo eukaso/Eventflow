@@ -7,6 +7,7 @@ use EventFlow\Application\Audit\AuditPayloadRedactor;
 use EventFlow\Application\Audit\AuditService;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Authorization\RoleCapabilityPolicy;
+use EventFlow\Application\Event\EventLifecycleService;
 use EventFlow\Application\Health\ReadinessCheck;
 use EventFlow\Application\Idempotency\CanonicalRequestHasher;
 use EventFlow\Application\Idempotency\IdempotencyService;
@@ -20,6 +21,7 @@ use EventFlow\Infrastructure\Health\WpdbConnectionReadinessCheck;
 use EventFlow\Infrastructure\Job\MigrationWorkerSchemaGate;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAuditRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventLifecycleRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbJobRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
@@ -27,6 +29,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
 use EventFlow\Infrastructure\Transaction\WpdbTransactionManager;
 use EventFlow\Infrastructure\WordPress\WordPressGlobalRecoveryAuthority;
+use EventFlow\Infrastructure\WordPress\WordPressEventCreationAuthority;
 
 final readonly class DatabaseFoundation
 {
@@ -41,6 +44,7 @@ final readonly class DatabaseFoundation
         public AuthorizationService $authorization,
         public IdempotencyService $idempotency,
         public AuditService $audit,
+        public EventLifecycleService $eventLifecycle,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
         public array $readinessChecks,
@@ -53,31 +57,43 @@ final readonly class DatabaseFoundation
         $tableNames = new WpdbTableNames($database->tablePrefix());
         $migrations = new WpdbSchemaMetadataRepository($database, $tableNames);
         $transactions = new WpdbTransactionManager($database);
+        $authorization = new AuthorizationService(
+            new WpdbMembershipReader($database, $tableNames),
+            new RoleCapabilityPolicy(),
+            $shared->clock,
+            new WordPressGlobalRecoveryAuthority(),
+        );
+        $idempotency = new IdempotencyService(
+            new WpdbIdempotencyRepository($database, $tableNames),
+            $transactions,
+            $shared->clock,
+            $shared->random,
+            new CanonicalRequestHasher(),
+        );
+        $audit = new AuditService(
+            new WpdbAuditRepository($database, $tableNames),
+            $transactions,
+            $shared->clock,
+            new AuditPayloadRedactor(),
+            new AuditCanonicalizer(),
+        );
+        $eventRepository = new WpdbEventLifecycleRepository($database, $tableNames);
 
         return new self(
             database: $database,
             tableNames: $tableNames,
             migrations: $migrations,
             transactions: $transactions,
-            authorization: new AuthorizationService(
-                new WpdbMembershipReader($database, $tableNames),
-                new RoleCapabilityPolicy(),
+            authorization: $authorization,
+            idempotency: $idempotency,
+            audit: $audit,
+            eventLifecycle: new EventLifecycleService(
+                $eventRepository,
+                new WordPressEventCreationAuthority(),
+                $authorization,
+                $idempotency,
+                $audit,
                 $shared->clock,
-                new WordPressGlobalRecoveryAuthority(),
-            ),
-            idempotency: new IdempotencyService(
-                new WpdbIdempotencyRepository($database, $tableNames),
-                $transactions,
-                $shared->clock,
-                $shared->random,
-                new CanonicalRequestHasher(),
-            ),
-            audit: new AuditService(
-                new WpdbAuditRepository($database, $tableNames),
-                $transactions,
-                $shared->clock,
-                new AuditPayloadRedactor(),
-                new AuditCanonicalizer(),
             ),
             jobs: new WpdbJobRepository($database, $tableNames),
             workerSchema: new MigrationWorkerSchemaGate(

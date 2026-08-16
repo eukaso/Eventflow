@@ -6,6 +6,7 @@ use EventFlow\Application\Audit\AuditService;
 use EventFlow\Application\Authorization\AuthorizationException;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Error\RequestId;
+use EventFlow\Application\Event\EventLifecycleService;
 use EventFlow\Application\Health\PrivacyReconciliationGate;
 use EventFlow\Application\Health\PrivacyReconciliationReadinessCheck;
 use EventFlow\Application\Health\SystemHealthService;
@@ -25,7 +26,7 @@ final class FoundationCompositionTest extends TestCase
     {
         $wpdb = new IntegrationWpdb();
         $container = Container::createFoundation(
-            new Config('testing', '0.8.0', 4, 'error', false),
+            new Config('testing', '0.9.0-dev', 4, 'error', false),
             $wpdb,
         );
 
@@ -34,6 +35,7 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(AuthorizationService::class, $container->database->authorization);
         self::assertInstanceOf(IdempotencyService::class, $container->database->idempotency);
         self::assertInstanceOf(AuditService::class, $container->database->audit);
+        self::assertInstanceOf(EventLifecycleService::class, $container->database->eventLifecycle);
         self::assertInstanceOf(JobRepository::class, $container->database->jobs);
 
         $checks = [...$container->database->readinessChecks, new PrivacyReconciliationReadinessCheck(
@@ -67,7 +69,7 @@ final class FoundationCompositionTest extends TestCase
     public function testDatabaseFoundationRemainsOptionalForMigrationRequiredMode(): void
     {
         $container = Container::createFoundation(
-            new Config('testing', '0.8.0', 4, 'error', false),
+            new Config('testing', '0.9.0-dev', 4, 'error', false),
         );
 
         self::assertNull($container->database);
@@ -80,7 +82,7 @@ final class FoundationCompositionTest extends TestCase
     public function testReadinessAndWorkersFailClosedOnTheSameSchemaMismatch(): void
     {
         $container = Container::createFoundation(
-            new Config('testing', '0.8.0', 4, 'error', false),
+            new Config('testing', '0.9.0-dev', 4, 'error', false),
             new IntegrationWpdb('5'),
         );
         self::assertNotNull($container->database);

@@ -31,11 +31,12 @@ final readonly class ErrorCodeMapper
 
             if (in_array($code, [
                 'idempotency_key_invalid', 'idempotency_operation_invalid',
+                'event_transition_invalid', 'event_activation_not_ready', 'event_actor_invalid',
             ], true)) {
                 return 'validation_failed';
             }
 
-            if ($code === 'idempotency_scope_invalid') {
+            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found'], true)) {
                 return 'resource_not_found';
             }
         }

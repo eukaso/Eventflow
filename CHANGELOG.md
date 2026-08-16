@@ -6,6 +6,9 @@ The project follows Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- Authoritative Event lifecycle service with idempotent creation, activation readiness, venue snapshots, explicit transitions, current authorization, and required audit.
+
 ## [0.8.0] - 2026-08-16
 
 ### Added
