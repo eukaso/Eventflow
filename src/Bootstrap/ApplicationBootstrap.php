@@ -4,6 +4,7 @@ namespace EventFlow\Bootstrap;
 
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use Throwable;
 
 final class ApplicationBootstrap
@@ -31,8 +32,7 @@ final class ApplicationBootstrap
             $config = (new ConfigLoader())->load();
             $container = Container::createFoundation($config);
 
-            // IMP-003 will replace this placeholder with a schema metadata repository.
-            $installedSchemaVersion = self::readInstalledSchemaVersionPlaceholder();
+            $installedSchemaVersion = self::readInstalledSchemaVersion();
 
             $compatibility = $container
                 ->schemaCompatibilityChecker()
@@ -100,12 +100,16 @@ final class ApplicationBootstrap
         );
     }
 
-    private static function readInstalledSchemaVersionPlaceholder(): ?int
+    private static function readInstalledSchemaVersion(): ?int
     {
-        // Intentionally no migration or write on normal bootstrap.
-        // IMP-003 will replace this with read-only schema metadata lookup.
-        return defined('EVENTFLOW_INSTALLED_SCHEMA_VERSION')
-            ? (int) EVENTFLOW_INSTALLED_SCHEMA_VERSION
-            : null;
+        // This is deliberately read-only. Migrations run only through explicit
+        // CLI/upgrade infrastructure, never during normal HTTP bootstrap.
+        global $wpdb;
+
+        if (!is_object($wpdb)) {
+            return null;
+        }
+
+        return (new WpdbSchemaMetadataRepository($wpdb))->currentSchemaVersion();
     }
 }

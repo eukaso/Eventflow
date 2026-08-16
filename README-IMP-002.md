@@ -13,8 +13,4 @@ This package contains the starter implementation for IMP-002.
 - Minimal/full bootstrap mode placeholders
 - Starter PHPUnit unit tests
 
-## Important
-`ApplicationBootstrap::readInstalledSchemaVersionPlaceholder()` is intentionally temporary.
-IMP-003 will replace it with the authoritative schema metadata/migration repository.
-
 No database migration is executed during normal bootstrap.

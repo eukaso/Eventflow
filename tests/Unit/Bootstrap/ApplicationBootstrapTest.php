@@ -14,7 +14,25 @@ final class ApplicationBootstrapTest extends TestCase
     #[PreserveGlobalState(false)]
     public function testCompatibleSchemaRegistersFullModeIdempotently(): void
     {
-        $this->defineFoundationConstants(1);
+        $this->defineFoundationConstants();
+        $GLOBALS['wpdb'] = new class {
+            public string $prefix = 'wp_';
+
+            public function prepare(string $query, mixed ...$values): string
+            {
+                return vsprintf(str_replace(['%s', '%d'], ["'%s'", '%d'], $query), $values);
+            }
+
+            public function esc_like(string $value): string
+            {
+                return $value;
+            }
+
+            public function get_var(string $query): mixed
+            {
+                return str_starts_with($query, 'SHOW TABLES') ? 'wp_eventflow_schema_migrations' : '1';
+            }
+        };
 
         $first = ApplicationBootstrap::boot();
         $second = ApplicationBootstrap::boot();
@@ -44,7 +62,25 @@ final class ApplicationBootstrapTest extends TestCase
     #[PreserveGlobalState(false)]
     public function testNewerSchemaFailsClosedInMinimalMode(): void
     {
-        $this->defineFoundationConstants(2);
+        $this->defineFoundationConstants();
+        $GLOBALS['wpdb'] = new class {
+            public string $prefix = 'wp_';
+
+            public function prepare(string $query, mixed ...$values): string
+            {
+                return vsprintf(str_replace(['%s', '%d'], ["'%s'", '%d'], $query), $values);
+            }
+
+            public function esc_like(string $value): string
+            {
+                return $value;
+            }
+
+            public function get_var(string $query): mixed
+            {
+                return str_starts_with($query, 'SHOW TABLES') ? 'wp_eventflow_schema_migrations' : '2';
+            }
+        };
 
         $result = ApplicationBootstrap::boot();
 
@@ -54,13 +90,9 @@ final class ApplicationBootstrapTest extends TestCase
         self::assertSame(['application_schema_incompatible'], $result->codes);
     }
 
-    private function defineFoundationConstants(?int $installedSchemaVersion = null): void
+    private function defineFoundationConstants(): void
     {
         define('EVENTFLOW_VERSION', '0.8.0-dev');
         define('EVENTFLOW_SCHEMA_VERSION', 1);
-
-        if ($installedSchemaVersion !== null) {
-            define('EVENTFLOW_INSTALLED_SCHEMA_VERSION', $installedSchemaVersion);
-        }
     }
 }
