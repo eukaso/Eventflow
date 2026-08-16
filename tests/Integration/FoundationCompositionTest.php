@@ -13,6 +13,7 @@ use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Job\JobException;
 use EventFlow\Application\Job\JobRepository;
+use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Bootstrap\BootstrapResult;
 use EventFlow\Bootstrap\BootstrapState;
@@ -36,6 +37,7 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(IdempotencyService::class, $container->database->idempotency);
         self::assertInstanceOf(AuditService::class, $container->database->audit);
         self::assertInstanceOf(EventLifecycleService::class, $container->database->eventLifecycle);
+        self::assertInstanceOf(MembershipService::class, $container->database->memberships);
         self::assertInstanceOf(JobRepository::class, $container->database->jobs);
 
         $checks = [...$container->database->readinessChecks, new PrivacyReconciliationReadinessCheck(

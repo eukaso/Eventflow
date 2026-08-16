@@ -13,6 +13,7 @@ use EventFlow\Application\Idempotency\CanonicalRequestHasher;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Job\WorkerSchemaGate;
+use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Migration\MigrationRepository;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Infrastructure\Config\Config;
@@ -25,6 +26,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventLifecycleRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbJobRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
 use EventFlow\Infrastructure\Transaction\WpdbTransactionManager;
@@ -45,6 +47,7 @@ final readonly class DatabaseFoundation
         public IdempotencyService $idempotency,
         public AuditService $audit,
         public EventLifecycleService $eventLifecycle,
+        public MembershipService $memberships,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
         public array $readinessChecks,
@@ -78,6 +81,7 @@ final readonly class DatabaseFoundation
             new AuditCanonicalizer(),
         );
         $eventRepository = new WpdbEventLifecycleRepository($database, $tableNames);
+        $membershipRepository = new WpdbMembershipRepository($database, $tableNames);
 
         return new self(
             database: $database,
@@ -90,6 +94,13 @@ final readonly class DatabaseFoundation
             eventLifecycle: new EventLifecycleService(
                 $eventRepository,
                 new WordPressEventCreationAuthority(),
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+            ),
+            memberships: new MembershipService(
+                $membershipRepository,
                 $authorization,
                 $idempotency,
                 $audit,
