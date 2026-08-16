@@ -95,7 +95,7 @@ final class WpdbAdapter
         $affected = $this->wpdb->query($this->prepare($sql, $parameters));
 
         if ($affected === false) {
-            throw new PersistenceException('database_query_failed');
+            throw $this->databaseException();
         }
 
         return (int) $affected;
@@ -122,7 +122,18 @@ final class WpdbAdapter
         $error = $this->wpdb->last_error ?? '';
 
         if (is_string($error) && $error !== '') {
-            throw new PersistenceException('database_query_failed');
+            throw $this->databaseException();
         }
+    }
+
+    private function databaseException(): PersistenceException
+    {
+        $errorNumber = (int) ($this->wpdb->last_errno ?? 0);
+
+        return new PersistenceException(match ($errorNumber) {
+            1213 => 'database_deadlock',
+            1205 => 'database_lock_timeout',
+            default => 'database_query_failed',
+        });
     }
 }
