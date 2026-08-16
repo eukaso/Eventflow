@@ -4,19 +4,18 @@ namespace EventFlow\Infrastructure\Persistence\WordPress;
 
 use EventFlow\Application\Migration\MigrationRecord;
 use EventFlow\Application\Migration\MigrationRepository;
+use EventFlow\Infrastructure\Persistence\TableName;
 use RuntimeException;
 
 final class WpdbSchemaMetadataRepository implements MigrationRepository
 {
     private string $table;
 
-    public function __construct(private object $wpdb)
-    {
-        if (!isset($wpdb->prefix) || !is_string($wpdb->prefix)) {
-            throw new RuntimeException('invalid_wordpress_database_adapter');
-        }
-
-        $this->table = $wpdb->prefix . 'eventflow_schema_migrations';
+    public function __construct(
+        private WpdbAdapter $database,
+        WpdbTableNames $tableNames,
+    ) {
+        $this->table = $tableNames->get(TableName::SCHEMA_MIGRATIONS);
     }
 
     public function initialize(): void
@@ -59,8 +58,10 @@ final class WpdbSchemaMetadataRepository implements MigrationRepository
             KEY idx_migration_validation (validation_status, completed_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
-        if ($this->wpdb->query($sql) === false) {
-            throw new RuntimeException('migration_ledger_initialization_failed');
+        try {
+            $this->database->execute($sql);
+        } catch (\Throwable $throwable) {
+            throw new RuntimeException('migration_ledger_initialization_failed', 0, $throwable);
         }
     }
 
@@ -70,7 +71,7 @@ final class WpdbSchemaMetadataRepository implements MigrationRepository
             return null;
         }
 
-        $value = $this->wpdb->get_var(
+        $value = $this->database->fetchValue(
             "SELECT MAX(CAST(to_schema_version AS UNSIGNED)) FROM {$this->table} " .
             "WHERE migration_status = 'completed' AND validation_status = 'passed'",
         );
@@ -84,13 +85,10 @@ final class WpdbSchemaMetadataRepository implements MigrationRepository
             return null;
         }
 
-        $row = $this->wpdb->get_row(
-            $this->wpdb->prepare(
-                "SELECT migration_key, migration_status, checksum, to_schema_version " .
-                "FROM {$this->table} WHERE migration_key = %s",
-                $key,
-            ),
-            ARRAY_A,
+        $row = $this->database->fetchRow(
+            "SELECT migration_key, migration_status, checksum, to_schema_version " .
+            "FROM {$this->table} WHERE migration_key = %s",
+            [$key],
         );
 
         if (!is_array($row)) {
@@ -110,29 +108,29 @@ final class WpdbSchemaMetadataRepository implements MigrationRepository
         string $executionSource,
     ): void {
         $now = gmdate('Y-m-d H:i:s');
-        $result = $this->wpdb->query(
-            $this->wpdb->prepare(
+        try {
+            $this->database->execute(
                 "INSERT INTO {$this->table} " .
                 '(migration_key, migration_version, migration_type, migration_status, checksum, description, ' .
                 'started_at, execution_source, from_schema_version, to_schema_version, validation_status, ' .
                 'rollback_available, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 0, %s)',
-                $migration->key,
-                $migration->version,
-                'schema',
-                'running',
-                $migration->checksum(),
-                $migration->description,
-                $now,
-                $executionSource,
-                (string) $migration->fromSchemaVersion,
-                (string) $migration->toSchemaVersion,
-                'pending',
-                $now,
-            ),
-        );
-
-        if ($result === false) {
-            throw new RuntimeException('migration_ledger_write_failed');
+                [
+                    $migration->key,
+                    $migration->version,
+                    'schema',
+                    'running',
+                    $migration->checksum(),
+                    $migration->description,
+                    $now,
+                    $executionSource,
+                    (string) $migration->fromSchemaVersion,
+                    (string) $migration->toSchemaVersion,
+                    'pending',
+                    $now,
+                ],
+            );
+        } catch (\Throwable $throwable) {
+            throw new RuntimeException('migration_ledger_write_failed', 0, $throwable);
         }
     }
 
@@ -161,8 +159,9 @@ final class WpdbSchemaMetadataRepository implements MigrationRepository
 
     private function tableExists(): bool
     {
-        $found = $this->wpdb->get_var(
-            $this->wpdb->prepare('SHOW TABLES LIKE %s', $this->wpdb->esc_like($this->table)),
+        $found = $this->database->fetchValue(
+            'SHOW TABLES LIKE %s',
+            [$this->database->escapeLike($this->table)],
         );
 
         return $found === $this->table;
@@ -172,12 +171,12 @@ final class WpdbSchemaMetadataRepository implements MigrationRepository
     private function updateStatus(string $key, string $setClause, array $values): void
     {
         $values[] = $key;
-        $sql = $this->wpdb->prepare(
+        $sql = $this->database->prepare(
             "UPDATE {$this->table} SET {$setClause} WHERE migration_key = %s AND migration_status = 'running'",
-            ...$values,
+            $values,
         );
 
-        if ($this->wpdb->query($sql) !== 1) {
+        if ($this->database->execute($sql) !== 1) {
             throw new RuntimeException('migration_ledger_write_failed');
         }
     }

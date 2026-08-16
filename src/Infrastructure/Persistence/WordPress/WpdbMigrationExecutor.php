@@ -8,15 +8,17 @@ use RuntimeException;
 
 final readonly class WpdbMigrationExecutor implements MigrationExecutor
 {
-    public function __construct(private object $wpdb)
+    public function __construct(private WpdbAdapter $database)
     {
     }
 
     public function execute(MigrationDefinition $migration): void
     {
         foreach ($migration->statements as $statement) {
-            if ($this->wpdb->query($statement) === false) {
-                throw new RuntimeException('migration_statement_failed');
+            try {
+                $this->database->execute($statement);
+            } catch (\Throwable $throwable) {
+                throw new RuntimeException('migration_statement_failed', 0, $throwable);
             }
         }
     }

@@ -5,6 +5,8 @@ namespace EventFlow\Bootstrap;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
 use Throwable;
 
 final class ApplicationBootstrap
@@ -110,6 +112,11 @@ final class ApplicationBootstrap
             return null;
         }
 
-        return (new WpdbSchemaMetadataRepository($wpdb))->currentSchemaVersion();
+        $database = new WpdbAdapter($wpdb);
+
+        return (new WpdbSchemaMetadataRepository(
+            $database,
+            new WpdbTableNames($database->tablePrefix()),
+        ))->currentSchemaVersion();
     }
 }
