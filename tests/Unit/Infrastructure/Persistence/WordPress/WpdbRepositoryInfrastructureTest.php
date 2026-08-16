@@ -53,6 +53,21 @@ final class WpdbRepositoryInfrastructureTest extends TestCase
         }
     }
 
+    public function testUniqueConstraintFailureUsesStableConflictCode(): void
+    {
+        $wpdb = new FakeWpdb();
+        $wpdb->queryResult = false;
+        $wpdb->last_errno = 1062;
+        $database = new WpdbAdapter($wpdb);
+
+        try {
+            $database->execute('INSERT duplicate');
+            self::fail('Expected unique conflict.');
+        } catch (PersistenceException $exception) {
+            self::assertSame('database_unique_conflict', $exception->safeCode);
+        }
+    }
+
     public function testTableNamesAreResolvedFromAnAllowlistedEnum(): void
     {
         $tables = new WpdbTableNames('tenant_7_');
@@ -115,6 +130,7 @@ final class FakeWpdb
 {
     public string $prefix = 'wp_';
     public string $last_error = '';
+    public int $last_errno = 0;
     public int $insert_id = 0;
     public mixed $value = null;
     /** @var array<string, mixed>|null */

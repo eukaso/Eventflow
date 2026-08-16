@@ -133,6 +133,7 @@ final class WpdbAdapter
         return new PersistenceException(match ($errorNumber) {
             1213 => 'database_deadlock',
             1205 => 'database_lock_timeout',
+            1062 => 'database_unique_conflict',
             default => 'database_query_failed',
         });
     }

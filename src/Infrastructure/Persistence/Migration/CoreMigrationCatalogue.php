@@ -37,6 +37,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0002-foundation-security-and-operations.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0003_idempotency_return_once',
+                version: 'v0.8.0',
+                fromSchemaVersion: 2,
+                toSchemaVersion: 3,
+                description: 'Persist only the sensitivity marker required for return-once replay semantics.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0003-idempotency-return-once.sql',
+                ),
+            ),
         ];
     }
 }
