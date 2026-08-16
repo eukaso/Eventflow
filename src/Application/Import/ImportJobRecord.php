@@ -1,0 +1,27 @@
+<?php
+
+namespace EventFlow\Application\Import;
+
+use DateTimeImmutable;
+use EventFlow\Application\Persistence\EventScope;
+use InvalidArgumentException;
+
+final readonly class ImportJobRecord
+{
+    public function __construct(
+        public int $jobId,
+        public EventScope $eventScope,
+        public ImportStatus $status,
+        public string $sourceFilename,
+        public string $sourceFileHash,
+        public int $totalRows,
+        public int $validRows,
+        public int $invalidRows,
+        public int $appliedRows,
+        public int $failedRows,
+        public ?string $leaseToken = null,
+        public ?DateTimeImmutable $leaseExpiresAt = null,
+    ) {
+        if ($jobId < 1 || $sourceFilename === '' || !preg_match('/^[a-f0-9]{64}$/', $sourceFileHash)) throw new InvalidArgumentException('invalid_import_job');
+    }
+}

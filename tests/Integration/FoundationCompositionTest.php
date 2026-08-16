@@ -13,6 +13,7 @@ use EventFlow\Application\Health\PrivacyReconciliationGate;
 use EventFlow\Application\Health\PrivacyReconciliationReadinessCheck;
 use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Application\Idempotency\IdempotencyService;
+use EventFlow\Application\Import\ImportService;
 use EventFlow\Application\Job\JobException;
 use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Invitation\InvitationService;
@@ -44,6 +45,7 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(InvitationService::class, $container->database->invitations);
         self::assertInstanceOf(GuestAccessService::class, $container->database->guestAccess);
         self::assertInstanceOf(AttendeeService::class, $container->database->attendees);
+        self::assertInstanceOf(ImportService::class, $container->database->imports);
         self::assertInstanceOf(JobRepository::class, $container->database->jobs);
 
         $checks = [...$container->database->readinessChecks, new PrivacyReconciliationReadinessCheck(

@@ -13,6 +13,8 @@ use EventFlow\Application\Health\ReadinessCheck;
 use EventFlow\Application\GuestAccess\GuestAccessService;
 use EventFlow\Application\Idempotency\CanonicalRequestHasher;
 use EventFlow\Application\Idempotency\IdempotencyService;
+use EventFlow\Application\Import\ImportNormalizer;
+use EventFlow\Application\Import\ImportService;
 use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Job\WorkerSchemaGate;
 use EventFlow\Application\Invitation\InvitationService;
@@ -24,6 +26,7 @@ use EventFlow\Infrastructure\Config\Config;
 use EventFlow\Infrastructure\Health\SchemaReadinessCheck;
 use EventFlow\Infrastructure\Health\WpdbConnectionReadinessCheck;
 use EventFlow\Infrastructure\Job\MigrationWorkerSchemaGate;
+use EventFlow\Infrastructure\Import\NativeTabularSourceParser;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAttendeeRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAuditRepository;
@@ -31,6 +34,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventLifecycleRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbGuestAccessRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbInvitationRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbImportRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbJobRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipRepository;
@@ -58,6 +62,7 @@ final readonly class DatabaseFoundation
         public InvitationService $invitations,
         public GuestAccessService $guestAccess,
         public AttendeeService $attendees,
+        public ImportService $imports,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
         public array $readinessChecks,
@@ -96,6 +101,16 @@ final readonly class DatabaseFoundation
         $guestAccessRepository = new WpdbGuestAccessRepository($database, $tableNames);
         $credentialDigester = new CredentialDigester();
         $attendeeRepository = new WpdbAttendeeRepository($database, $tableNames);
+        $importRepository = new WpdbImportRepository($database, $tableNames);
+        $invitationService = new InvitationService(
+            $invitationRepository,
+            $authorization,
+            $idempotency,
+            $audit,
+            $shared->clock,
+            $shared->random,
+            $credentialDigester,
+        );
 
         return new self(
             database: $database,
@@ -120,15 +135,7 @@ final readonly class DatabaseFoundation
                 $audit,
                 $shared->clock,
             ),
-            invitations: new InvitationService(
-                $invitationRepository,
-                $authorization,
-                $idempotency,
-                $audit,
-                $shared->clock,
-                $shared->random,
-                $credentialDigester,
-            ),
+            invitations: $invitationService,
             guestAccess: new GuestAccessService(
                 $guestAccessRepository,
                 $invitationRepository,
@@ -146,6 +153,18 @@ final readonly class DatabaseFoundation
                 $idempotency,
                 $audit,
                 $shared->clock,
+            ),
+            imports: new ImportService(
+                $importRepository,
+                new NativeTabularSourceParser(),
+                new ImportNormalizer(),
+                $invitationService,
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+                $shared->random,
+                $transactions,
             ),
             jobs: new WpdbJobRepository($database, $tableNames),
             workerSchema: new MigrationWorkerSchemaGate(

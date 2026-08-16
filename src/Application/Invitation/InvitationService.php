@@ -59,6 +59,36 @@ final readonly class InvitationService
         );
     }
 
+    public function createImported(PrincipalContext $principal, CreateInvitation $command, string $idempotencyKey): IdempotencyOutcome
+    {
+        return $this->idempotency->execute(
+            $principal,
+            $command->eventScope,
+            'invitation.import_create',
+            $idempotencyKey,
+            $command->canonicalRequest(),
+            function () use ($principal, $command): IdempotentOperationResult {
+                $this->authorization->requireEventCapability($principal, $command->eventScope, Capability::MANAGE_IMPORTS);
+                $this->requireFutureExpiry($command->tokenExpiresAt);
+                $rawToken = $this->random->hex(32);
+                $created = $this->invitations->create(
+                    $command,
+                    strtoupper($this->random->hex(8)),
+                    $this->digester->digest($rawToken),
+                    $this->actorUserId($principal),
+                    $this->clock->now(),
+                );
+                unset($rawToken);
+                $this->audit($principal, $created, AuditAction::INVITATION_CREATED, null, $this->state($created));
+
+                return new IdempotentOperationResult(
+                    new IdempotencyResultReference('invitation', $created->invitationId, 201),
+                    $created,
+                );
+            },
+        );
+    }
+
     public function rotateCredential(
         PrincipalContext $principal,
         EventScope $scope,
