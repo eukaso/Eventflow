@@ -17,6 +17,7 @@ enum AuditAction: string
     case INVITATION_CREATED = 'invitation.created';
     case INVITATION_TOKEN_ROTATED = 'invitation.token_rotated';
     case INVITATION_REVOKED = 'invitation.revoked';
+    case GUEST_LINK_CREDENTIAL_ISSUED = 'guest_link.credential_issued';
     case RSVP_SUBMITTED = 'rsvp.submitted';
     case ATTENDEE_CREATED = 'attendee.created';
     case ATTENDEE_UPDATED = 'attendee.updated';

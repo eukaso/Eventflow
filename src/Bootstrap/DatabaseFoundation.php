@@ -9,12 +9,15 @@ use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Authorization\RoleCapabilityPolicy;
 use EventFlow\Application\Event\EventLifecycleService;
 use EventFlow\Application\Health\ReadinessCheck;
+use EventFlow\Application\GuestAccess\GuestAccessService;
 use EventFlow\Application\Idempotency\CanonicalRequestHasher;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Job\WorkerSchemaGate;
+use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Migration\MigrationRepository;
+use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Infrastructure\Config\Config;
 use EventFlow\Infrastructure\Health\SchemaReadinessCheck;
@@ -24,6 +27,8 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAuditRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventLifecycleRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbGuestAccessRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbInvitationRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbJobRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipRepository;
@@ -48,6 +53,8 @@ final readonly class DatabaseFoundation
         public AuditService $audit,
         public EventLifecycleService $eventLifecycle,
         public MembershipService $memberships,
+        public InvitationService $invitations,
+        public GuestAccessService $guestAccess,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
         public array $readinessChecks,
@@ -82,6 +89,9 @@ final readonly class DatabaseFoundation
         );
         $eventRepository = new WpdbEventLifecycleRepository($database, $tableNames);
         $membershipRepository = new WpdbMembershipRepository($database, $tableNames);
+        $invitationRepository = new WpdbInvitationRepository($database, $tableNames);
+        $guestAccessRepository = new WpdbGuestAccessRepository($database, $tableNames);
+        $credentialDigester = new CredentialDigester();
 
         return new self(
             database: $database,
@@ -105,6 +115,26 @@ final readonly class DatabaseFoundation
                 $idempotency,
                 $audit,
                 $shared->clock,
+            ),
+            invitations: new InvitationService(
+                $invitationRepository,
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+                $shared->random,
+                $credentialDigester,
+            ),
+            guestAccess: new GuestAccessService(
+                $guestAccessRepository,
+                $invitationRepository,
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+                $shared->random,
+                $credentialDigester,
+                $transactions,
             ),
             jobs: new WpdbJobRepository($database, $tableNames),
             workerSchema: new MigrationWorkerSchemaGate(

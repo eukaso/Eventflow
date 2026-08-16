@@ -7,12 +7,14 @@ use EventFlow\Application\Authorization\AuthorizationException;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Error\RequestId;
 use EventFlow\Application\Event\EventLifecycleService;
+use EventFlow\Application\GuestAccess\GuestAccessService;
 use EventFlow\Application\Health\PrivacyReconciliationGate;
 use EventFlow\Application\Health\PrivacyReconciliationReadinessCheck;
 use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Job\JobException;
 use EventFlow\Application\Job\JobRepository;
+use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Bootstrap\BootstrapResult;
@@ -38,6 +40,8 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(AuditService::class, $container->database->audit);
         self::assertInstanceOf(EventLifecycleService::class, $container->database->eventLifecycle);
         self::assertInstanceOf(MembershipService::class, $container->database->memberships);
+        self::assertInstanceOf(InvitationService::class, $container->database->invitations);
+        self::assertInstanceOf(GuestAccessService::class, $container->database->guestAccess);
         self::assertInstanceOf(JobRepository::class, $container->database->jobs);
 
         $checks = [...$container->database->readinessChecks, new PrivacyReconciliationReadinessCheck(
