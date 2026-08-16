@@ -21,6 +21,9 @@ enum AuditAction: string
     case RSVP_SUBMITTED = 'rsvp.submitted';
     case ATTENDEE_CREATED = 'attendee.created';
     case ATTENDEE_UPDATED = 'attendee.updated';
+    case ATTENDEE_CANCELLED = 'attendee.cancelled';
+    case ATTENDEE_RESTORED = 'attendee.restored';
+    case PRIMARY_ATTENDEE_TRANSFERRED = 'attendee.primary_transferred';
     case SEATING_ASSIGNED = 'seating.assigned';
     case SEATING_RELEASED = 'seating.released';
     case CHECK_IN_RECORDED = 'check_in.recorded';

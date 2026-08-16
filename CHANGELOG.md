@@ -10,6 +10,7 @@ The project follows Semantic Versioning.
 - Authoritative Event lifecycle service with idempotent creation, activation readiness, venue snapshots, explicit transitions, current authorization, and required audit.
 - Authoritative membership management with current-request authorization, owner continuity, explicit lifecycle commands, and compare-and-transfer primary ownership.
 - Secure Invitation and guest-access services with return-once credentials, token-version invalidation, server sessions, guest-link indirection, and CSRF/origin enforcement.
+- Atomic RSVP reconciliation and attendee administration with capacity locks, response revisions, non-destructive lifecycle changes, and primary-attendee continuity.
 
 ## [0.8.0] - 2026-08-16
 

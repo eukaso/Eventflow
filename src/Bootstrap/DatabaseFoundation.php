@@ -5,6 +5,7 @@ namespace EventFlow\Bootstrap;
 use EventFlow\Application\Audit\AuditCanonicalizer;
 use EventFlow\Application\Audit\AuditPayloadRedactor;
 use EventFlow\Application\Audit\AuditService;
+use EventFlow\Application\Attendee\AttendeeService;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Authorization\RoleCapabilityPolicy;
 use EventFlow\Application\Event\EventLifecycleService;
@@ -24,6 +25,7 @@ use EventFlow\Infrastructure\Health\SchemaReadinessCheck;
 use EventFlow\Infrastructure\Health\WpdbConnectionReadinessCheck;
 use EventFlow\Infrastructure\Job\MigrationWorkerSchemaGate;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbAttendeeRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAuditRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventLifecycleRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
@@ -55,6 +57,7 @@ final readonly class DatabaseFoundation
         public MembershipService $memberships,
         public InvitationService $invitations,
         public GuestAccessService $guestAccess,
+        public AttendeeService $attendees,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
         public array $readinessChecks,
@@ -92,6 +95,7 @@ final readonly class DatabaseFoundation
         $invitationRepository = new WpdbInvitationRepository($database, $tableNames);
         $guestAccessRepository = new WpdbGuestAccessRepository($database, $tableNames);
         $credentialDigester = new CredentialDigester();
+        $attendeeRepository = new WpdbAttendeeRepository($database, $tableNames);
 
         return new self(
             database: $database,
@@ -135,6 +139,13 @@ final readonly class DatabaseFoundation
                 $shared->random,
                 $credentialDigester,
                 $transactions,
+            ),
+            attendees: new AttendeeService(
+                $attendeeRepository,
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
             ),
             jobs: new WpdbJobRepository($database, $tableNames),
             workerSchema: new MigrationWorkerSchemaGate(
