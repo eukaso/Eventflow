@@ -47,6 +47,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0003-idempotency-return-once.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0004_audit_integrity',
+                version: 'v0.8.0',
+                fromSchemaVersion: 3,
+                toSchemaVersion: 4,
+                description: 'Add versioned tamper-evident audit chains and locked per-scope heads.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0004-audit-integrity.sql',
+                ),
+            ),
         ];
     }
 }

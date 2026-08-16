@@ -22,6 +22,7 @@ enum TableName: string
     case MESSAGE_DELIVERY_ATTEMPTS = 'message_delivery_attempts';
     case PROVIDER_EVENTS = 'provider_events';
     case AUDIT_LOGS = 'audit_logs';
+    case AUDIT_CHAIN_HEADS = 'audit_chain_heads';
     case EVENT_VENUE_SNAPSHOTS = 'event_venue_snapshots';
     case SCHEMA_MIGRATIONS = 'schema_migrations';
     case IMPORT_JOBS = 'import_jobs';

@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(3, $definitions);
+        self::assertCount(4, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -30,11 +30,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0003_idempotency_return_once', $definitions[2]->key);
         self::assertSame(2, $definitions[2]->fromSchemaVersion);
         self::assertSame(3, $definitions[2]->toSchemaVersion);
+        self::assertSame('0004_audit_integrity', $definitions[3]->key);
+        self::assertSame(3, $definitions[3]->fromSchemaVersion);
+        self::assertSame(4, $definitions[3]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 3\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 4\\);/",
             $entryPoint,
         );
     }
@@ -83,6 +86,25 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertStringNotContainsString('response_body', strtolower($sql));
         self::assertStringNotContainsString('credential', strtolower($sql));
         self::assertStringNotContainsString('token', strtolower($sql));
+    }
+
+    public function testAuditIntegrityMigrationAddsVersionedChainsWithoutEditingHistory(): void
+    {
+        $sql = implode("\n", $this->catalogue()->definitions()[3]->statements);
+
+        foreach ([
+            'ADD COLUMN payload_schema_version',
+            'ADD COLUMN canonicalization_version',
+            'ADD COLUMN previous_hash',
+            'ADD COLUMN record_hash',
+            'CREATE TABLE wp_eventflow_audit_chain_heads',
+            'CONSTRAINT chk_audit_chain_event_scope CHECK',
+        ] as $expected) {
+            self::assertStringContainsString($expected, $sql);
+        }
+
+        self::assertStringNotContainsString('UPDATE wp_eventflow_audit_logs', $sql);
+        self::assertStringNotContainsString('DELETE FROM wp_eventflow_audit_logs', $sql);
     }
 
     public function testDatabasePrefixFailsClosed(): void
