@@ -21,6 +21,10 @@ message_not_retryable,409,No,Message is not eligible for retry.
 import_not_ready,409,Conditional,Import has unresolved readiness conditions.
 idempotency_key_conflict,409,No,Same key was reused for a different canonical request.
 idempotency_request_in_progress,409,Yes,Matching idempotent request is still processing.
+idempotency_sensitive_result_not_replayable,409,No,Return-once result cannot be replayed.
+job_dedupe_conflict,409,No,Logical job key was reused for different work.
 rate_limit_exceeded,429,Yes,Caller exceeded rate limit.
 internal_error,500,Conditional,Unexpected server failure; use request_id for diagnostics.
 temporarily_unavailable,503,Yes,Known temporary infrastructure/service issue.
+schema_migration_required,503,Yes,Database migration is required.
+application_schema_incompatible,503,No,Application and database schema are incompatible.

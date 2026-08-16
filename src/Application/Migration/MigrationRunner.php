@@ -52,7 +52,7 @@ final readonly class MigrationRunner
                         'migration_execution_failed',
                     );
 
-                    throw new MigrationException('migration_execution_failed', 0, $throwable);
+                    throw new MigrationException('migration_execution_failed', $throwable);
                 }
             }
 

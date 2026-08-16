@@ -1,12 +1,11 @@
 <?php
 
-namespace EventFlow\Application\Idempotency;
+namespace EventFlow\Application\Error;
 
-use EventFlow\Application\Error\ControlledFailure;
 use RuntimeException;
 use Throwable;
 
-final class IdempotencyException extends RuntimeException implements ControlledFailure
+final class PublicApiException extends RuntimeException implements ControlledFailure
 {
     public function __construct(
         public readonly string $safeCode,
