@@ -18,6 +18,7 @@ use EventFlow\Application\Job\JobException;
 use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Membership\MembershipService;
+use EventFlow\Application\Seating\SeatingService;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Bootstrap\BootstrapResult;
 use EventFlow\Bootstrap\BootstrapState;
@@ -46,6 +47,7 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(GuestAccessService::class, $container->database->guestAccess);
         self::assertInstanceOf(AttendeeService::class, $container->database->attendees);
         self::assertInstanceOf(ImportService::class, $container->database->imports);
+        self::assertInstanceOf(SeatingService::class, $container->database->seating);
         self::assertInstanceOf(JobRepository::class, $container->database->jobs);
 
         $checks = [...$container->database->readinessChecks, new PrivacyReconciliationReadinessCheck(

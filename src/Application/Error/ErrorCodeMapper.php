@@ -32,6 +32,12 @@ final readonly class ErrorCodeMapper
             if (in_array($code, [
                 'idempotency_key_invalid', 'idempotency_operation_invalid',
                 'event_transition_invalid', 'event_activation_not_ready', 'event_actor_invalid',
+                'seating_table_configuration_invalid', 'seating_seat_label_invalid',
+                'seating_group_configuration_invalid', 'seating_group_member_invalid',
+                'seating_destination_invalid', 'seating_seat_invalid', 'accessible_seat_required',
+                'accessible_seating_insufficient', 'seating_capacity_insufficient',
+                'seat_inventory_capacity_insufficient', 'recommendation_seed_invalid',
+                'recommendation_plan_invalid', 'recommendation_algorithm_unsupported',
             ], true)) {
                 return 'validation_failed';
             }

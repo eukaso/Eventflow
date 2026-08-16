@@ -20,6 +20,7 @@ use EventFlow\Application\Job\WorkerSchemaGate;
 use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Migration\MigrationRepository;
+use EventFlow\Application\Seating\SeatingService;
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Infrastructure\Config\Config;
@@ -39,6 +40,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbJobRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
 use EventFlow\Infrastructure\Transaction\WpdbTransactionManager;
 use EventFlow\Infrastructure\WordPress\WordPressGlobalRecoveryAuthority;
@@ -63,6 +65,7 @@ final readonly class DatabaseFoundation
         public GuestAccessService $guestAccess,
         public AttendeeService $attendees,
         public ImportService $imports,
+        public SeatingService $seating,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
         public array $readinessChecks,
@@ -164,6 +167,14 @@ final readonly class DatabaseFoundation
                 $audit,
                 $shared->clock,
                 $shared->random,
+                $transactions,
+            ),
+            seating: new SeatingService(
+                new WpdbSeatingRepository($database, $tableNames),
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
                 $transactions,
             ),
             jobs: new WpdbJobRepository($database, $tableNames),

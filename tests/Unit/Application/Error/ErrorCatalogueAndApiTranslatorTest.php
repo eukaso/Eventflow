@@ -15,6 +15,7 @@ use EventFlow\Application\Error\ValidationErrorDetails;
 use EventFlow\Application\Error\VersionConflictDetails;
 use EventFlow\Application\Idempotency\IdempotencyException;
 use EventFlow\Application\Security\SecureRandom;
+use EventFlow\Application\Seating\SeatingException;
 use EventFlow\Infrastructure\Persistence\PersistenceException;
 use EventFlow\Presentation\Api\ApiErrorTranslator;
 use InvalidArgumentException;
@@ -67,6 +68,14 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         );
         self::assertSame(409, $returnOnce->status);
         self::assertSame('idempotency_sensitive_result_not_replayable', $returnOnce->body['code']);
+
+        $stalePlan = $translator->translate(new SeatingException('seating_recommendation_stale'), $requestId);
+        self::assertSame(409, $stalePlan->status);
+        self::assertSame('seating_recommendation_stale', $stalePlan->body['code']);
+
+        $invalidSeat = $translator->translate(new SeatingException('accessible_seat_required'), $requestId);
+        self::assertSame(422, $invalidSeat->status);
+        self::assertSame('validation_failed', $invalidSeat->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void
