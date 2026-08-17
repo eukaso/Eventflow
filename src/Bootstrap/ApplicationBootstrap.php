@@ -6,7 +6,7 @@ use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
-use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeRequestMapper, AttendeeRouteRegistrar, EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SeatingPlanningController, SeatingPlanningPresenter, SeatingPlanningRequestMapper, SeatingPlanningRouteRegistrar, SeatingPreparationController, SeatingPreparationPresenter, SeatingPreparationRequestMapper, SeatingPreparationRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
+use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeRequestMapper, AttendeeRouteRegistrar, CheckInController, CheckInPresenter, CheckInRequestMapper, CheckInRouteRegistrar, EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SeatingPlanningController, SeatingPlanningPresenter, SeatingPlanningRequestMapper, SeatingPlanningRouteRegistrar, SeatingPreparationController, SeatingPreparationPresenter, SeatingPreparationRequestMapper, SeatingPreparationRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
@@ -188,6 +188,14 @@ final class ApplicationBootstrap
                 new SeatingPlanningPresenter(),
             );
             (new WordPressRestRouteHooks(new SeatingPlanningRouteRegistrar($seatingPlanning), $wordpressRoutes))->register();
+            $checkIn = new CheckInController(
+                $container->database->checkIn,
+                $container->database->checkIn,
+                $container->delivery->authenticatedRequests,
+                new CheckInRequestMapper(),
+                new CheckInPresenter(),
+            );
+            (new WordPressRestRouteHooks(new CheckInRouteRegistrar($checkIn), $wordpressRoutes))->register();
         }
     }
 

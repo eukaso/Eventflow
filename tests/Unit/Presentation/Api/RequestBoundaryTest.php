@@ -22,6 +22,7 @@ final class RequestBoundaryTest extends TestCase
         self::assertSame('Dinner', $request->input('name'));
         self::assertSame(12, $request->input('capacity'));
         self::assertSame('42', $request->route('event_id'));
+        self::assertSame('guest', $request->query('q'));
         self::assertSame('W/"7"', $request->header('if-match'));
     }
 
@@ -112,8 +113,9 @@ final readonly class BoundaryRandom implements SecureRandom
 
 final readonly class BoundaryWordPressRequest
 {
-    public function __construct(private string $body, private array $headers = [], private array $routes = []) {}
+    public function __construct(private string $body, private array $headers = [], private array $routes = [], private array $query = ['q' => 'guest']) {}
     public function get_body(): string { return $this->body; }
     public function get_headers(): array { return $this->headers; }
     public function get_url_params(): array { return $this->routes; }
+    public function get_query_params(): array { return $this->query; }
 }

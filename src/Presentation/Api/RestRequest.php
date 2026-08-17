@@ -15,6 +15,8 @@ final readonly class RestRequest
     /** @var array<string, string> */
     private array $cookies;
     private bool $trustedSameOrigin;
+    /** @var array<string, string> */
+    private array $queryParameters;
 
     /** @param array<string, string> $headers @param array<string, mixed> $json @param array<string, string> $routeParameters */
     public function __construct(
@@ -24,6 +26,7 @@ final readonly class RestRequest
         ?string $trustedClientAddress = null,
         array $cookies = [],
         bool $trustedSameOrigin = false,
+        array $queryParameters = [],
     )
     {
         $normalized = [];
@@ -43,6 +46,11 @@ final readonly class RestRequest
         }
         $this->cookies = $normalizedCookies;
         $this->trustedSameOrigin = $trustedSameOrigin;
+        $normalizedQuery = [];
+        foreach ($queryParameters as $name => $value) {
+            if (is_string($name) && (is_string($value) || is_int($value))) $normalizedQuery[$name] = (string) $value;
+        }
+        $this->queryParameters = $normalizedQuery;
     }
 
     public function header(string $name): ?string
@@ -58,4 +66,5 @@ final readonly class RestRequest
     public function clientAddress(): ?string { return $this->trustedClientAddress; }
     public function cookie(string $name): ?string { return $this->cookies[$name] ?? null; }
     public function sameOrigin(): bool { return $this->trustedSameOrigin; }
+    public function query(string $name): ?string { return $this->queryParameters[$name] ?? null; }
 }

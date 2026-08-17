@@ -16,6 +16,7 @@ final readonly class WordPressRestRequestMapper
         }
         $headers = $this->headers(method_exists($wordpressRequest, 'get_headers') ? $wordpressRequest->get_headers() : []);
         $routes = $this->routes(method_exists($wordpressRequest, 'get_url_params') ? $wordpressRequest->get_url_params() : []);
+        $query = $this->routes(method_exists($wordpressRequest, 'get_query_params') ? $wordpressRequest->get_query_params() : []);
         $cookies = $this->cookies(method_exists($wordpressRequest, 'get_cookie_params') ? $wordpressRequest->get_cookie_params() : []);
         $raw = method_exists($wordpressRequest, 'get_body') ? $wordpressRequest->get_body() : '';
         if (!is_string($raw) || strlen($raw) > self::MAX_JSON_BYTES) {
@@ -33,7 +34,7 @@ final readonly class WordPressRestRequestMapper
             }
             $json = $decoded;
         }
-        return new RestRequest($headers, $json, $routes, $this->clientAddress(), $cookies, $this->sameOrigin($headers));
+        return new RestRequest($headers, $json, $routes, $this->clientAddress(), $cookies, $this->sameOrigin($headers), $query);
     }
 
     /** @return array<string, string> */

@@ -4,6 +4,7 @@ namespace EventFlow\Tests\Unit\Application\Error;
 
 use EventFlow\Application\Authorization\AuthorizationException;
 use EventFlow\Application\Attendee\AttendeeException;
+use EventFlow\Application\CheckIn\CheckInException;
 use EventFlow\Application\Error\CoreErrorCatalogue;
 use EventFlow\Application\Error\ErrorCodeMapper;
 use EventFlow\Application\Error\PreconditionDetails;
@@ -142,6 +143,14 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $foreignSeat = $translator->translate(new SeatingException('seating_seat_invalid'), $requestId);
         self::assertSame(404, $foreignSeat->status);
         self::assertSame('resource_not_found', $foreignSeat->body['code']);
+
+        $duplicateCheckIn = $translator->translate(new CheckInException('attendee_already_checked_in'), $requestId);
+        self::assertSame(409, $duplicateCheckIn->status);
+        self::assertSame('attendee_already_checked_in', $duplicateCheckIn->body['code']);
+
+        $repeatReversal = $translator->translate(new CheckInException('checkin_already_reversed'), $requestId);
+        self::assertSame(409, $repeatReversal->status);
+        self::assertSame('checkin_already_reversed', $repeatReversal->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void

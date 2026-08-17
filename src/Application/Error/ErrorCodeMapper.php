@@ -83,6 +83,10 @@ final readonly class ErrorCodeMapper
                 return 'resource_modified';
             }
 
+            if (in_array($code, ['attendee_already_checked_in', 'checkin_already_reversed'], true)) {
+                return $code;
+            }
+
             if (in_array($code, ['guest_credential_invalid', 'guest_csrf_invalid'], true)) {
                 return 'guest_session_invalid';
             }

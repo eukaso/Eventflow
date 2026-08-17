@@ -7,7 +7,7 @@ use EventFlow\Application\Idempotency\{IdempotencyOutcome,IdempotencyResultRefer
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Security\SecureRandom;
 
-final readonly class CheckInService
+final readonly class CheckInService implements ReceptionSearch, CheckInCommands
 {
     public function __construct(private CheckInRepository $repository,private AuthorizationService $authorization,private IdempotencyService $idempotency,private AuditService $audit,private Clock $clock,private SecureRandom $random) {}
     public function search(PrincipalContext $principal,EventScope $scope,string $query,int $limit=20): array { $this->authorization->requireEventCapability($principal,$scope,Capability::CHECK_IN); $query=trim($query); if(strlen($query)<2 || strlen($query)>190 || $limit<1 || $limit>50) throw new CheckInException('reception_search_invalid'); return $this->repository->search($scope,$query,$limit); }

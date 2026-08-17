@@ -17,6 +17,7 @@ The project follows Semantic Versioning.
 - Authenticated Attendee creation, correction, cancellation, restoration, and primary-transfer REST commands with explicit Invitation scoping.
 - Authenticated Seating preparation endpoints for table and affinity-group creation plus non-mutating readiness preflight.
 - Authenticated deterministic Seating recommendation generation and stale-safe manual attendee assignment moves.
+- Least-privilege authenticated reception search plus idempotent individual, atomic bulk, and additive reversal Check-In REST commands.
 
 ## [0.9.0] - 2026-08-17
 
