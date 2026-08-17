@@ -1,9 +1,10 @@
-name: Foundation tests
+name: EventFlow tests
 
 on:
   push:
     branches:
-      - implementation/sprint-7-foundation
+      - main
+      - 'implementation/**'
   pull_request:
 
 permissions:

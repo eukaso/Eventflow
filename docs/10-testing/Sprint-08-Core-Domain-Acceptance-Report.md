@@ -2,7 +2,7 @@
 
 Date: 2026-08-17  
 Package: IMP-027 / SVC-016  
-Result: PASS
+Result: LOCAL PASS / CI PENDING
 
 ## Acceptance scope
 
@@ -29,6 +29,6 @@ The authoritative design matrix contains IV-001 through IV-020. The executable e
 
 Command: `composer test`
 
-## Decision
+## Promotion decision
 
-Sprint 8 core-domain implementation is accepted at the repository test boundary. External environment validation, deployment configuration, and live provider certification remain deployment-stage concerns rather than open core-domain defects.
+Sprint 8 core-domain implementation is accepted at the local repository test boundary. Release promotion remains pending until the candidate commit passes the GitHub Actions PHP 8.2/8.3 matrix. Deployment configuration and live provider certification remain deployment-stage concerns rather than open core-domain defects.
