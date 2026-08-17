@@ -122,6 +122,7 @@ final class RsvpMemoryRoutes implements RestRouteRegistry
     public function registerPublicPost(string $namespace,string $route,callable $handler):void {}
     public function registerPublicPut(string $namespace,string $route,callable $handler):void { $this->registered[]='PUT '.$namespace.$route; }
     public function registerAuthenticatedPost(string $namespace,string $route,callable $handler):void {}
+    public function registerAuthenticatedGet(string $namespace,string $route,callable $handler):void {}
     public function registerAuthenticatedPatch(string $namespace,string $route,callable $handler):void {}
 }
 

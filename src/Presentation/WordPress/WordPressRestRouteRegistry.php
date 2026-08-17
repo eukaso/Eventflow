@@ -38,6 +38,11 @@ final readonly class WordPressRestRouteRegistry implements RestRouteRegistry
         $this->register($namespace, $route, 'POST', 'is_user_logged_in', $handler);
     }
 
+    public function registerAuthenticatedGet(string $namespace, string $route, callable $handler): void
+    {
+        $this->register($namespace, $route, 'GET', 'is_user_logged_in', $handler);
+    }
+
     public function registerAuthenticatedPatch(string $namespace, string $route, callable $handler): void
     {
         $this->register($namespace, $route, 'PATCH', 'is_user_logged_in', $handler);

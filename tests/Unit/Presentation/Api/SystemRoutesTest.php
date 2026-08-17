@@ -106,6 +106,13 @@ final class MemoryRestRoutes implements RestRouteRegistry
         $this->methods[$key] = 'POST';
     }
 
+    public function registerAuthenticatedGet(string $namespace, string $route, callable $handler): void
+    {
+        $key = $namespace . $route;
+        $this->handlers[$key] = $handler;
+        $this->methods[$key] = 'GET';
+    }
+
     public function registerAuthenticatedPatch(string $namespace, string $route, callable $handler): void
     {
         $key = $namespace . $route;

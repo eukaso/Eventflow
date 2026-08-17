@@ -103,6 +103,7 @@ final class EventMemoryRoutes implements RestRouteRegistry
     public function registerPublicPost(string $namespace,string $route,callable $handler):void {}
     public function registerPublicPut(string $namespace,string $route,callable $handler):void {}
     public function registerAuthenticatedPost(string $namespace,string $route,callable $handler):void { $this->authenticatedPosts[$namespace.$route]=$handler; }
+    public function registerAuthenticatedGet(string $namespace,string $route,callable $handler):void {}
     public function registerAuthenticatedPatch(string $namespace,string $route,callable $handler):void {}
 }
 

@@ -103,6 +103,7 @@ final class AttendeeMemoryRoutes implements RestRouteRegistry
     public function registerPublicPost(string $namespace,string $route,callable $handler):void {}
     public function registerPublicPut(string $namespace,string $route,callable $handler):void {}
     public function registerAuthenticatedPost(string $namespace,string $route,callable $handler):void {$this->registered[]='POST '.$namespace.$route;}
+    public function registerAuthenticatedGet(string $namespace,string $route,callable $handler):void {}
     public function registerAuthenticatedPatch(string $namespace,string $route,callable $handler):void {$this->registered[]='PATCH '.$namespace.$route;}
 }
 

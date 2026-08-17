@@ -115,6 +115,14 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
             self::assertSame('is_user_logged_in', $registered['options']['permission_callback']);
         }
 
+        public function testAuthenticatedGetUsesWordPressAuthenticationPermission(): void
+        {
+            $this->registry()->registerAuthenticatedGet('eventflow/v1', '/events/1/seating/readiness', static fn (): SystemStatusResponse => new SystemStatusResponse(200, [], []));
+            $registered = $GLOBALS['eventflow_test_rest_route'];
+            self::assertSame('GET', $registered['options']['methods']);
+            self::assertSame('is_user_logged_in', $registered['options']['permission_callback']);
+        }
+
         public function testPublicPostAllowsCredentialBootstrapWithoutWordPressLogin(): void
         {
             $this->registry()->registerPublicPost('eventflow/v1', '/public/invitations/bootstrap', static fn (): SystemStatusResponse => new SystemStatusResponse(201, [], []));
