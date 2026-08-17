@@ -21,7 +21,7 @@ use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Security\SecureRandom;
 
-final readonly class InvitationService implements InvitationImportPort
+final readonly class InvitationService implements InvitationCommands, InvitationImportPort
 {
     public function __construct(
         private InvitationRepository $invitations,

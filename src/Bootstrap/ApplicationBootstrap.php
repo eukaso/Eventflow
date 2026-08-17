@@ -6,7 +6,7 @@ use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
-use EventFlow\Presentation\Api\{EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
+use EventFlow\Presentation\Api\{EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
 use EventFlow\Presentation\WordPress\{WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
@@ -145,6 +145,13 @@ final class ApplicationBootstrap
                 new MembershipPresenter(),
             );
             (new WordPressRestRouteHooks(new MembershipRouteRegistrar($memberships), $wordpressRoutes))->register();
+            $invitations = new InvitationController(
+                $container->database->invitations,
+                $container->delivery->authenticatedRequests,
+                new InvitationRequestMapper(),
+                new InvitationPresenter(),
+            );
+            (new WordPressRestRouteHooks(new InvitationRouteRegistrar($invitations), $wordpressRoutes))->register();
         }
     }
 

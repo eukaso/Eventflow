@@ -60,11 +60,13 @@ final readonly class ErrorCodeMapper
                 'primary_owner_continuity_required', 'membership_expired', 'membership_transition_invalid',
                 'membership_id_invalid', 'primary_owner_transfer_target_invalid',
                 'primary_owner_transfer_target_inactive',
+                'invitation_id_invalid', 'invitation_transition_invalid',
+                'invitation_token_expiry_invalid',
             ], true)) {
                 return 'validation_failed';
             }
 
-            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found', 'membership_not_found'], true)) {
+            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found', 'membership_not_found', 'invitation_not_found'], true)) {
                 return 'resource_not_found';
             }
 

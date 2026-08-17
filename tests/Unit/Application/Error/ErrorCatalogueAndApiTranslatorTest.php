@@ -16,6 +16,7 @@ use EventFlow\Application\Error\VersionConflictDetails;
 use EventFlow\Application\Export\ExportException;
 use EventFlow\Application\Privacy\PrivacyException;
 use EventFlow\Application\Idempotency\IdempotencyException;
+use EventFlow\Application\Invitation\InvitationException;
 use EventFlow\Application\Membership\MembershipException;
 use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Application\Seating\SeatingException;
@@ -107,6 +108,14 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $invalidMembership = $translator->translate(new MembershipException('membership_transition_invalid'), $requestId);
         self::assertSame(422, $invalidMembership->status);
         self::assertSame('validation_failed', $invalidMembership->body['code']);
+
+        $missingInvitation = $translator->translate(new InvitationException('invitation_not_found'), $requestId);
+        self::assertSame(404, $missingInvitation->status);
+        self::assertSame('resource_not_found', $missingInvitation->body['code']);
+
+        $invalidInvitation = $translator->translate(new InvitationException('invitation_transition_invalid'), $requestId);
+        self::assertSame(422, $invalidInvitation->status);
+        self::assertSame('validation_failed', $invalidInvitation->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void
