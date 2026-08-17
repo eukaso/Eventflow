@@ -6,6 +6,7 @@ use EventFlow\Application\Audit\AuditCanonicalizer;
 use EventFlow\Application\Audit\AuditPayloadRedactor;
 use EventFlow\Application\Audit\AuditService;
 use EventFlow\Application\Attendee\AttendeeService;
+use EventFlow\Application\CheckIn\CheckInService;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Authorization\RoleCapabilityPolicy;
 use EventFlow\Application\Event\EventLifecycleService;
@@ -30,6 +31,7 @@ use EventFlow\Infrastructure\Job\MigrationWorkerSchemaGate;
 use EventFlow\Infrastructure\Import\NativeTabularSourceParser;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAttendeeRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbCheckInRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAuditRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventLifecycleRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
@@ -66,6 +68,7 @@ final readonly class DatabaseFoundation
         public AttendeeService $attendees,
         public ImportService $imports,
         public SeatingService $seating,
+        public CheckInService $checkIn,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
         public array $readinessChecks,
@@ -176,6 +179,14 @@ final readonly class DatabaseFoundation
                 $audit,
                 $shared->clock,
                 $transactions,
+            ),
+            checkIn: new CheckInService(
+                new WpdbCheckInRepository($database, $tableNames),
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+                $shared->random,
             ),
             jobs: new WpdbJobRepository($database, $tableNames),
             workerSchema: new MigrationWorkerSchemaGate(

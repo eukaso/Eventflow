@@ -28,6 +28,7 @@ enum AuditAction: string
     case SEATING_GROUP_CREATED = 'seating.group_created';
     case SEATING_ASSIGNED = 'seating.assigned';
     case SEATING_RELEASED = 'seating.released';
+    case CHECKIN_STATION_CREATED = 'check_in.station_created';
     case CHECK_IN_RECORDED = 'check_in.recorded';
     case CHECK_IN_REVERSED = 'check_in.reversed';
     case CAMPAIGN_QUEUED = 'campaign.queued';

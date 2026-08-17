@@ -4,6 +4,7 @@ namespace EventFlow\Tests\Integration;
 
 use EventFlow\Application\Audit\AuditService;
 use EventFlow\Application\Attendee\AttendeeService;
+use EventFlow\Application\CheckIn\CheckInService;
 use EventFlow\Application\Authorization\AuthorizationException;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Error\RequestId;
@@ -48,6 +49,7 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(AttendeeService::class, $container->database->attendees);
         self::assertInstanceOf(ImportService::class, $container->database->imports);
         self::assertInstanceOf(SeatingService::class, $container->database->seating);
+        self::assertInstanceOf(CheckInService::class, $container->database->checkIn);
         self::assertInstanceOf(JobRepository::class, $container->database->jobs);
 
         $checks = [...$container->database->readinessChecks, new PrivacyReconciliationReadinessCheck(

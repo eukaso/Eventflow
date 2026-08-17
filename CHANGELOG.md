@@ -13,6 +13,7 @@ The project follows Semantic Versioning.
 - Atomic RSVP reconciliation and attendee administration with capacity locks, response revisions, non-destructive lifecycle changes, and primary-attendee continuity.
 - Secure staged CSV/XLSX imports with validation dry-runs, restartable worker leases, row-level idempotency, and credential-safe Invitation application.
 - Authoritative seating assignments with deterministic locks, classified constraint overrides, readiness preflight, and reproducible stale-safe recommendations.
+- Least-privilege reception lookup with atomic idempotent check-in, bulk operations, stations, and immutable audited reversals.
 
 ## [0.8.0] - 2026-08-16
 

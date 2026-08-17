@@ -38,6 +38,8 @@ final readonly class ErrorCodeMapper
                 'accessible_seating_insufficient', 'seating_capacity_insufficient',
                 'seat_inventory_capacity_insufficient', 'recommendation_seed_invalid',
                 'recommendation_plan_invalid', 'recommendation_algorithm_unsupported',
+                'reception_search_invalid', 'reception_lookup_invalid', 'checkin_station_invalid',
+                'bulk_checkin_invalid', 'attendee_not_checkin_eligible', 'checkin_reversal_reason_required',
             ], true)) {
                 return 'validation_failed';
             }
