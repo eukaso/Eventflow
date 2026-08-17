@@ -14,6 +14,7 @@ use EventFlow\Application\Error\RetryAfterDetails;
 use EventFlow\Application\Error\ValidationErrorDetails;
 use EventFlow\Application\Error\VersionConflictDetails;
 use EventFlow\Application\Export\ExportException;
+use EventFlow\Application\GuestAccess\GuestAccessException;
 use EventFlow\Application\Privacy\PrivacyException;
 use EventFlow\Application\Idempotency\IdempotencyException;
 use EventFlow\Application\Invitation\InvitationException;
@@ -116,6 +117,10 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $invalidInvitation = $translator->translate(new InvitationException('invitation_transition_invalid'), $requestId);
         self::assertSame(422, $invalidInvitation->status);
         self::assertSame('validation_failed', $invalidInvitation->body['code']);
+
+        $invalidGuestCredential = $translator->translate(new GuestAccessException('guest_credential_invalid'), $requestId);
+        self::assertSame(401, $invalidGuestCredential->status);
+        self::assertSame('guest_session_invalid', $invalidGuestCredential->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void

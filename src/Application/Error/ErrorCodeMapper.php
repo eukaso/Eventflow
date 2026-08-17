@@ -62,6 +62,7 @@ final readonly class ErrorCodeMapper
                 'primary_owner_transfer_target_inactive',
                 'invitation_id_invalid', 'invitation_transition_invalid',
                 'invitation_token_expiry_invalid',
+                'guest_link_request_invalid', 'guest_link_expiry_invalid',
             ], true)) {
                 return 'validation_failed';
             }
@@ -72,6 +73,10 @@ final readonly class ErrorCodeMapper
 
             if (in_array($code, ['retention_hold_active', 'privacy_action_in_progress', 'primary_owner_version_conflict'], true)) {
                 return 'resource_modified';
+            }
+
+            if (in_array($code, ['guest_credential_invalid', 'guest_csrf_invalid'], true)) {
+                return 'guest_session_invalid';
             }
         }
 

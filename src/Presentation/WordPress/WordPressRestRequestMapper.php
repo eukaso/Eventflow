@@ -32,7 +32,7 @@ final readonly class WordPressRestRequestMapper
             }
             $json = $decoded;
         }
-        return new RestRequest($headers, $json, $routes);
+        return new RestRequest($headers, $json, $routes, $this->clientAddress());
     }
 
     /** @return array<string, string> */
@@ -57,5 +57,12 @@ final readonly class WordPressRestRequestMapper
             if (is_string($name) && (is_string($value) || is_int($value))) $routes[$name] = (string) $value;
         }
         return $routes;
+    }
+
+    private function clientAddress(): ?string
+    {
+        $candidate = $_SERVER['REMOTE_ADDR'] ?? null;
+        if (!is_string($candidate) || filter_var($candidate, FILTER_VALIDATE_IP) === false) return null;
+        return $candidate;
     }
 }

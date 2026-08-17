@@ -37,11 +37,13 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
         public function testPublicGetRouteConvertsWordPressRequestAndResponseAtBoundary(): void
         {
             $seenRequestId = null;
+            $seenClientAddress = null;
             $this->registry()->registerPublicGet(
                 'eventflow/v1',
                 '/system/health',
-                static function (RestRequest $request) use (&$seenRequestId): SystemStatusResponse {
+                static function (RestRequest $request) use (&$seenRequestId, &$seenClientAddress): SystemStatusResponse {
                     $seenRequestId = $request->header('X-Request-ID');
+                    $seenClientAddress = $request->clientAddress();
                     return new SystemStatusResponse(200, ['healthy' => true], ['X-Request-ID' => $seenRequestId]);
                 },
             );
@@ -57,13 +59,16 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
                 {
                     return $name === 'X-Request-ID' ? 'req_0123456789abcdef0123456789abcdef' : '';
                 }
-                public function get_headers(): array { return ['X-Request-ID' => ['req_0123456789abcdef0123456789abcdef']]; }
+                public function get_headers(): array { return ['X-Request-ID' => ['req_0123456789abcdef0123456789abcdef'], 'X-Forwarded-For' => ['198.51.100.4']]; }
                 public function get_url_params(): array { return []; }
                 public function get_body(): string { return ''; }
             };
+            $_SERVER['REMOTE_ADDR'] = '203.0.113.4';
             $response = $registered['options']['callback']($request);
+            unset($_SERVER['REMOTE_ADDR']);
             self::assertInstanceOf(\WP_REST_Response::class, $response);
             self::assertSame('req_0123456789abcdef0123456789abcdef', $seenRequestId);
+            self::assertSame('203.0.113.4', $seenClientAddress);
             self::assertSame(200, $response->status);
             self::assertSame(['healthy' => true], $response->data);
         }
@@ -94,6 +99,14 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
             $registered = $GLOBALS['eventflow_test_rest_route'];
             self::assertSame('POST', $registered['options']['methods']);
             self::assertSame('is_user_logged_in', $registered['options']['permission_callback']);
+        }
+
+        public function testPublicPostAllowsCredentialBootstrapWithoutWordPressLogin(): void
+        {
+            $this->registry()->registerPublicPost('eventflow/v1', '/public/invitations/bootstrap', static fn (): SystemStatusResponse => new SystemStatusResponse(201, [], []));
+            $registered = $GLOBALS['eventflow_test_rest_route'];
+            self::assertSame('POST', $registered['options']['methods']);
+            self::assertSame('__return_true', $registered['options']['permission_callback']);
         }
 
         public function testAuthenticatedPatchUsesWordPressAuthenticationPermission(): void

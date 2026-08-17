@@ -23,7 +23,7 @@ use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Application\Transaction\TransactionManager;
 
-final readonly class GuestAccessService
+final readonly class GuestAccessService implements GuestSessionBootstrap
 {
     public function __construct(
         private GuestAccessRepository $guestAccess,

@@ -12,6 +12,7 @@ The project follows Semantic Versioning.
 - Authenticated Event creation and explicit lifecycle REST commands with strict input mapping, mandatory idempotency, normalized resource responses, and full-mode-only registration.
 - Authenticated membership grant, role/expiry change, lifecycle, and primary-owner transfer REST commands backed by current-state authorization and mandatory idempotency.
 - Authenticated Invitation creation, activation, revocation, and credential rotation REST commands with return-once token delivery and strict request validation.
+- Public Invitation credential bootstrap with anti-enumeration throttling, secure HttpOnly guest-session cookies, and explicit CSRF-token delivery.
 
 ## [0.9.0] - 2026-08-17
 

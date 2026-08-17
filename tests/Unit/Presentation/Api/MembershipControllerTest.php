@@ -118,6 +118,7 @@ final class MembershipMemoryRoutes implements RestRouteRegistry
 {
     public array $registered = [];
     public function registerPublicGet(string $namespace, string $route, callable $handler): void {}
+    public function registerPublicPost(string $namespace, string $route, callable $handler): void {}
     public function registerAuthenticatedPost(string $namespace, string $route, callable $handler): void { $this->registered[] = 'POST ' . $namespace . $route; }
     public function registerAuthenticatedPatch(string $namespace, string $route, callable $handler): void { $this->registered[] = 'PATCH ' . $namespace . $route; }
 }

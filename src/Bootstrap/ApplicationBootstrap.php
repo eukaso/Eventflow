@@ -6,8 +6,8 @@ use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
-use EventFlow\Presentation\Api\{EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
-use EventFlow\Presentation\WordPress\{WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
+use EventFlow\Presentation\Api\{EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestSessionPresenter, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
+use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
 final class ApplicationBootstrap
@@ -152,6 +152,14 @@ final class ApplicationBootstrap
                 new InvitationPresenter(),
             );
             (new WordPressRestRouteHooks(new InvitationRouteRegistrar($invitations), $wordpressRoutes))->register();
+            $guestBootstrap = new GuestBootstrapController(
+                $container->database->guestAccess,
+                new WordPressPublicBootstrapRateLimiter(),
+                $container->services->requestIds,
+                new GuestBootstrapRequestMapper(),
+                new GuestSessionPresenter(),
+            );
+            (new WordPressRestRouteHooks(new GuestBootstrapRouteRegistrar($guestBootstrap), $wordpressRoutes))->register();
         }
     }
 

@@ -11,9 +11,10 @@ final readonly class RestRequest
     private array $json;
     /** @var array<string, string> */
     private array $routeParameters;
+    private ?string $trustedClientAddress;
 
     /** @param array<string, string> $headers @param array<string, mixed> $json @param array<string, string> $routeParameters */
-    public function __construct(array $headers = [], array $json = [], array $routeParameters = [])
+    public function __construct(array $headers = [], array $json = [], array $routeParameters = [], ?string $trustedClientAddress = null)
     {
         $normalized = [];
         foreach ($headers as $name => $value) {
@@ -25,6 +26,7 @@ final readonly class RestRequest
         $this->headers = $normalized;
         $this->json = $json;
         $this->routeParameters = $routeParameters;
+        $this->trustedClientAddress = $trustedClientAddress;
     }
 
     public function header(string $name): ?string
@@ -37,4 +39,5 @@ final readonly class RestRequest
     public function json(): array { return $this->json; }
     public function input(string $name): mixed { return $this->json[$name] ?? null; }
     public function route(string $name): ?string { return $this->routeParameters[$name] ?? null; }
+    public function clientAddress(): ?string { return $this->trustedClientAddress; }
 }
