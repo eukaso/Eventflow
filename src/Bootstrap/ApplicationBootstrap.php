@@ -6,7 +6,7 @@ use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
-use EventFlow\Presentation\Api\{EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestSessionPresenter, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
+use EventFlow\Presentation\Api\{EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
@@ -160,6 +160,13 @@ final class ApplicationBootstrap
                 new GuestSessionPresenter(),
             );
             (new WordPressRestRouteHooks(new GuestBootstrapRouteRegistrar($guestBootstrap), $wordpressRoutes))->register();
+            $rsvp = new RsvpController(
+                $container->database->attendees,
+                new GuestRequestContextFactory($container->database->guestAccess, $container->services->requestIds),
+                new RsvpRequestMapper(),
+                new RsvpPresenter(),
+            );
+            (new WordPressRestRouteHooks(new RsvpRouteRegistrar($rsvp), $wordpressRoutes))->register();
         }
     }
 

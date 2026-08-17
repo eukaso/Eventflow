@@ -8,8 +8,6 @@ use EventFlow\Application\GuestAccess\GuestSessionCredentials;
 
 final readonly class GuestSessionPresenter
 {
-    private const COOKIE_NAME = 'eventflow_guest_session';
-
     public function bootstrap(GuestSessionCredentials $credentials, RequestId $requestId): JsonApiResponse
     {
         $utc = new DateTimeZone('UTC');
@@ -29,7 +27,7 @@ final readonly class GuestSessionPresenter
                 'X-Request-ID' => $requestId->value,
                 'Cache-Control' => 'no-store, max-age=0',
                 'Pragma' => 'no-cache',
-                'Set-Cookie' => self::COOKIE_NAME . '=' . $credentials->rawSessionToken
+                'Set-Cookie' => GuestSessionCookie::NAME . '=' . $credentials->rawSessionToken
                     . '; Expires=' . $expiresAt->format('D, d M Y H:i:s') . ' GMT'
                     . '; Path=/wp-json/eventflow/v1/public; Secure; HttpOnly; SameSite=Lax',
             ],

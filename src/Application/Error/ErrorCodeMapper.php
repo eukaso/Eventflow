@@ -63,15 +63,18 @@ final readonly class ErrorCodeMapper
                 'invitation_id_invalid', 'invitation_transition_invalid',
                 'invitation_token_expiry_invalid',
                 'guest_link_request_invalid', 'guest_link_expiry_invalid',
+                'primary_attendee_transfer_required',
+                'declined_response_attendees_invalid', 'primary_attendee_continuity_required',
+                'attendee_transition_invalid', 'primary_attendee_target_invalid',
             ], true)) {
                 return 'validation_failed';
             }
 
-            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found', 'membership_not_found', 'invitation_not_found'], true)) {
+            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found', 'membership_not_found', 'invitation_not_found', 'attendee_not_found', 'attendee_scope_invalid'], true)) {
                 return 'resource_not_found';
             }
 
-            if (in_array($code, ['retention_hold_active', 'privacy_action_in_progress', 'primary_owner_version_conflict'], true)) {
+            if (in_array($code, ['retention_hold_active', 'privacy_action_in_progress', 'primary_owner_version_conflict', 'primary_attendee_version_conflict'], true)) {
                 return 'resource_modified';
             }
 

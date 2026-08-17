@@ -19,7 +19,7 @@ use EventFlow\Application\Idempotency\IdempotentOperationResult;
 use EventFlow\Application\Invitation\InvitationStatus;
 use EventFlow\Application\Persistence\EventScope;
 
-final readonly class AttendeeService
+final readonly class AttendeeService implements RsvpCommands
 {
     public function __construct(
         private AttendeeRepository $attendees,

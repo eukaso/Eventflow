@@ -17,6 +17,13 @@ namespace {
             }
         }
     }
+
+    if (!function_exists('home_url')) {
+        function home_url(string $path = ''): string
+        {
+            return 'https://eventflow.test' . $path;
+        }
+    }
 }
 
 namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
@@ -38,12 +45,16 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
         {
             $seenRequestId = null;
             $seenClientAddress = null;
+            $seenGuestCookie = null;
+            $seenSameOrigin = false;
             $this->registry()->registerPublicGet(
                 'eventflow/v1',
                 '/system/health',
-                static function (RestRequest $request) use (&$seenRequestId, &$seenClientAddress): SystemStatusResponse {
+                static function (RestRequest $request) use (&$seenRequestId, &$seenClientAddress, &$seenGuestCookie, &$seenSameOrigin): SystemStatusResponse {
                     $seenRequestId = $request->header('X-Request-ID');
                     $seenClientAddress = $request->clientAddress();
+                    $seenGuestCookie = $request->cookie('eventflow_guest_session');
+                    $seenSameOrigin = $request->sameOrigin();
                     return new SystemStatusResponse(200, ['healthy' => true], ['X-Request-ID' => $seenRequestId]);
                 },
             );
@@ -59,8 +70,9 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
                 {
                     return $name === 'X-Request-ID' ? 'req_0123456789abcdef0123456789abcdef' : '';
                 }
-                public function get_headers(): array { return ['X-Request-ID' => ['req_0123456789abcdef0123456789abcdef'], 'X-Forwarded-For' => ['198.51.100.4']]; }
+                public function get_headers(): array { return ['X-Request-ID' => ['req_0123456789abcdef0123456789abcdef'], 'X-Forwarded-For' => ['198.51.100.4'], 'Origin' => ['https://eventflow.test']]; }
                 public function get_url_params(): array { return []; }
+                public function get_cookie_params(): array { return ['eventflow_guest_session' => 'guest-cookie']; }
                 public function get_body(): string { return ''; }
             };
             $_SERVER['REMOTE_ADDR'] = '203.0.113.4';
@@ -69,6 +81,8 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
             self::assertInstanceOf(\WP_REST_Response::class, $response);
             self::assertSame('req_0123456789abcdef0123456789abcdef', $seenRequestId);
             self::assertSame('203.0.113.4', $seenClientAddress);
+            self::assertSame('guest-cookie', $seenGuestCookie);
+            self::assertTrue($seenSameOrigin);
             self::assertSame(200, $response->status);
             self::assertSame(['healthy' => true], $response->data);
         }
@@ -115,6 +129,14 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
             $registered = $GLOBALS['eventflow_test_rest_route'];
             self::assertSame('PATCH', $registered['options']['methods']);
             self::assertSame('is_user_logged_in', $registered['options']['permission_callback']);
+        }
+
+        public function testPublicPutDefersGuestAuthenticationToController(): void
+        {
+            $this->registry()->registerPublicPut('eventflow/v1', '/public/invitation/response', static fn (): SystemStatusResponse => new SystemStatusResponse(200, [], []));
+            $registered = $GLOBALS['eventflow_test_rest_route'];
+            self::assertSame('PUT', $registered['options']['methods']);
+            self::assertSame('__return_true', $registered['options']['permission_callback']);
         }
 
         private function registry(): WordPressRestRouteRegistry

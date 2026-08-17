@@ -3,6 +3,7 @@
 namespace EventFlow\Tests\Unit\Application\Error;
 
 use EventFlow\Application\Authorization\AuthorizationException;
+use EventFlow\Application\Attendee\AttendeeException;
 use EventFlow\Application\Error\CoreErrorCatalogue;
 use EventFlow\Application\Error\ErrorCodeMapper;
 use EventFlow\Application\Error\PreconditionDetails;
@@ -121,6 +122,18 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $invalidGuestCredential = $translator->translate(new GuestAccessException('guest_credential_invalid'), $requestId);
         self::assertSame(401, $invalidGuestCredential->status);
         self::assertSame('guest_session_invalid', $invalidGuestCredential->body['code']);
+
+        $staleRsvp = $translator->translate(new AttendeeException('guest_response_modified'), $requestId);
+        self::assertSame(409, $staleRsvp->status);
+        self::assertSame('guest_response_modified', $staleRsvp->body['code']);
+
+        $invalidRsvp = $translator->translate(new AttendeeException('primary_attendee_continuity_required'), $requestId);
+        self::assertSame(422, $invalidRsvp->status);
+        self::assertSame('validation_failed', $invalidRsvp->body['code']);
+
+        $foreignAttendee = $translator->translate(new AttendeeException('attendee_scope_invalid'), $requestId);
+        self::assertSame(404, $foreignAttendee->status);
+        self::assertSame('resource_not_found', $foreignAttendee->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void

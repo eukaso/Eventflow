@@ -16,6 +16,7 @@ final readonly class WordPressRestRequestMapper
         }
         $headers = $this->headers(method_exists($wordpressRequest, 'get_headers') ? $wordpressRequest->get_headers() : []);
         $routes = $this->routes(method_exists($wordpressRequest, 'get_url_params') ? $wordpressRequest->get_url_params() : []);
+        $cookies = $this->cookies(method_exists($wordpressRequest, 'get_cookie_params') ? $wordpressRequest->get_cookie_params() : []);
         $raw = method_exists($wordpressRequest, 'get_body') ? $wordpressRequest->get_body() : '';
         if (!is_string($raw) || strlen($raw) > self::MAX_JSON_BYTES) {
             throw new RequestInputException('validation_failed');
@@ -32,7 +33,7 @@ final readonly class WordPressRestRequestMapper
             }
             $json = $decoded;
         }
-        return new RestRequest($headers, $json, $routes, $this->clientAddress());
+        return new RestRequest($headers, $json, $routes, $this->clientAddress(), $cookies, $this->sameOrigin($headers));
     }
 
     /** @return array<string, string> */
@@ -64,5 +65,43 @@ final readonly class WordPressRestRequestMapper
         $candidate = $_SERVER['REMOTE_ADDR'] ?? null;
         if (!is_string($candidate) || filter_var($candidate, FILTER_VALIDATE_IP) === false) return null;
         return $candidate;
+    }
+
+    /** @return array<string, string> */
+    private function cookies(mixed $source): array
+    {
+        if (!is_array($source)) return [];
+        $cookies = [];
+        foreach ($source as $name => $value) {
+            if (is_string($name) && is_string($value)) $cookies[$name] = $value;
+        }
+        return $cookies;
+    }
+
+    /** @param array<string, string> $headers */
+    private function sameOrigin(array $headers): bool
+    {
+        if (!function_exists('home_url')) return false;
+        $origin = null;
+        foreach ($headers as $name => $value) {
+            if (strcasecmp($name, 'Origin') === 0) { $origin = $value; break; }
+        }
+        if ($origin === null) return false;
+        $site = home_url('/');
+        if (!is_string($site)) return false;
+        return $this->origin($origin) !== null && $this->origin($origin) === $this->origin($site);
+    }
+
+    private function origin(string $url): ?string
+    {
+        $parts = parse_url($url);
+        if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) return null;
+        $scheme = strtolower((string) $parts['scheme']);
+        if ($scheme !== 'http' && $scheme !== 'https') return null;
+        $explicitPort = isset($parts['port']) ? (int) $parts['port'] : null;
+        $port = $explicitPort !== null && !(($scheme === 'https' && $explicitPort === 443) || ($scheme === 'http' && $explicitPort === 80))
+            ? ':' . $explicitPort
+            : '';
+        return $scheme . '://' . strtolower((string) $parts['host']) . $port;
     }
 }
