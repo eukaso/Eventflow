@@ -2,7 +2,7 @@
 
 Date: 2026-08-17  
 Package: IMP-027 / SVC-016  
-Result: LOCAL PASS / CI PENDING
+Result: PASS
 
 ## Acceptance scope
 
@@ -25,10 +25,11 @@ The authoritative design matrix contains IV-001 through IV-020. The executable e
 | Unit suite | 189 tests, 738 assertions PASS |
 | Integration suite | 11 tests, 1,549 assertions PASS |
 | Design scenarios | IV-001–IV-020 PASS |
+| GitHub Actions | PHP 8.2 and PHP 8.3 PASS |
 | Database migration | Not required |
 
 Command: `composer test`
 
 ## Promotion decision
 
-Sprint 8 core-domain implementation is accepted at the local repository test boundary. Release promotion remains pending until the candidate commit passes the GitHub Actions PHP 8.2/8.3 matrix. Deployment configuration and live provider certification remain deployment-stage concerns rather than open core-domain defects.
+Sprint 8 core-domain implementation is accepted. Candidate commit `4ef4b80` passed the GitHub Actions PHP 8.2/8.3 matrix in [run 32038494469](https://github.com/eukaso/Eventflow/actions/runs/32038494469). The stable version and changelog promotion are complete, and the release commit is approved for merge and the annotated `v0.9.0-core-domain` tag. Deployment configuration and live provider certification remain deployment-stage concerns rather than open core-domain defects.

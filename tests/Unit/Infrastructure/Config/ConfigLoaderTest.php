@@ -10,7 +10,7 @@ final class ConfigLoaderTest extends TestCase
     public function testDefaultsAreSafe(): void
     {
         if (!defined('EVENTFLOW_VERSION')) {
-            define('EVENTFLOW_VERSION', '0.9.0-dev');
+            define('EVENTFLOW_VERSION', '0.9.0');
         }
 
         if (!defined('EVENTFLOW_SCHEMA_VERSION')) {
