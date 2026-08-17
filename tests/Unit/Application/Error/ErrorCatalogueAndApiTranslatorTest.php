@@ -134,6 +134,10 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $foreignAttendee = $translator->translate(new AttendeeException('attendee_scope_invalid'), $requestId);
         self::assertSame(404, $foreignAttendee->status);
         self::assertSame('resource_not_found', $foreignAttendee->body['code']);
+
+        $implicitRoleChange = $translator->translate(new AttendeeException('attendee_role_change_requires_command'), $requestId);
+        self::assertSame(422, $implicitRoleChange->status);
+        self::assertSame('validation_failed', $implicitRoleChange->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void

@@ -14,6 +14,7 @@ The project follows Semantic Versioning.
 - Authenticated Invitation creation, activation, revocation, and credential rotation REST commands with return-once token delivery and strict request validation.
 - Public Invitation credential bootstrap with anti-enumeration throttling, secure HttpOnly guest-session cookies, and explicit CSRF-token delivery.
 - Guest RSVP submission with cookie-backed session authentication, strict same-origin and CSRF enforcement, idempotency, revision preconditions, and complete-state reconciliation.
+- Authenticated Attendee creation, correction, cancellation, restoration, and primary-transfer REST commands with explicit Invitation scoping.
 
 ## [0.9.0] - 2026-08-17
 

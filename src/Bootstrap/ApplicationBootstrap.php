@@ -6,7 +6,7 @@ use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
-use EventFlow\Presentation\Api\{EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
+use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeRequestMapper, AttendeeRouteRegistrar, EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
@@ -167,6 +167,13 @@ final class ApplicationBootstrap
                 new RsvpPresenter(),
             );
             (new WordPressRestRouteHooks(new RsvpRouteRegistrar($rsvp), $wordpressRoutes))->register();
+            $attendees = new AttendeeController(
+                $container->database->attendees,
+                $container->delivery->authenticatedRequests,
+                new AttendeeRequestMapper(),
+                new AttendeePresenter(),
+            );
+            (new WordPressRestRouteHooks(new AttendeeRouteRegistrar($attendees), $wordpressRoutes))->register();
         }
     }
 

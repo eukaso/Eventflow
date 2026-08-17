@@ -66,6 +66,7 @@ final readonly class ErrorCodeMapper
                 'primary_attendee_transfer_required',
                 'declined_response_attendees_invalid', 'primary_attendee_continuity_required',
                 'attendee_transition_invalid', 'primary_attendee_target_invalid',
+                'attendee_role_change_requires_command',
             ], true)) {
                 return 'validation_failed';
             }
