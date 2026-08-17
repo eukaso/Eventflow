@@ -7,7 +7,7 @@ use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
 use EventFlow\Presentation\Api\{SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
-use EventFlow\Presentation\WordPress\WordPressSystemRouteHooks;
+use EventFlow\Presentation\WordPress\{WordPressRestRequestMapper, WordPressRestRouteRegistry, WordPressSystemRouteHooks};
 use Throwable;
 
 final class ApplicationBootstrap
@@ -124,7 +124,12 @@ final class ApplicationBootstrap
             $container->services->apiErrors,
             $container->services->observability,
         );
-        (new WordPressSystemRouteHooks(new SystemRouteRegistrar($controller)))->register();
+        $wordpressRoutes = new WordPressRestRouteRegistry(
+            new WordPressRestRequestMapper(),
+            $container->services->requestIds,
+            $container->services->apiErrors,
+        );
+        (new WordPressSystemRouteHooks(new SystemRouteRegistrar($controller), $wordpressRoutes))->register();
     }
 
 }

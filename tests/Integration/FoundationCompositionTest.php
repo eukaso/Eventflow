@@ -28,6 +28,7 @@ use EventFlow\Bootstrap\BootstrapResult;
 use EventFlow\Bootstrap\BootstrapState;
 use EventFlow\Bootstrap\Container;
 use EventFlow\Infrastructure\Config\Config;
+use EventFlow\Presentation\Api\AuthenticatedRequestContextFactory;
 use PHPUnit\Framework\TestCase;
 
 final class FoundationCompositionTest extends TestCase
@@ -46,6 +47,7 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(IdempotencyService::class, $container->database->idempotency);
         self::assertInstanceOf(AuditService::class, $container->database->audit);
         self::assertInstanceOf(ObservabilityService::class, $container->services->observability);
+        self::assertInstanceOf(AuthenticatedRequestContextFactory::class, $container->delivery->authenticatedRequests);
         self::assertInstanceOf(EventLifecycleService::class, $container->database->eventLifecycle);
         self::assertInstanceOf(MembershipService::class, $container->database->memberships);
         self::assertInstanceOf(InvitationService::class, $container->database->invitations);

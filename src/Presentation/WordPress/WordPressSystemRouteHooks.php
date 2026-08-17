@@ -6,8 +6,10 @@ use EventFlow\Presentation\Api\SystemRouteRegistrar;
 
 final readonly class WordPressSystemRouteHooks
 {
-    public function __construct(private SystemRouteRegistrar $routes)
-    {
+    public function __construct(
+        private SystemRouteRegistrar $routes,
+        private WordPressRestRouteRegistry $wordpressRoutes,
+    ) {
     }
 
     public function register(): void
@@ -16,8 +18,9 @@ final readonly class WordPressSystemRouteHooks
             return;
         }
         $routes = $this->routes;
-        add_action('rest_api_init', static function () use ($routes): void {
-            $routes->register(new WordPressRestRouteRegistry());
+        $wordpressRoutes = $this->wordpressRoutes;
+        add_action('rest_api_init', static function () use ($routes, $wordpressRoutes): void {
+            $routes->register($wordpressRoutes);
         });
     }
 }

@@ -10,13 +10,15 @@ use EventFlow\Infrastructure\Clock\SystemClock;
 use EventFlow\Infrastructure\Config\Config;
 use EventFlow\Infrastructure\Security\PhpSecureRandom;
 use EventFlow\Infrastructure\Observability\{WordPressMetricSink, WordPressStructuredLogSink};
-use EventFlow\Presentation\Api\ApiErrorTranslator;
+use EventFlow\Presentation\Api\{ApiErrorTranslator, AuthenticatedRequestContextFactory};
+use EventFlow\Presentation\WordPress\WordPressAuthenticatedPrincipalResolver;
 
 final readonly class Container
 {
     private function __construct(
         public Config $config,
         public FoundationServices $services,
+        public DeliveryServices $delivery,
         public ?DatabaseFoundation $database,
     ) {
     }
@@ -57,6 +59,10 @@ final readonly class Container
         return new self(
             $config,
             $services,
+            new DeliveryServices(new AuthenticatedRequestContextFactory(
+                new WordPressAuthenticatedPrincipalResolver(),
+                $services->requestIds,
+            )),
             $wpdb === null ? null : DatabaseFoundation::create($wpdb, $config, $services),
         );
     }
