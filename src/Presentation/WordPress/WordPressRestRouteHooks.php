@@ -2,12 +2,12 @@
 
 namespace EventFlow\Presentation\WordPress;
 
-use EventFlow\Presentation\Api\SystemRouteRegistrar;
+use EventFlow\Presentation\Api\RestRouteRegistrar;
 
-final readonly class WordPressSystemRouteHooks
+final readonly class WordPressRestRouteHooks
 {
     public function __construct(
-        private SystemRouteRegistrar $routes,
+        private RestRouteRegistrar $routes,
         private WordPressRestRouteRegistry $wordpressRoutes,
     ) {
     }

@@ -17,7 +17,7 @@ use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Idempotency\IdempotentOperationResult;
 use EventFlow\Application\Persistence\EventScope;
 
-final readonly class EventLifecycleService
+final readonly class EventLifecycleService implements EventLifecycleCommands
 {
     public function __construct(
         private EventLifecycleRepository $events,

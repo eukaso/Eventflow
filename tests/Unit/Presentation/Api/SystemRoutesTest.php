@@ -67,7 +67,6 @@ final class SystemRoutesTest extends TestCase
             new SystemStatusPresenter(),
             $container->services->requestIds,
             $container->services->apiErrors,
-            $container->services->observability,
         );
     }
 }
@@ -84,6 +83,13 @@ final class MemoryRestRoutes implements RestRouteRegistry
         $key = $namespace . $route;
         $this->handlers[$key] = $handler;
         $this->methods[$key] = 'GET';
+    }
+
+    public function registerAuthenticatedPost(string $namespace, string $route, callable $handler): void
+    {
+        $key = $namespace . $route;
+        $this->handlers[$key] = $handler;
+        $this->methods[$key] = 'POST';
     }
 
     public function call(string $route, ?RestRequest $request = null): ApiResponse

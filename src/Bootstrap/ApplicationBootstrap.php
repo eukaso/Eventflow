@@ -6,8 +6,8 @@ use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
-use EventFlow\Presentation\Api\{SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
-use EventFlow\Presentation\WordPress\{WordPressRestRequestMapper, WordPressRestRouteRegistry, WordPressSystemRouteHooks};
+use EventFlow\Presentation\Api\{EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
+use EventFlow\Presentation\WordPress\{WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
 final class ApplicationBootstrap
@@ -59,7 +59,7 @@ final class ApplicationBootstrap
                 ),
             };
             self::$result = $result;
-            self::registerSystemRoutes($container, $result);
+            self::registerRoutes($container, $result);
             return $result;
         } catch (ConfigException $e) {
             return self::$result = new BootstrapResult(
@@ -108,7 +108,7 @@ final class ApplicationBootstrap
         );
     }
 
-    private static function registerSystemRoutes(Container $container, BootstrapResult $bootstrap): void
+    private static function registerRoutes(Container $container, BootstrapResult $bootstrap): void
     {
         $checks = $container->database?->readinessChecks ?? [new BootstrapReadinessCheck($bootstrap)];
         $health = new SystemHealthService(
@@ -122,14 +122,23 @@ final class ApplicationBootstrap
             new SystemStatusPresenter(),
             $container->services->requestIds,
             $container->services->apiErrors,
-            $container->services->observability,
         );
         $wordpressRoutes = new WordPressRestRouteRegistry(
             new WordPressRestRequestMapper(),
             $container->services->requestIds,
             $container->services->apiErrors,
+            $container->services->observability,
         );
-        (new WordPressSystemRouteHooks(new SystemRouteRegistrar($controller), $wordpressRoutes))->register();
+        (new WordPressRestRouteHooks(new SystemRouteRegistrar($controller), $wordpressRoutes))->register();
+        if ($bootstrap->ready && $container->database !== null) {
+            $events = new EventController(
+                $container->database->eventLifecycle,
+                $container->delivery->authenticatedRequests,
+                new EventRequestMapper(),
+                new EventPresenter(),
+            );
+            (new WordPressRestRouteHooks(new EventRouteRegistrar($events), $wordpressRoutes))->register();
+        }
     }
 
 }

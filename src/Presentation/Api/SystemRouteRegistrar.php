@@ -2,7 +2,7 @@
 
 namespace EventFlow\Presentation\Api;
 
-final readonly class SystemRouteRegistrar
+final readonly class SystemRouteRegistrar implements RestRouteRegistrar
 {
     public const NAMESPACE = 'eventflow/v1';
 

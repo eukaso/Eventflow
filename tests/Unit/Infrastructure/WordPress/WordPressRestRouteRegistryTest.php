@@ -20,11 +20,10 @@ namespace {
 }
 
 namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
-    use EventFlow\Application\Error\{CoreErrorCatalogue, ErrorCodeMapper, RequestIdFactory};
-    use EventFlow\Application\Security\SecureRandom;
+    use EventFlow\Bootstrap\Container;
+    use EventFlow\Infrastructure\Config\Config;
     use EventFlow\Presentation\WordPress\WordPressRestRouteRegistry;
     use EventFlow\Presentation\WordPress\WordPressRestRequestMapper;
-    use EventFlow\Presentation\Api\ApiErrorTranslator;
     use EventFlow\Presentation\Api\{RestRequest, SystemStatusResponse};
     use PHPUnit\Framework\TestCase;
 
@@ -89,19 +88,23 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
             self::assertSame('req_0123456789abcdef0123456789abcdef', $response->headers['X-Request-ID']);
         }
 
+        public function testAuthenticatedPostUsesWordPressAuthenticationPermission(): void
+        {
+            $this->registry()->registerAuthenticatedPost('eventflow/v1', '/events', static fn (): SystemStatusResponse => new SystemStatusResponse(200, [], []));
+            $registered = $GLOBALS['eventflow_test_rest_route'];
+            self::assertSame('POST', $registered['options']['methods']);
+            self::assertSame('is_user_logged_in', $registered['options']['permission_callback']);
+        }
+
         private function registry(): WordPressRestRouteRegistry
         {
-            $catalogue = CoreErrorCatalogue::create();
+            $container = Container::createFoundation(new Config('testing', '0.9.0', 6, 'error', false));
             return new WordPressRestRouteRegistry(
                 new WordPressRestRequestMapper(),
-                new RequestIdFactory(new RestRegistryRandom()),
-                new ApiErrorTranslator($catalogue, new ErrorCodeMapper($catalogue)),
+                $container->services->requestIds,
+                $container->services->apiErrors,
+                $container->services->observability,
             );
         }
-    }
-
-    final readonly class RestRegistryRandom implements SecureRandom
-    {
-        public function hex(int $bytes): string { return str_repeat('a', $bytes * 2); }
     }
 }

@@ -9,6 +9,7 @@ The project follows Semantic Versioning.
 ### Added
 - WordPress REST transport foundation with normalized request IDs, safe response adaptation, and public health/readiness routes available in full and migration-required bootstrap modes.
 - Authenticated WordPress REST request contexts with bounded JSON normalization and explicit idempotency/ETag precondition policies for mutation controllers.
+- Authenticated Event creation and explicit lifecycle REST commands with strict input mapping, mandatory idempotency, normalized resource responses, and full-mode-only registration.
 
 ## [0.9.0] - 2026-08-17
 
