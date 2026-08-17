@@ -14,6 +14,7 @@ The project follows Semantic Versioning.
 - Secure staged CSV/XLSX imports with validation dry-runs, restartable worker leases, row-level idempotency, and credential-safe Invitation application.
 - Authoritative seating assignments with deterministic locks, classified constraint overrides, readiness preflight, and reproducible stale-safe recommendations.
 - Least-privilege reception lookup with atomic idempotent check-in, bulk operations, stations, and immutable audited reversals.
+- Immutable communication templates and explicit-purpose campaigns with safe previews, execution-time audience freezing, and idempotent Message snapshots.
 
 ## [0.8.0] - 2026-08-16
 

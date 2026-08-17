@@ -31,6 +31,9 @@ enum AuditAction: string
     case CHECKIN_STATION_CREATED = 'check_in.station_created';
     case CHECK_IN_RECORDED = 'check_in.recorded';
     case CHECK_IN_REVERSED = 'check_in.reversed';
+    case TEMPLATE_CREATED = 'template.created';
+    case TEMPLATE_PUBLISHED = 'template.published';
+    case CAMPAIGN_CREATED = 'campaign.created';
     case CAMPAIGN_QUEUED = 'campaign.queued';
     case IMPORT_APPLIED = 'import.applied';
     case EXPORT_REQUESTED = 'export.requested';

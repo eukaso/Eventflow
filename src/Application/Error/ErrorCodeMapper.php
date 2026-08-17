@@ -40,6 +40,10 @@ final readonly class ErrorCodeMapper
                 'recommendation_plan_invalid', 'recommendation_algorithm_unsupported',
                 'reception_search_invalid', 'reception_lookup_invalid', 'checkin_station_invalid',
                 'bulk_checkin_invalid', 'attendee_not_checkin_eligible', 'checkin_reversal_reason_required',
+                'communication_template_invalid', 'template_merge_field_invalid', 'template_render_failed',
+                'campaign_invalid', 'campaign_audience_invalid', 'campaign_template_invalid',
+                'campaign_channel_invalid', 'campaign_recipient_invalid', 'message_invalid',
+                'campaign_snapshot_audience_required',
             ], true)) {
                 return 'validation_failed';
             }

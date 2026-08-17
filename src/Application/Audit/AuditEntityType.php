@@ -14,6 +14,7 @@ enum AuditEntityType: string
     case SEATING_ASSIGNMENT = 'seating_assignment';
     case CHECKIN_STATION = 'checkin_station';
     case CHECK_IN = 'check_in';
+    case COMMUNICATION_TEMPLATE = 'communication_template';
     case CAMPAIGN = 'campaign';
     case IMPORT_JOB = 'import_job';
     case EXPORT = 'export';
