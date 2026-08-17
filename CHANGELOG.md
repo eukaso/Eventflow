@@ -6,6 +6,9 @@ The project follows Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+- WordPress REST transport foundation with normalized request IDs, safe response adaptation, and public health/readiness routes available in full and migration-required bootstrap modes.
+
 ## [0.9.0] - 2026-08-17
 
 ### Added

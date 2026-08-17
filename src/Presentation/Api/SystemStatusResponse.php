@@ -2,7 +2,7 @@
 
 namespace EventFlow\Presentation\Api;
 
-final readonly class SystemStatusResponse
+final readonly class SystemStatusResponse implements ApiResponse
 {
     /** @param array<string, mixed> $body @param array<string, string> $headers */
     public function __construct(
@@ -11,4 +11,8 @@ final readonly class SystemStatusResponse
         public array $headers,
     ) {
     }
+
+    public function status(): int { return $this->status; }
+    public function body(): array { return $this->body; }
+    public function headers(): array { return $this->headers; }
 }

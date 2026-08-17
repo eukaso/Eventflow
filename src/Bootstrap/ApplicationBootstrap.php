@@ -2,8 +2,12 @@
 
 namespace EventFlow\Bootstrap;
 
+use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
+use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
+use EventFlow\Presentation\Api\{SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter};
+use EventFlow\Presentation\WordPress\WordPressSystemRouteHooks;
 use Throwable;
 
 final class ApplicationBootstrap
@@ -39,7 +43,7 @@ final class ApplicationBootstrap
                 ->schemaCompatibility
                 ->check($config->expectedSchemaVersion, $installedSchemaVersion);
 
-            return self::$result = match ($compatibility) {
+            $result = match ($compatibility) {
                 SchemaCompatibility::COMPATIBLE => self::registerFullMode(),
                 SchemaCompatibility::MIGRATION_REQUIRED => self::registerMinimalMode(
                     BootstrapState::MIGRATION_REQUIRED,
@@ -54,6 +58,9 @@ final class ApplicationBootstrap
                     ['schema_compatibility_unknown']
                 ),
             };
+            self::$result = $result;
+            self::registerSystemRoutes($container, $result);
+            return $result;
         } catch (ConfigException $e) {
             return self::$result = new BootstrapResult(
                 BootstrapState::INVALID_CONFIGURATION,
@@ -99,6 +106,25 @@ final class ApplicationBootstrap
             false,
             $codes,
         );
+    }
+
+    private static function registerSystemRoutes(Container $container, BootstrapResult $bootstrap): void
+    {
+        $checks = $container->database?->readinessChecks ?? [new BootstrapReadinessCheck($bootstrap)];
+        $health = new SystemHealthService(
+            $bootstrap,
+            $checks,
+            $container->services->clock,
+            $container->config->pluginVersion,
+        );
+        $controller = new SystemStatusController(
+            $health,
+            new SystemStatusPresenter(),
+            $container->services->requestIds,
+            $container->services->apiErrors,
+            $container->services->observability,
+        );
+        (new WordPressSystemRouteHooks(new SystemRouteRegistrar($controller)))->register();
     }
 
 }

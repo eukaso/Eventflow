@@ -2,7 +2,7 @@
 
 namespace EventFlow\Presentation\Api;
 
-final readonly class ApiErrorResponse
+final readonly class ApiErrorResponse implements ApiResponse
 {
     /**
      * @param array{code: string, message: string, data: array<string, mixed>} $body
@@ -14,4 +14,8 @@ final readonly class ApiErrorResponse
         public array $headers,
     ) {
     }
+
+    public function status(): int { return $this->status; }
+    public function body(): array { return $this->body; }
+    public function headers(): array { return $this->headers; }
 }
