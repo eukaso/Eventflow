@@ -13,6 +13,7 @@ use EventFlow\Application\Error\RequestIdFactory;
 use EventFlow\Application\Error\RetryAfterDetails;
 use EventFlow\Application\Error\ValidationErrorDetails;
 use EventFlow\Application\Error\VersionConflictDetails;
+use EventFlow\Application\Export\ExportException;
 use EventFlow\Application\Idempotency\IdempotencyException;
 use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Application\Seating\SeatingException;
@@ -76,6 +77,14 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $invalidSeat = $translator->translate(new SeatingException('accessible_seat_required'), $requestId);
         self::assertSame(422, $invalidSeat->status);
         self::assertSame('validation_failed', $invalidSeat->body['code']);
+
+        $notDownloadable = $translator->translate(new ExportException('export_not_downloadable'), $requestId);
+        self::assertSame(422, $notDownloadable->status);
+        self::assertSame('validation_failed', $notDownloadable->body['code']);
+
+        $storageFailure = $translator->translate(new ExportException('export_storage_unavailable'), $requestId);
+        self::assertSame(503, $storageFailure->status);
+        self::assertSame('temporarily_unavailable', $storageFailure->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void

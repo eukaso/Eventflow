@@ -32,4 +32,5 @@ enum TableName: string
     case GUEST_LINK_CREDENTIALS = 'guest_link_credentials';
     case IDEMPOTENCY_RECORDS = 'idempotency_records';
     case JOBS = 'jobs';
+    case EXPORTS = 'exports';
 }

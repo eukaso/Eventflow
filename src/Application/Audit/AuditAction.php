@@ -37,6 +37,8 @@ enum AuditAction: string
     case CAMPAIGN_QUEUED = 'campaign.queued';
     case IMPORT_APPLIED = 'import.applied';
     case EXPORT_REQUESTED = 'export.requested';
+    case EXPORT_READY = 'export.ready';
+    case EXPORT_DOWNLOADED = 'export.downloaded';
     case PRIVACY_ACTION_STARTED = 'privacy_action.started';
     case PRIVACY_ACTION_COMPLETED = 'privacy_action.completed';
     case GLOBAL_RECOVERY_USED = 'global_recovery.used';

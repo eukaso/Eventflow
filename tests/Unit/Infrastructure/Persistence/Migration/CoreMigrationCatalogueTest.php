@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(4, $definitions);
+        self::assertCount(5, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -33,11 +33,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0004_audit_integrity', $definitions[3]->key);
         self::assertSame(3, $definitions[3]->fromSchemaVersion);
         self::assertSame(4, $definitions[3]->toSchemaVersion);
+        self::assertSame('0005_export_resources', $definitions[4]->key);
+        self::assertSame(4, $definitions[4]->fromSchemaVersion);
+        self::assertSame(5, $definitions[4]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 4\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 5\\);/",
             $entryPoint,
         );
     }
@@ -105,6 +108,16 @@ final class CoreMigrationCatalogueTest extends TestCase
 
         self::assertStringNotContainsString('UPDATE wp_eventflow_audit_logs', $sql);
         self::assertStringNotContainsString('DELETE FROM wp_eventflow_audit_logs', $sql);
+    }
+
+    public function testExportMigrationAddsControlledResourceWithoutArtifactContent(): void
+    {
+        $sql = implode("\n", $this->catalogue()->definitions()[4]->statements);
+        self::assertStringContainsString('CREATE TABLE wp_eventflow_exports', $sql);
+        self::assertStringContainsString('artifact_locator', $sql);
+        self::assertStringContainsString('requested_at_snapshot', $sql);
+        self::assertStringNotContainsString('artifact_content', $sql);
+        self::assertStringNotContainsString('download_token', $sql);
     }
 
     public function testDatabasePrefixFailsClosed(): void

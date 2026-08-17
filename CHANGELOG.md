@@ -16,6 +16,7 @@ The project follows Semantic Versioning.
 - Least-privilege reception lookup with atomic idempotent check-in, bulk operations, stations, and immutable audited reversals.
 - Immutable communication templates and explicit-purpose campaigns with safe previews, execution-time audience freezing, and idempotent Message snapshots.
 - Provider-capability dispatch and authenticated durable-before-ack webhooks with versioned dedupe, correlation, evidence preservation, and ambiguous-outcome handling.
+- Controlled CSV/JSONL reporting exports with explicit PII purpose, request-time snapshots, durable generation jobs, protected atomic artifacts, bounded concurrency, expiry, current download authorization, and audit evidence.
 
 ## [0.8.0] - 2026-08-16
 

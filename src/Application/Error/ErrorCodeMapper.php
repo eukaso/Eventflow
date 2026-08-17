@@ -25,6 +25,8 @@ final readonly class ErrorCodeMapper
             if (in_array($code, [
                 'database_deadlock', 'database_lock_timeout', 'audit_chain_head_unavailable',
                 'job_worker_schema_incompatible', 'migration_lock_unavailable',
+                'export_concurrency_limit', 'export_storage_unavailable',
+                'export_write_failed', 'export_publish_failed', 'export_delete_failed',
             ], true)) {
                 return 'temporarily_unavailable';
             }
@@ -46,6 +48,9 @@ final readonly class ErrorCodeMapper
                 'campaign_snapshot_audience_required',
                 'provider_dispatch_invalid', 'provider_webhook_invalid', 'provider_webhook_too_large',
                 'provider_webhook_job_invalid', 'provider_duplicate',
+                'export_purpose_required', 'export_record_invalid', 'export_artifact_invalid',
+                'export_job_invalid', 'export_row_invalid', 'export_locator_invalid',
+                'export_not_ready', 'export_not_downloadable',
             ], true)) {
                 return 'validation_failed';
             }

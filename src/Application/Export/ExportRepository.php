@@ -1,0 +1,4 @@
+<?php
+namespace EventFlow\Application\Export;
+use DateTimeImmutable;use EventFlow\Application\Persistence\EventScope;
+interface ExportRepository{public function create(EventScope $scope,ExportType $type,ExportFormat $format,string $purpose,DateTimeImmutable $cutoff,DateTimeImmutable $expires,?int $actor,DateTimeImmutable $now):ExportRecord;public function lock(EventScope $scope,int $exportId):?ExportRecord;public function beginGeneration(EventScope $scope,int $exportId,int $maxConcurrent,DateTimeImmutable $now):ExportRecord;public function markReady(ExportRecord $export,PublishedExportArtifact $artifact,DateTimeImmutable $now):ExportRecord;public function markFailed(ExportRecord $export,string $failureCode,DateTimeImmutable $now):void;public function recordDownload(ExportRecord $export,DateTimeImmutable $now):void;}

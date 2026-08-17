@@ -57,6 +57,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0004-audit-integrity.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0005_export_resources',
+                version: 'v0.9.0',
+                fromSchemaVersion: 4,
+                toSchemaVersion: 5,
+                description: 'Add durable protected Event Export resources.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0005-export-resources.sql',
+                ),
+            ),
         ];
     }
 }

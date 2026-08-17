@@ -12,6 +12,7 @@ use EventFlow\Application\Communication\TemplateRenderer;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Authorization\RoleCapabilityPolicy;
 use EventFlow\Application\Event\EventLifecycleService;
+use EventFlow\Application\Export\ExportService;
 use EventFlow\Application\Health\ReadinessCheck;
 use EventFlow\Application\GuestAccess\GuestAccessService;
 use EventFlow\Application\Idempotency\CanonicalRequestHasher;
@@ -31,6 +32,8 @@ use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Infrastructure\Config\Config;
 use EventFlow\Infrastructure\Health\SchemaReadinessCheck;
 use EventFlow\Infrastructure\Health\WpdbConnectionReadinessCheck;
+use EventFlow\Infrastructure\Export\WordPressProtectedExportStorage;
+use EventFlow\Infrastructure\Export\WpdbExportDataSource;
 use EventFlow\Infrastructure\Job\MigrationWorkerSchemaGate;
 use EventFlow\Infrastructure\Import\NativeTabularSourceParser;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
@@ -39,6 +42,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbCheckInRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbCommunicationRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAuditRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventLifecycleRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbExportRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbGuestAccessRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbInvitationRepository;
@@ -76,6 +80,7 @@ final readonly class DatabaseFoundation
         public SeatingService $seating,
         public CheckInService $checkIn,
         public CommunicationService $communications,
+        public ExportService $exports,
         public ProviderService $providers,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
@@ -116,6 +121,7 @@ final readonly class DatabaseFoundation
         $credentialDigester = new CredentialDigester();
         $attendeeRepository = new WpdbAttendeeRepository($database, $tableNames);
         $importRepository = new WpdbImportRepository($database, $tableNames);
+        $jobRepository = new WpdbJobRepository($database, $tableNames);
         $invitationService = new InvitationService(
             $invitationRepository,
             $authorization,
@@ -204,13 +210,24 @@ final readonly class DatabaseFoundation
                 $shared->clock,
                 new TemplateRenderer(),
             ),
+            exports: new ExportService(
+                new WpdbExportRepository($database, $tableNames),
+                new WpdbExportDataSource($database, $tableNames),
+                new WordPressProtectedExportStorage($shared->random),
+                $jobRepository,
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+                $transactions,
+            ),
             providers: new ProviderService(
                 new WpdbProviderRepository($database, $tableNames),
                 new ProviderRegistry(),
-                new WpdbJobRepository($database, $tableNames),
+                $jobRepository,
                 $shared->clock,
             ),
-            jobs: new WpdbJobRepository($database, $tableNames),
+            jobs: $jobRepository,
             workerSchema: new MigrationWorkerSchemaGate(
                 $migrations,
                 $shared->schemaCompatibility,

@@ -1,0 +1,32 @@
+CREATE TABLE {prefix}eventflow_exports (
+    export_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    event_id BIGINT UNSIGNED NOT NULL,
+    requested_by_user_id BIGINT UNSIGNED NULL,
+    export_type VARCHAR(64) NOT NULL,
+    export_format VARCHAR(16) NOT NULL,
+    contains_pii TINYINT(1) NOT NULL DEFAULT 0,
+    purpose VARCHAR(500) NOT NULL,
+    temporal_mode VARCHAR(32) NOT NULL,
+    cutoff_at DATETIME NOT NULL,
+    export_status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    artifact_locator VARCHAR(500) NULL,
+    artifact_sha256 CHAR(64) NULL,
+    artifact_mime_type VARCHAR(100) NULL,
+    artifact_size_bytes BIGINT UNSIGNED NULL,
+    expires_at DATETIME NOT NULL,
+    download_count INT UNSIGNED NOT NULL DEFAULT 0,
+    failure_code VARCHAR(100) NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (export_id),
+    UNIQUE KEY uq_export_event_id (event_id, export_id),
+    KEY idx_export_event_status (event_id, export_status, created_at),
+    KEY idx_export_status_expiry (export_status, expires_at),
+    KEY idx_export_requester (event_id, requested_by_user_id, created_at),
+    CONSTRAINT fk_export_event FOREIGN KEY (event_id)
+        REFERENCES {prefix}eventflow_events (event_id)
+        ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT chk_export_format CHECK (export_format IN ('csv', 'jsonl')),
+    CONSTRAINT chk_export_temporal CHECK (temporal_mode IN ('requested_at_snapshot')),
+    CONSTRAINT chk_export_status CHECK (export_status IN ('pending', 'generating', 'ready', 'failed', 'expired', 'invalidated'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
