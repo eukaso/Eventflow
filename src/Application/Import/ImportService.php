@@ -18,7 +18,6 @@ use EventFlow\Application\Idempotency\IdempotencyResultReference;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Idempotency\IdempotentOperationResult;
 use EventFlow\Application\Invitation\CreateInvitation;
-use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Invitation\InvitationException;
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Security\SecureRandom;
@@ -31,7 +30,7 @@ final readonly class ImportService
         private ImportRepository $imports,
         private TabularSourceParser $parser,
         private ImportNormalizer $normalizer,
-        private InvitationService $invitations,
+        private InvitationImportPort $invitations,
         private AuthorizationService $authorization,
         private IdempotencyService $idempotency,
         private AuditService $audit,

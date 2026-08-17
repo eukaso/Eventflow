@@ -16,11 +16,12 @@ use EventFlow\Application\Idempotency\IdempotencyOutcome;
 use EventFlow\Application\Idempotency\IdempotencyResultReference;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Idempotency\IdempotentOperationResult;
+use EventFlow\Application\Import\InvitationImportPort;
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Security\SecureRandom;
 
-final readonly class InvitationService
+final readonly class InvitationService implements InvitationImportPort
 {
     public function __construct(
         private InvitationRepository $invitations,

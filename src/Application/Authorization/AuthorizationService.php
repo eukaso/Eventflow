@@ -12,6 +12,7 @@ final readonly class AuthorizationService
         private RoleCapabilityPolicy $rolePolicy,
         private Clock $clock,
         private GlobalRecoveryAuthority $globalRecovery,
+        private EventCapabilityGate $eventGate = new PermissiveEventCapabilityGate(),
     ) {
     }
 
@@ -51,6 +52,10 @@ final readonly class AuthorizationService
         }
 
         if (!$this->rolePolicy->grants($membership, $capability)) {
+            throw new AuthorizationException('insufficient_event_permission');
+        }
+
+        if (!$this->eventGate->allows($eventScope, $capability)) {
             throw new AuthorizationException('insufficient_event_permission');
         }
     }

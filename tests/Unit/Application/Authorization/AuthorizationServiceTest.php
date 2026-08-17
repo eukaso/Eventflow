@@ -8,6 +8,7 @@ use EventFlow\Application\Authorization\AuthorizationException;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Authorization\Capability;
 use EventFlow\Application\Authorization\EventRole;
+use EventFlow\Application\Authorization\EventCapabilityGate;
 use EventFlow\Application\Authorization\GuestPermission;
 use EventFlow\Application\Authorization\GlobalRecoveryAuthority;
 use EventFlow\Application\Authorization\MembershipReader;
@@ -120,6 +121,24 @@ final class AuthorizationServiceTest extends TestCase
         }
 
         self::addToAssertionCount(count(Capability::cases()));
+    }
+
+    public function testArchivedEventGateDeniesWritesButAllowsReportingAndRestore(): void
+    {
+        $service = new AuthorizationService(
+            new FakeMembershipReader($this->membership(EventRole::OWNER, primaryOwner: true)),
+            new RoleCapabilityPolicy(),
+            $this->clock,
+            new FakeGlobalRecoveryAuthority(),
+            new ArchivedEventGate(),
+        );
+        $principal = PrincipalContext::wordpressUser(7);
+
+        $service->requireEventCapability($principal, $this->event, Capability::VIEW_REPORTS);
+        $service->requireEventCapability($principal, $this->event, Capability::RESTORE_EVENT);
+
+        $this->expectAuthorizationCode('insufficient_event_permission');
+        $service->requireEventCapability($principal, $this->event, Capability::CHECK_IN);
     }
 
     public function testExpiredMembershipIsDeniedWithoutDisclosingEvent(): void
@@ -288,5 +307,13 @@ final class FakeGlobalRecoveryAuthority implements GlobalRecoveryAuthority
     {
         $this->calls++;
         return $this->allowed;
+    }
+}
+
+final readonly class ArchivedEventGate implements EventCapabilityGate
+{
+    public function allows(EventScope $scope, Capability $capability): bool
+    {
+        return in_array($capability, [Capability::VIEW_REPORTS, Capability::RESTORE_EVENT], true);
     }
 }

@@ -19,6 +19,7 @@ The project follows Semantic Versioning.
 - Controlled CSV/JSONL reporting exports with explicit PII purpose, request-time snapshots, durable generation jobs, protected atomic artifacts, bounded concurrency, expiry, current download authorization, and audit evidence.
 - Restart-safe Privacy Actions with primary-owner authorization, versioned policy decisions, legal holds, credential revocation, forward-only PII minimization, export invalidation, durable tombstones, and post-restore readiness reconciliation.
 - Centralized operational observability with structured redacted logs, authoritative error-code metrics, enforced low-cardinality labels, failure-safe sinks, and authorization-controlled sanitized diagnostics.
+- Executable Sprint 8 acceptance evidence for all 20 implementation scenarios, with narrow cross-domain import coupling, archived-Event capability enforcement, and provider circuit-breaker isolation.
 
 ## [0.8.0] - 2026-08-16
 

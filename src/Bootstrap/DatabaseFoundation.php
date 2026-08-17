@@ -55,6 +55,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbProviderRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbPrivacyRepository;
+use EventFlow\Infrastructure\Provider\WordPressTransientProviderCircuitBreaker;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
@@ -62,6 +63,7 @@ use EventFlow\Infrastructure\Observability\{ReadinessDiagnosticSource, RuntimeDi
 use EventFlow\Infrastructure\Transaction\WpdbTransactionManager;
 use EventFlow\Infrastructure\WordPress\WordPressGlobalRecoveryAuthority;
 use EventFlow\Infrastructure\WordPress\WordPressEventCreationAuthority;
+use EventFlow\Infrastructure\WordPress\WpdbEventCapabilityGate;
 
 final readonly class DatabaseFoundation
 {
@@ -106,6 +108,7 @@ final readonly class DatabaseFoundation
             new RoleCapabilityPolicy(),
             $shared->clock,
             new WordPressGlobalRecoveryAuthority(),
+            new WpdbEventCapabilityGate($database, $tableNames),
         );
         $idempotency = new IdempotencyService(
             new WpdbIdempotencyRepository($database, $tableNames),
@@ -264,6 +267,7 @@ final readonly class DatabaseFoundation
                 new ProviderRegistry(),
                 $jobRepository,
                 $shared->clock,
+                new WordPressTransientProviderCircuitBreaker(),
             ),
             jobs: $jobRepository,
             workerSchema: new MigrationWorkerSchemaGate(
