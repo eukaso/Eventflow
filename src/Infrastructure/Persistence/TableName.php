@@ -33,4 +33,7 @@ enum TableName: string
     case IDEMPOTENCY_RECORDS = 'idempotency_records';
     case JOBS = 'jobs';
     case EXPORTS = 'exports';
+    case PRIVACY_ACTIONS = 'privacy_actions';
+    case PRIVACY_STATES = 'privacy_states';
+    case RETENTION_HOLDS = 'retention_holds';
 }

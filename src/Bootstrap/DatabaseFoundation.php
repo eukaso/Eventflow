@@ -14,6 +14,7 @@ use EventFlow\Application\Authorization\RoleCapabilityPolicy;
 use EventFlow\Application\Event\EventLifecycleService;
 use EventFlow\Application\Export\ExportService;
 use EventFlow\Application\Health\ReadinessCheck;
+use EventFlow\Application\Health\PrivacyReconciliationReadinessCheck;
 use EventFlow\Application\GuestAccess\GuestAccessService;
 use EventFlow\Application\Idempotency\CanonicalRequestHasher;
 use EventFlow\Application\Idempotency\IdempotencyService;
@@ -26,6 +27,7 @@ use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Migration\MigrationRepository;
 use EventFlow\Application\Provider\ProviderRegistry;
 use EventFlow\Application\Provider\ProviderService;
+use EventFlow\Application\Privacy\PrivacyService;
 use EventFlow\Application\Seating\SeatingService;
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Transaction\TransactionManager;
@@ -51,6 +53,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbJobRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbProviderRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbPrivacyRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
@@ -81,6 +84,7 @@ final readonly class DatabaseFoundation
         public CheckInService $checkIn,
         public CommunicationService $communications,
         public ExportService $exports,
+        public PrivacyService $privacy,
         public ProviderService $providers,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
@@ -122,6 +126,17 @@ final readonly class DatabaseFoundation
         $attendeeRepository = new WpdbAttendeeRepository($database, $tableNames);
         $importRepository = new WpdbImportRepository($database, $tableNames);
         $jobRepository = new WpdbJobRepository($database, $tableNames);
+        $exportStorage = new WordPressProtectedExportStorage($shared->random);
+        $privacy = new PrivacyService(
+            new WpdbPrivacyRepository($database, $tableNames),
+            $exportStorage,
+            $jobRepository,
+            $authorization,
+            $idempotency,
+            $audit,
+            $shared->clock,
+            $transactions,
+        );
         $invitationService = new InvitationService(
             $invitationRepository,
             $authorization,
@@ -213,7 +228,7 @@ final readonly class DatabaseFoundation
             exports: new ExportService(
                 new WpdbExportRepository($database, $tableNames),
                 new WpdbExportDataSource($database, $tableNames),
-                new WordPressProtectedExportStorage($shared->random),
+                $exportStorage,
                 $jobRepository,
                 $authorization,
                 $idempotency,
@@ -221,6 +236,7 @@ final readonly class DatabaseFoundation
                 $shared->clock,
                 $transactions,
             ),
+            privacy: $privacy,
             providers: new ProviderService(
                 new WpdbProviderRepository($database, $tableNames),
                 new ProviderRegistry(),
@@ -240,6 +256,7 @@ final readonly class DatabaseFoundation
                     $shared->schemaCompatibility,
                     $config->expectedSchemaVersion,
                 ),
+                new PrivacyReconciliationReadinessCheck($privacy),
             ],
         );
     }

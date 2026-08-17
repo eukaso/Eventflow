@@ -19,5 +19,6 @@ enum AuditEntityType: string
     case IMPORT_JOB = 'import_job';
     case EXPORT = 'export';
     case PRIVACY_ACTION = 'privacy_action';
+    case RETENTION_HOLD = 'retention_hold';
     case PLATFORM = 'platform';
 }

@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(5, $definitions);
+        self::assertCount(6, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -36,11 +36,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0005_export_resources', $definitions[4]->key);
         self::assertSame(4, $definitions[4]->fromSchemaVersion);
         self::assertSame(5, $definitions[4]->toSchemaVersion);
+        self::assertSame('0006_privacy_retention', $definitions[5]->key);
+        self::assertSame(5, $definitions[5]->fromSchemaVersion);
+        self::assertSame(6, $definitions[5]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 5\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 6\\);/",
             $entryPoint,
         );
     }
@@ -118,6 +121,16 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertStringContainsString('requested_at_snapshot', $sql);
         self::assertStringNotContainsString('artifact_content', $sql);
         self::assertStringNotContainsString('download_token', $sql);
+    }
+
+    public function testPrivacyMigrationAddsForwardOnlyActionsTombstonesAndHolds(): void
+    {
+        $sql = implode("\n", $this->catalogue()->definitions()[5]->statements);
+        self::assertStringContainsString('CREATE TABLE wp_eventflow_privacy_actions', $sql);
+        self::assertStringContainsString('CREATE TABLE wp_eventflow_privacy_states', $sql);
+        self::assertStringContainsString('CREATE TABLE wp_eventflow_retention_holds', $sql);
+        self::assertStringContainsString('reconciliation_status', $sql);
+        self::assertStringNotContainsString('DROP TABLE', $sql);
     }
 
     public function testDatabasePrefixFailsClosed(): void

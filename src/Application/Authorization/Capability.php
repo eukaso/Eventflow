@@ -26,4 +26,5 @@ enum Capability: string
     case VIEW_AUDIT = 'view_audit';
     case VIEW_REPORTS = 'view_reports';
     case EXPORT_PII = 'export_pii';
+    case MANAGE_PRIVACY = 'manage_privacy';
 }

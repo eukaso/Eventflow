@@ -27,6 +27,7 @@ final readonly class ErrorCodeMapper
                 'job_worker_schema_incompatible', 'migration_lock_unavailable',
                 'export_concurrency_limit', 'export_storage_unavailable',
                 'export_write_failed', 'export_publish_failed', 'export_delete_failed',
+                'privacy_execution_failed',
             ], true)) {
                 return 'temporarily_unavailable';
             }
@@ -51,12 +52,18 @@ final readonly class ErrorCodeMapper
                 'export_purpose_required', 'export_record_invalid', 'export_artifact_invalid',
                 'export_job_invalid', 'export_row_invalid', 'export_locator_invalid',
                 'export_not_ready', 'export_not_downloadable',
+                'privacy_action_invalid', 'privacy_request_invalid', 'privacy_job_invalid',
+                'privacy_checkpoint_invalid', 'retention_hold_invalid', 'retention_hold_not_active',
             ], true)) {
                 return 'validation_failed';
             }
 
             if (in_array($code, ['idempotency_scope_invalid', 'event_not_found'], true)) {
                 return 'resource_not_found';
+            }
+
+            if (in_array($code, ['retention_hold_active', 'privacy_action_in_progress'], true)) {
+                return 'resource_modified';
             }
         }
 

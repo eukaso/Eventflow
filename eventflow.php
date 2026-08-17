@@ -10,7 +10,7 @@
 defined('ABSPATH') || exit;
 
 define('EVENTFLOW_VERSION', '0.9.0-dev');
-define('EVENTFLOW_SCHEMA_VERSION', 5);
+define('EVENTFLOW_SCHEMA_VERSION', 6);
 define('EVENTFLOW_PLUGIN_FILE', __FILE__);
 define('EVENTFLOW_PLUGIN_DIR', __DIR__);
 

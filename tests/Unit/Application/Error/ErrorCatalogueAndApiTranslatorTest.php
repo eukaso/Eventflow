@@ -14,6 +14,7 @@ use EventFlow\Application\Error\RetryAfterDetails;
 use EventFlow\Application\Error\ValidationErrorDetails;
 use EventFlow\Application\Error\VersionConflictDetails;
 use EventFlow\Application\Export\ExportException;
+use EventFlow\Application\Privacy\PrivacyException;
 use EventFlow\Application\Idempotency\IdempotencyException;
 use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Application\Seating\SeatingException;
@@ -85,6 +86,14 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $storageFailure = $translator->translate(new ExportException('export_storage_unavailable'), $requestId);
         self::assertSame(503, $storageFailure->status);
         self::assertSame('temporarily_unavailable', $storageFailure->body['code']);
+
+        $held = $translator->translate(new PrivacyException('retention_hold_active'), $requestId);
+        self::assertSame(412, $held->status);
+        self::assertSame('resource_modified', $held->body['code']);
+
+        $invalidPrivacyRequest = $translator->translate(new PrivacyException('privacy_request_invalid'), $requestId);
+        self::assertSame(422, $invalidPrivacyRequest->status);
+        self::assertSame('validation_failed', $invalidPrivacyRequest->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void

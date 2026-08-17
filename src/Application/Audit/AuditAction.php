@@ -41,5 +41,9 @@ enum AuditAction: string
     case EXPORT_DOWNLOADED = 'export.downloaded';
     case PRIVACY_ACTION_STARTED = 'privacy_action.started';
     case PRIVACY_ACTION_COMPLETED = 'privacy_action.completed';
+    case RETENTION_HOLD_PLACED = 'retention_hold.placed';
+    case RETENTION_HOLD_RELEASED = 'retention_hold.released';
+    case PRIVACY_RECONCILIATION_REQUIRED = 'privacy.reconciliation_required';
+    case PRIVACY_RECONCILED = 'privacy.reconciled';
     case GLOBAL_RECOVERY_USED = 'global_recovery.used';
 }

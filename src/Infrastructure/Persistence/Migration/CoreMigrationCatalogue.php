@@ -67,6 +67,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0005-export-resources.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0006_privacy_retention',
+                version: 'v0.9.0',
+                fromSchemaVersion: 5,
+                toSchemaVersion: 6,
+                description: 'Add restart-safe Privacy Actions, durable tombstones, and retention holds.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0006-privacy-retention.sql',
+                ),
+            ),
         ];
     }
 }

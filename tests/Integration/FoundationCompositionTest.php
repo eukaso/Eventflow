@@ -12,8 +12,6 @@ use EventFlow\Application\Error\RequestId;
 use EventFlow\Application\Event\EventLifecycleService;
 use EventFlow\Application\Export\ExportService;
 use EventFlow\Application\GuestAccess\GuestAccessService;
-use EventFlow\Application\Health\PrivacyReconciliationGate;
-use EventFlow\Application\Health\PrivacyReconciliationReadinessCheck;
 use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Import\ImportService;
@@ -22,6 +20,7 @@ use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Provider\ProviderService;
+use EventFlow\Application\Privacy\PrivacyService;
 use EventFlow\Application\Seating\SeatingService;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Bootstrap\BootstrapResult;
@@ -36,7 +35,7 @@ final class FoundationCompositionTest extends TestCase
     {
         $wpdb = new IntegrationWpdb();
         $container = Container::createFoundation(
-            new Config('testing', '0.9.0-dev', 5, 'error', false),
+            new Config('testing', '0.9.0-dev', 6, 'error', false),
             $wpdb,
         );
 
@@ -55,12 +54,11 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(CheckInService::class, $container->database->checkIn);
         self::assertInstanceOf(CommunicationService::class, $container->database->communications);
         self::assertInstanceOf(ExportService::class, $container->database->exports);
+        self::assertInstanceOf(PrivacyService::class, $container->database->privacy);
         self::assertInstanceOf(ProviderService::class, $container->database->providers);
         self::assertInstanceOf(JobRepository::class, $container->database->jobs);
 
-        $checks = [...$container->database->readinessChecks, new PrivacyReconciliationReadinessCheck(
-            new ReconciledPrivacyGate(),
-        )];
+        $checks = $container->database->readinessChecks;
         $health = new SystemHealthService(
             new BootstrapResult(BootstrapState::READY, true, true),
             $checks,
@@ -89,7 +87,7 @@ final class FoundationCompositionTest extends TestCase
     public function testDatabaseFoundationRemainsOptionalForMigrationRequiredMode(): void
     {
         $container = Container::createFoundation(
-            new Config('testing', '0.9.0-dev', 5, 'error', false),
+            new Config('testing', '0.9.0-dev', 6, 'error', false),
         );
 
         self::assertNull($container->database);
@@ -102,8 +100,8 @@ final class FoundationCompositionTest extends TestCase
     public function testReadinessAndWorkersFailClosedOnTheSameSchemaMismatch(): void
     {
         $container = Container::createFoundation(
-            new Config('testing', '0.9.0-dev', 5, 'error', false),
-            new IntegrationWpdb('6'),
+            new Config('testing', '0.9.0-dev', 6, 'error', false),
+            new IntegrationWpdb('7'),
         );
         self::assertNotNull($container->database);
 
@@ -133,7 +131,7 @@ final class IntegrationWpdb
     /** @var list<string> */
     public array $queries = [];
 
-    public function __construct(private readonly string $schemaVersion = '5')
+    public function __construct(private readonly string $schemaVersion = '6')
     {
     }
 
@@ -162,13 +160,5 @@ final class IntegrationWpdb
             $query === 'SELECT 1' => '1',
             default => null,
         };
-    }
-}
-
-final readonly class ReconciledPrivacyGate implements PrivacyReconciliationGate
-{
-    public function isReconciled(): bool
-    {
-        return true;
     }
 }
