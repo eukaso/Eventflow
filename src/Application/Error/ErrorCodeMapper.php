@@ -56,15 +56,19 @@ final readonly class ErrorCodeMapper
                 'export_not_ready', 'export_not_downloadable',
                 'privacy_action_invalid', 'privacy_request_invalid', 'privacy_job_invalid',
                 'privacy_checkpoint_invalid', 'retention_hold_invalid', 'retention_hold_not_active',
+                'membership_expiry_invalid', 'membership_already_exists', 'membership_revoked',
+                'primary_owner_continuity_required', 'membership_expired', 'membership_transition_invalid',
+                'membership_id_invalid', 'primary_owner_transfer_target_invalid',
+                'primary_owner_transfer_target_inactive',
             ], true)) {
                 return 'validation_failed';
             }
 
-            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found'], true)) {
+            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found', 'membership_not_found'], true)) {
                 return 'resource_not_found';
             }
 
-            if (in_array($code, ['retention_hold_active', 'privacy_action_in_progress'], true)) {
+            if (in_array($code, ['retention_hold_active', 'privacy_action_in_progress', 'primary_owner_version_conflict'], true)) {
                 return 'resource_modified';
             }
         }

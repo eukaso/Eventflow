@@ -92,6 +92,13 @@ final class MemoryRestRoutes implements RestRouteRegistry
         $this->methods[$key] = 'POST';
     }
 
+    public function registerAuthenticatedPatch(string $namespace, string $route, callable $handler): void
+    {
+        $key = $namespace . $route;
+        $this->handlers[$key] = $handler;
+        $this->methods[$key] = 'PATCH';
+    }
+
     public function call(string $route, ?RestRequest $request = null): ApiResponse
     {
         return $this->handlers['eventflow/v1' . $route]($request ?? new RestRequest());

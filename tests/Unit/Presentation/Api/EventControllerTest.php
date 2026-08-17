@@ -101,6 +101,7 @@ final class EventMemoryRoutes implements RestRouteRegistry
     public array $authenticatedPosts = [];
     public function registerPublicGet(string $namespace,string $route,callable $handler):void {}
     public function registerAuthenticatedPost(string $namespace,string $route,callable $handler):void { $this->authenticatedPosts[$namespace.$route]=$handler; }
+    public function registerAuthenticatedPatch(string $namespace,string $route,callable $handler):void {}
 }
 
 final readonly class EventPrincipalResolver implements AuthenticatedPrincipalResolver

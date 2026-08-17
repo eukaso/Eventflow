@@ -96,6 +96,14 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
             self::assertSame('is_user_logged_in', $registered['options']['permission_callback']);
         }
 
+        public function testAuthenticatedPatchUsesWordPressAuthenticationPermission(): void
+        {
+            $this->registry()->registerAuthenticatedPatch('eventflow/v1', '/events/1/memberships/2', static fn (): SystemStatusResponse => new SystemStatusResponse(200, [], []));
+            $registered = $GLOBALS['eventflow_test_rest_route'];
+            self::assertSame('PATCH', $registered['options']['methods']);
+            self::assertSame('is_user_logged_in', $registered['options']['permission_callback']);
+        }
+
         private function registry(): WordPressRestRouteRegistry
         {
             $container = Container::createFoundation(new Config('testing', '0.9.0', 6, 'error', false));

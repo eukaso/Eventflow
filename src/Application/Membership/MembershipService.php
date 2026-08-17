@@ -18,7 +18,7 @@ use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Idempotency\IdempotentOperationResult;
 use EventFlow\Application\Persistence\EventScope;
 
-final readonly class MembershipService
+final readonly class MembershipService implements MembershipCommands
 {
     public function __construct(
         private MembershipRepository $memberships,

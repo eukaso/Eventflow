@@ -16,6 +16,7 @@ use EventFlow\Application\Error\VersionConflictDetails;
 use EventFlow\Application\Export\ExportException;
 use EventFlow\Application\Privacy\PrivacyException;
 use EventFlow\Application\Idempotency\IdempotencyException;
+use EventFlow\Application\Membership\MembershipException;
 use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Application\Seating\SeatingException;
 use EventFlow\Infrastructure\Persistence\PersistenceException;
@@ -94,6 +95,18 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $invalidPrivacyRequest = $translator->translate(new PrivacyException('privacy_request_invalid'), $requestId);
         self::assertSame(422, $invalidPrivacyRequest->status);
         self::assertSame('validation_failed', $invalidPrivacyRequest->body['code']);
+
+        $missingMembership = $translator->translate(new MembershipException('membership_not_found'), $requestId);
+        self::assertSame(404, $missingMembership->status);
+        self::assertSame('resource_not_found', $missingMembership->body['code']);
+
+        $staleOwner = $translator->translate(new MembershipException('primary_owner_version_conflict'), $requestId);
+        self::assertSame(412, $staleOwner->status);
+        self::assertSame('resource_modified', $staleOwner->body['code']);
+
+        $invalidMembership = $translator->translate(new MembershipException('membership_transition_invalid'), $requestId);
+        self::assertSame(422, $invalidMembership->status);
+        self::assertSame('validation_failed', $invalidMembership->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void
