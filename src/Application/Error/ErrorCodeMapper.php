@@ -44,6 +44,8 @@ final readonly class ErrorCodeMapper
                 'campaign_invalid', 'campaign_audience_invalid', 'campaign_template_invalid',
                 'campaign_channel_invalid', 'campaign_recipient_invalid', 'message_invalid',
                 'campaign_snapshot_audience_required',
+                'provider_dispatch_invalid', 'provider_webhook_invalid', 'provider_webhook_too_large',
+                'provider_webhook_job_invalid', 'provider_duplicate',
             ], true)) {
                 return 'validation_failed';
             }

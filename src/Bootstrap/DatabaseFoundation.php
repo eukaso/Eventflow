@@ -23,6 +23,8 @@ use EventFlow\Application\Job\WorkerSchemaGate;
 use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Migration\MigrationRepository;
+use EventFlow\Application\Provider\ProviderRegistry;
+use EventFlow\Application\Provider\ProviderService;
 use EventFlow\Application\Seating\SeatingService;
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Transaction\TransactionManager;
@@ -44,6 +46,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbImportRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbJobRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbProviderRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
@@ -73,6 +76,7 @@ final readonly class DatabaseFoundation
         public SeatingService $seating,
         public CheckInService $checkIn,
         public CommunicationService $communications,
+        public ProviderService $providers,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
         public array $readinessChecks,
@@ -199,6 +203,12 @@ final readonly class DatabaseFoundation
                 $audit,
                 $shared->clock,
                 new TemplateRenderer(),
+            ),
+            providers: new ProviderService(
+                new WpdbProviderRepository($database, $tableNames),
+                new ProviderRegistry(),
+                new WpdbJobRepository($database, $tableNames),
+                $shared->clock,
             ),
             jobs: new WpdbJobRepository($database, $tableNames),
             workerSchema: new MigrationWorkerSchemaGate(
