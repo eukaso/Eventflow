@@ -18,7 +18,7 @@ use EventFlow\Application\Idempotency\IdempotentOperationResult;
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Transaction\TransactionManager;
 
-final readonly class SeatingService implements SeatingPreparation
+final readonly class SeatingService implements SeatingPlanningCommands, SeatingPreparation
 {
     public function __construct(
         private SeatingRepository $seating,

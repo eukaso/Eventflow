@@ -38,7 +38,7 @@ final readonly class ErrorCodeMapper
                 'event_transition_invalid', 'event_activation_not_ready', 'event_actor_invalid',
                 'seating_table_configuration_invalid', 'seating_seat_label_invalid',
                 'seating_group_configuration_invalid', 'seating_group_member_invalid',
-                'seating_destination_invalid', 'seating_seat_invalid', 'accessible_seat_required',
+                'accessible_seat_required',
                 'accessible_seating_insufficient', 'seating_capacity_insufficient',
                 'seat_inventory_capacity_insufficient', 'recommendation_seed_invalid',
                 'recommendation_plan_invalid', 'recommendation_algorithm_unsupported',
@@ -67,11 +67,15 @@ final readonly class ErrorCodeMapper
                 'declined_response_attendees_invalid', 'primary_attendee_continuity_required',
                 'attendee_transition_invalid', 'primary_attendee_target_invalid',
                 'attendee_role_change_requires_command',
+                'group_override_not_applicable', 'seating_tables_required',
+                'confirmed_attendees_required', 'required_group_exceeds_table_capacity',
+                'required_group_already_split', 'required_group_capacity_insufficient',
+                'recommendation_manual_assignment_protected',
             ], true)) {
                 return 'validation_failed';
             }
 
-            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found', 'membership_not_found', 'invitation_not_found', 'attendee_not_found', 'attendee_scope_invalid'], true)) {
+            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found', 'membership_not_found', 'invitation_not_found', 'attendee_not_found', 'attendee_scope_invalid', 'seating_destination_invalid', 'seating_seat_invalid'], true)) {
                 return 'resource_not_found';
             }
 
