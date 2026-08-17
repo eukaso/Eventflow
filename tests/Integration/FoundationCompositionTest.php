@@ -19,6 +19,7 @@ use EventFlow\Application\Job\JobException;
 use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Membership\MembershipService;
+use EventFlow\Application\Observability\{DiagnosticService, ObservabilityService};
 use EventFlow\Application\Provider\ProviderService;
 use EventFlow\Application\Privacy\PrivacyService;
 use EventFlow\Application\Seating\SeatingService;
@@ -44,6 +45,7 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(AuthorizationService::class, $container->database->authorization);
         self::assertInstanceOf(IdempotencyService::class, $container->database->idempotency);
         self::assertInstanceOf(AuditService::class, $container->database->audit);
+        self::assertInstanceOf(ObservabilityService::class, $container->services->observability);
         self::assertInstanceOf(EventLifecycleService::class, $container->database->eventLifecycle);
         self::assertInstanceOf(MembershipService::class, $container->database->memberships);
         self::assertInstanceOf(InvitationService::class, $container->database->invitations);
@@ -57,6 +59,7 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(PrivacyService::class, $container->database->privacy);
         self::assertInstanceOf(ProviderService::class, $container->database->providers);
         self::assertInstanceOf(JobRepository::class, $container->database->jobs);
+        self::assertInstanceOf(DiagnosticService::class, $container->database->diagnostics);
 
         $checks = $container->database->readinessChecks;
         $health = new SystemHealthService(

@@ -9,6 +9,7 @@ use EventFlow\Application\Error\PublicErrorDetails;
 use EventFlow\Application\Error\RequestId;
 use EventFlow\Application\Error\RetryAfterDetails;
 use EventFlow\Application\Error\Retryability;
+use EventFlow\Application\Observability\ObservabilityService;
 use Throwable;
 
 final readonly class ApiErrorTranslator
@@ -16,6 +17,7 @@ final readonly class ApiErrorTranslator
     public function __construct(
         private ErrorCatalogue $catalogue,
         private ErrorCodeMapper $mapper,
+        private ?ObservabilityService $observability = null,
     ) {
     }
 
@@ -24,6 +26,8 @@ final readonly class ApiErrorTranslator
         RequestId $requestId,
         ?PublicErrorDetails $details = null,
     ): ApiErrorResponse {
+        $this->observability?->failure($failure, $requestId);
+        $this->observability?->requestCompleted('api', false);
         $definition = $this->catalogue->require($this->mapper->publicCode($failure));
         $safeDetails = null;
         if (

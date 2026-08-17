@@ -18,6 +18,7 @@ The project follows Semantic Versioning.
 - Provider-capability dispatch and authenticated durable-before-ack webhooks with versioned dedupe, correlation, evidence preservation, and ambiguous-outcome handling.
 - Controlled CSV/JSONL reporting exports with explicit PII purpose, request-time snapshots, durable generation jobs, protected atomic artifacts, bounded concurrency, expiry, current download authorization, and audit evidence.
 - Restart-safe Privacy Actions with primary-owner authorization, versioned policy decisions, legal holds, credential revocation, forward-only PII minimization, export invalidation, durable tombstones, and post-restore readiness reconciliation.
+- Centralized operational observability with structured redacted logs, authoritative error-code metrics, enforced low-cardinality labels, failure-safe sinks, and authorization-controlled sanitized diagnostics.
 
 ## [0.8.0] - 2026-08-16
 

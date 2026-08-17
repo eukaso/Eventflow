@@ -25,6 +25,7 @@ use EventFlow\Application\Job\WorkerSchemaGate;
 use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Migration\MigrationRepository;
+use EventFlow\Application\Observability\DiagnosticService;
 use EventFlow\Application\Provider\ProviderRegistry;
 use EventFlow\Application\Provider\ProviderService;
 use EventFlow\Application\Privacy\PrivacyService;
@@ -57,6 +58,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbPrivacyRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
+use EventFlow\Infrastructure\Observability\{ReadinessDiagnosticSource, RuntimeDiagnosticSource, SchemaDiagnosticSource};
 use EventFlow\Infrastructure\Transaction\WpdbTransactionManager;
 use EventFlow\Infrastructure\WordPress\WordPressGlobalRecoveryAuthority;
 use EventFlow\Infrastructure\WordPress\WordPressEventCreationAuthority;
@@ -88,6 +90,7 @@ final readonly class DatabaseFoundation
         public ProviderService $providers,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
+        public DiagnosticService $diagnostics,
         public array $readinessChecks,
     ) {
     }
@@ -145,6 +148,25 @@ final readonly class DatabaseFoundation
             $shared->clock,
             $shared->random,
             $credentialDigester,
+        );
+        $readinessChecks = [
+            new WpdbConnectionReadinessCheck($database),
+            new SchemaReadinessCheck(
+                $migrations,
+                $shared->schemaCompatibility,
+                $config->expectedSchemaVersion,
+            ),
+            new PrivacyReconciliationReadinessCheck($privacy),
+        ];
+        $diagnostics = new DiagnosticService(
+            $authorization,
+            $shared->observabilityRedactor,
+            $shared->clock,
+            [
+                new RuntimeDiagnosticSource($config),
+                new SchemaDiagnosticSource($migrations, $config->expectedSchemaVersion),
+                new ReadinessDiagnosticSource($readinessChecks),
+            ],
         );
 
         return new self(
@@ -249,15 +271,8 @@ final readonly class DatabaseFoundation
                 $shared->schemaCompatibility,
                 $config->expectedSchemaVersion,
             ),
-            readinessChecks: [
-                new WpdbConnectionReadinessCheck($database),
-                new SchemaReadinessCheck(
-                    $migrations,
-                    $shared->schemaCompatibility,
-                    $config->expectedSchemaVersion,
-                ),
-                new PrivacyReconciliationReadinessCheck($privacy),
-            ],
+            diagnostics: $diagnostics,
+            readinessChecks: $readinessChecks,
         );
     }
 }
