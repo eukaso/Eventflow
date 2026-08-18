@@ -1,0 +1,13 @@
+Area,Deferred_endpoints,Reason,Required_contract,Status
+Events,"GET /events; GET/PATCH /events/{event_id}",No Event query or draft-update port,"Event list/detail projections and an authoritative update command",DEFERRED
+Venues and configuration,"/venues; /venues/{venue_id}; /events/{event_id}/configuration",No owning application services,"Venue and Event-configuration services with scoped repositories",DEFERRED
+Memberships,"GET /events/{event_id}/memberships",Mutation service has no query projection,"Least-privilege membership list port",DEFERRED
+Invitations,"GET collection/detail; PATCH detail; archive; restore",Current service supports creation and credential/lifecycle subset only,"Invitation query/update/archive contracts",DEFERRED
+Attendees,"GET collection/detail",Current service exposes authoritative mutations only,"Attendee list and detail projections",DEFERRED
+Guest session,"GET /public/invitation; GET response; POST logout",No guest-safe context/read/logout ports,"Session-authenticated guest query and revocation contracts",DEFERRED
+Seating,"Resource reads/updates; persisted recommendation review/apply; group move",No durable recommendation ID or complete resource command/query ports,"Seating query/update ports and durable recommendation aggregate",DEFERRED
+Communication Templates,"List/read/update/new-version/archive/preview",Repository supports draft creation and publish only,"Template query/version/archive and persisted preview ports",DEFERRED
+Campaigns,"List/read/update/audience-preview/schedule/cancel",Repository supports create and queue only,"Campaign query and lifecycle command ports",DEFERRED
+Messages,"List/detail/retry",No Message query projection or logical retry transition,"Message query service and retry job contract",DEFERRED
+Imports,"Upload/list/mapping/parse/dry-run/apply/cancel/rows/result",Stage accepts trusted server paths and apply is a leased worker primitive,"Hardened upload adapter plus admin query/orchestration ports",DEFERRED
+Audit and migrations,"GET /events/{event_id}/audit; GET /system/migrations; GET /system/migrations/readiness",Audit is append-only and migrations have no query service,"Authorized audit projection and Migration status service",DEFERRED

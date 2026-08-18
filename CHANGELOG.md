@@ -22,6 +22,7 @@ The project follows Semantic Versioning.
 - Authenticated Campaign creation and execution-time audience queueing REST commands with privacy-minimized queue results.
 - Provider-authenticated webhook ingress with exact raw-body preservation and durable-before-acknowledgement job acceptance.
 - Authenticated staged-Import validation with explicit column mappings and normalized dry-run summaries.
+- Executable Sprint 9 delivery evidence, public-route allowlisting, ready-mode composition validation, and a controlled deferred-route register.
 
 ## [0.9.0] - 2026-08-17
 

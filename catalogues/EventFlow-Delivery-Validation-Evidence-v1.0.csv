@@ -1,0 +1,16 @@
+Package,Area,Status,Evidence
+IMP-028,REST transport foundation,PASS,tests/Unit/Presentation/Api/SystemRoutesTest.php::testRegistrarPublishesOnlyTheTwoPublicGetSystemRoutes
+IMP-029,Authenticated request boundary,PASS,tests/Unit/Presentation/Api/RequestBoundaryTest.php::testMissingMutationHeadersReturnTypedPreconditionDetails
+IMP-030,Event lifecycle REST,PASS,tests/Unit/Presentation/Api/EventControllerTest.php::testRegistrarExposesCreateAndFiveExplicitLifecycleCommands
+IMP-031,Membership REST,PASS,tests/Unit/Presentation/Api/MembershipControllerTest.php::testRegistrarExposesAllAuthoritativeMutationRoutes
+IMP-032,Invitation REST,PASS,tests/Unit/Presentation/Api/InvitationControllerTest.php::testRegistrarExposesOnlyAuthoritativeInvitationMutations
+IMP-033,Guest bootstrap REST,PASS,tests/Unit/Presentation/Api/GuestBootstrapControllerTest.php::testBootstrapThrottlesBeforeServiceAndKeepsSessionTokenOutOfBody
+IMP-034,Guest RSVP REST,PASS,tests/Unit/Presentation/Api/RsvpControllerTest.php::testSubmitUsesCookieScopeCsrfIdempotencyAndIfMatch
+IMP-035,Attendee REST,PASS,tests/Unit/Presentation/Api/AttendeeControllerTest.php::testRegistrarExposesAllAuthoritativeAttendeeMutations
+IMP-036,Seating preparation REST,PASS,tests/Unit/Presentation/Api/SeatingPreparationControllerTest.php::testRegistrarExposesTwoCreatesAndReadinessOnly
+IMP-037,Seating planning REST,PASS,tests/Unit/Presentation/Api/SeatingPlanningControllerTest.php::testRegistrarExposesRecommendationAndManualMoveOnly
+IMP-038,Reception and Check-In REST,PASS,tests/Unit/Presentation/Api/CheckInControllerTest.php::testRegistrarExposesCompleteApprovedSurface
+IMP-039,Communication Template REST,PASS,tests/Unit/Presentation/Api/TemplateControllerTest.php::testRegistrarExposesOnlyAuthoritativeTemplateCommands
+IMP-040,Campaign REST,PASS,tests/Unit/Presentation/Api/CampaignControllerTest.php::testQueueReturnsOnlyFrozenOperationalIdentifiers
+IMP-041,Provider webhook ingress,PASS,tests/Unit/Presentation/Api/ProviderWebhookControllerTest.php::testIngressPreservesExactBodyAndNormalizedHeadersUntilAdapterAuthentication
+IMP-042,Import validation REST,PASS,tests/Unit/Presentation/Api/ImportControllerTest.php::testValidationMapsClosedColumnsAndReturnsDryRunCounts
