@@ -17,7 +17,7 @@ use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Idempotency\IdempotentOperationResult;
 use EventFlow\Application\Persistence\EventScope;
 
-final readonly class CommunicationService
+final readonly class CommunicationService implements TemplateCommands
 {
     public function __construct(private CommunicationRepository $repository, private AuthorizationService $authorization, private IdempotencyService $idempotency, private AuditService $audit, private Clock $clock, private TemplateRenderer $renderer) {}
 

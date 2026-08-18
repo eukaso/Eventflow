@@ -5,6 +5,7 @@ namespace EventFlow\Tests\Unit\Application\Error;
 use EventFlow\Application\Authorization\AuthorizationException;
 use EventFlow\Application\Attendee\AttendeeException;
 use EventFlow\Application\CheckIn\CheckInException;
+use EventFlow\Application\Communication\CommunicationException;
 use EventFlow\Application\Error\CoreErrorCatalogue;
 use EventFlow\Application\Error\ErrorCodeMapper;
 use EventFlow\Application\Error\PreconditionDetails;
@@ -151,6 +152,14 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $repeatReversal = $translator->translate(new CheckInException('checkin_already_reversed'), $requestId);
         self::assertSame(409, $repeatReversal->status);
         self::assertSame('checkin_already_reversed', $repeatReversal->body['code']);
+
+        $missingTemplate = $translator->translate(new CommunicationException('resource_not_found'), $requestId);
+        self::assertSame(404, $missingTemplate->status);
+        self::assertSame('resource_not_found', $missingTemplate->body['code']);
+
+        $immutableTemplate = $translator->translate(new CommunicationException('template_immutable'), $requestId);
+        self::assertSame(422, $immutableTemplate->status);
+        self::assertSame('validation_failed', $immutableTemplate->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void

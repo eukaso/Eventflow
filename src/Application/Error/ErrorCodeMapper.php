@@ -45,6 +45,7 @@ final readonly class ErrorCodeMapper
                 'reception_search_invalid', 'reception_lookup_invalid', 'checkin_station_invalid',
                 'bulk_checkin_invalid', 'attendee_not_checkin_eligible', 'checkin_reversal_reason_required',
                 'communication_template_invalid', 'template_merge_field_invalid', 'template_render_failed',
+                'template_immutable',
                 'campaign_invalid', 'campaign_audience_invalid', 'campaign_template_invalid',
                 'campaign_channel_invalid', 'campaign_recipient_invalid', 'message_invalid',
                 'campaign_snapshot_audience_required',
@@ -75,11 +76,11 @@ final readonly class ErrorCodeMapper
                 return 'validation_failed';
             }
 
-            if (in_array($code, ['idempotency_scope_invalid', 'event_not_found', 'membership_not_found', 'invitation_not_found', 'attendee_not_found', 'attendee_scope_invalid', 'seating_destination_invalid', 'seating_seat_invalid'], true)) {
+            if (in_array($code, ['resource_not_found', 'idempotency_scope_invalid', 'event_not_found', 'membership_not_found', 'invitation_not_found', 'attendee_not_found', 'attendee_scope_invalid', 'seating_destination_invalid', 'seating_seat_invalid'], true)) {
                 return 'resource_not_found';
             }
 
-            if (in_array($code, ['retention_hold_active', 'privacy_action_in_progress', 'primary_owner_version_conflict', 'primary_attendee_version_conflict'], true)) {
+            if (in_array($code, ['resource_modified', 'retention_hold_active', 'privacy_action_in_progress', 'primary_owner_version_conflict', 'primary_attendee_version_conflict'], true)) {
                 return 'resource_modified';
             }
 
