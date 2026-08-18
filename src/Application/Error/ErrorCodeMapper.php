@@ -76,7 +76,7 @@ final readonly class ErrorCodeMapper
                 return 'validation_failed';
             }
 
-            if (in_array($code, ['resource_not_found', 'idempotency_scope_invalid', 'event_not_found', 'membership_not_found', 'invitation_not_found', 'attendee_not_found', 'attendee_scope_invalid', 'seating_destination_invalid', 'seating_seat_invalid'], true)) {
+            if (in_array($code, ['resource_not_found', 'import_job_not_found', 'idempotency_scope_invalid', 'event_not_found', 'membership_not_found', 'invitation_not_found', 'attendee_not_found', 'attendee_scope_invalid', 'seating_destination_invalid', 'seating_seat_invalid'], true)) {
                 return 'resource_not_found';
             }
 
@@ -86,6 +86,10 @@ final readonly class ErrorCodeMapper
 
             if (in_array($code, ['attendee_already_checked_in', 'checkin_already_reversed', 'campaign_already_queued'], true)) {
                 return $code;
+            }
+
+            if ($code === 'import_transition_invalid') {
+                return 'import_not_ready';
             }
 
             if (in_array($code, ['guest_credential_invalid', 'guest_csrf_invalid'], true)) {

@@ -18,6 +18,7 @@ use EventFlow\Application\Error\ValidationErrorDetails;
 use EventFlow\Application\Error\VersionConflictDetails;
 use EventFlow\Application\Export\ExportException;
 use EventFlow\Application\GuestAccess\GuestAccessException;
+use EventFlow\Application\Import\ImportException;
 use EventFlow\Application\Privacy\PrivacyException;
 use EventFlow\Application\Idempotency\IdempotencyException;
 use EventFlow\Application\Invitation\InvitationException;
@@ -164,6 +165,14 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $queuedCampaign = $translator->translate(new CommunicationException('campaign_already_queued'), $requestId);
         self::assertSame(409, $queuedCampaign->status);
         self::assertSame('campaign_already_queued', $queuedCampaign->body['code']);
+
+        $missingImport = $translator->translate(new ImportException('import_job_not_found'), $requestId);
+        self::assertSame(404, $missingImport->status);
+        self::assertSame('resource_not_found', $missingImport->body['code']);
+
+        $unreadyImport = $translator->translate(new ImportException('import_transition_invalid'), $requestId);
+        self::assertSame(409, $unreadyImport->status);
+        self::assertSame('import_not_ready', $unreadyImport->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void

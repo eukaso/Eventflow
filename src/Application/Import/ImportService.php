@@ -24,7 +24,7 @@ use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Application\Transaction\TransactionManager;
 use InvalidArgumentException;
 
-final readonly class ImportService
+final readonly class ImportService implements ImportValidation
 {
     public function __construct(
         private ImportRepository $imports,
