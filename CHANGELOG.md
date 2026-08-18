@@ -23,6 +23,7 @@ The project follows Semantic Versioning.
 - Provider-authenticated webhook ingress with exact raw-body preservation and durable-before-acknowledgement job acceptance.
 - Authenticated staged-Import validation with explicit column mappings and normalized dry-run summaries.
 - Executable Sprint 9 delivery evidence, public-route allowlisting, ready-mode composition validation, and a controlled deferred-route register.
+- Sprint 9 acceptance and EventFlow 1.0.0 release-candidate documentation with CI-gated promotion checks.
 
 ## [0.9.0] - 2026-08-17
 
