@@ -4,7 +4,7 @@ Date: 2026-08-18
 
 Package: IMP-044
 
-Result: LOCAL PASS / CI PENDING
+Result: PASS
 
 ## Acceptance scope
 
@@ -27,18 +27,18 @@ The executable delivery evidence catalogue contains the complete ordered IMP-028
 |---|---:|
 | PHP syntax | 459 files PASS |
 | Unit suite | 266 tests, 1,116 assertions PASS |
-| Integration suite | 18 tests, 2,055 assertions PASS |
+| Integration suite | 18 tests, 2,057 assertions PASS |
 | Delivery packages | IMP-028–IMP-042 PASS |
 | Public-route allowlist | PASS |
 | Ready-mode composition | PASS |
 | Deferred-route register | 12 areas controlled |
 | Database migration | Not required |
-| GitHub Actions | PHP 8.2/8.3 PENDING |
+| GitHub Actions | PHP 8.2 and PHP 8.3 PASS |
 
 Command: `composer test`
 
 ## Promotion decision
 
-Sprint 9 is accepted at the local repository boundary as a `1.0.0` release candidate. Stable version promotion remains blocked until this candidate commit passes the GitHub Actions PHP 8.2/8.3 matrix. Promotion must then update plugin metadata, close the changelog section, merge the validated commit to `main`, and create the annotated `v1.0.0-delivery-adapters` tag.
+Sprint 9 is accepted. Candidate commit `bcdfe5c` passed the GitHub Actions PHP 8.2/8.3 matrix in [run 32129702250](https://github.com/eukaso/Eventflow/actions/runs/32129702250). Stable `1.0.0` plugin metadata and changelog promotion are complete, and the promotion commit is approved for merge to `main` and the annotated `v1.0.0-delivery-adapters` tag.
 
-The controlled deferred-route register is not waived by this candidate. Provider adapter configuration, live WordPress/MySQL acceptance, external-provider certification, and any product UI remain deployment or separately approved expansion work.
+The controlled deferred-route register is not waived by this release. Provider adapter configuration, live WordPress/MySQL acceptance, external-provider certification, and any product UI remain deployment or separately approved expansion work.

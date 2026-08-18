@@ -92,7 +92,7 @@ final class ApplicationBootstrapTest extends TestCase
 
     private function defineFoundationConstants(): void
     {
-        define('EVENTFLOW_VERSION', '0.9.0');
+        define('EVENTFLOW_VERSION', '1.0.0');
         define('EVENTFLOW_SCHEMA_VERSION', 1);
     }
 }

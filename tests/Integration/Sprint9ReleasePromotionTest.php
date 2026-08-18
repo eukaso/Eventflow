@@ -4,26 +4,29 @@ namespace EventFlow\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
 
-final class Sprint9ReleaseCandidateTest extends TestCase
+final class Sprint9ReleasePromotionTest extends TestCase
 {
-    public function testCandidatePreservesStableVersionUntilCiPromotion(): void
+    public function testStableVersionPromotionMatchesAcceptedRelease(): void
     {
         $plugin = $this->source('eventflow.php');
-        self::assertStringContainsString('Version: 0.9.0', $plugin);
-        self::assertStringContainsString("define('EVENTFLOW_VERSION', '0.9.0')", $plugin);
+        self::assertStringContainsString('Version: 1.0.0', $plugin);
+        self::assertStringContainsString("define('EVENTFLOW_VERSION', '1.0.0')", $plugin);
         self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 6)", $plugin);
 
         $release = $this->source('docs/11-releases/1.0.0-sprint-9-delivery-adapters.md');
-        self::assertStringContainsString('**Status:** Release Candidate', $release);
-        self::assertStringContainsString('`v1.0.0-delivery-adapters`', $release);
-        self::assertStringContainsString('must wait for that gate', $release);
+        self::assertStringContainsString('**Status:** Released', $release);
+        self::assertStringContainsString('**Release tag:** `v1.0.0-delivery-adapters`', $release);
+        self::assertStringContainsString('run 32129702250', $release);
 
         $acceptance = $this->source('docs/10-testing/Sprint-09-Delivery-Adapters-Acceptance-Report.md');
-        self::assertStringContainsString('LOCAL PASS / CI PENDING', $acceptance);
-        self::assertStringContainsString('PHP 8.2/8.3 PENDING', $acceptance);
+        self::assertStringContainsString('Result: PASS', $acceptance);
+        self::assertStringContainsString('PHP 8.2 and PHP 8.3 PASS', $acceptance);
+
+        $changelog = $this->source('CHANGELOG.md');
+        self::assertStringContainsString('## [1.0.0] - 2026-08-18', $changelog);
     }
 
-    public function testCandidateLinksExecutableEvidenceAndControlledDeferrals(): void
+    public function testReleaseRetainsExecutableEvidenceAndControlledDeferrals(): void
     {
         $release = $this->source('docs/11-releases/1.0.0-sprint-9-delivery-adapters.md');
         foreach ([

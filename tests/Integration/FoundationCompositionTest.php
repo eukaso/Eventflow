@@ -37,7 +37,7 @@ final class FoundationCompositionTest extends TestCase
     {
         $wpdb = new IntegrationWpdb();
         $container = Container::createFoundation(
-            new Config('testing', '0.9.0', 6, 'error', false),
+            new Config('testing', '1.0.0', 6, 'error', false),
             $wpdb,
         );
 
@@ -92,7 +92,7 @@ final class FoundationCompositionTest extends TestCase
     public function testDatabaseFoundationRemainsOptionalForMigrationRequiredMode(): void
     {
         $container = Container::createFoundation(
-            new Config('testing', '0.9.0', 6, 'error', false),
+            new Config('testing', '1.0.0', 6, 'error', false),
         );
 
         self::assertNull($container->database);
@@ -105,7 +105,7 @@ final class FoundationCompositionTest extends TestCase
     public function testReadinessAndWorkersFailClosedOnTheSameSchemaMismatch(): void
     {
         $container = Container::createFoundation(
-            new Config('testing', '0.9.0', 6, 'error', false),
+            new Config('testing', '1.0.0', 6, 'error', false),
             new IntegrationWpdb('7'),
         );
         self::assertNotNull($container->database);

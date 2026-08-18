@@ -149,7 +149,7 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
 
         private function registry(): WordPressRestRouteRegistry
         {
-            $container = Container::createFoundation(new Config('testing', '0.9.0', 6, 'error', false));
+            $container = Container::createFoundation(new Config('testing', '1.0.0', 6, 'error', false));
             return new WordPressRestRouteRegistry(
                 new WordPressRestRequestMapper(),
                 $container->services->requestIds,

@@ -55,7 +55,7 @@ final class SystemRoutesTest extends TestCase
 
     private function controller(BootstrapResult $bootstrap): SystemStatusController
     {
-        $container = Container::createFoundation(new Config('testing', '0.9.0', 6, 'error', false));
+        $container = Container::createFoundation(new Config('testing', '1.0.0', 6, 'error', false));
         $health = new SystemHealthService(
             $bootstrap,
             [new BootstrapReadinessCheck($bootstrap)],

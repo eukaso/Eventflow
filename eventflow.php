@@ -2,14 +2,14 @@
 /**
  * Plugin Name: EventFlow
  * Description: Event management platform.
- * Version: 0.9.0
+ * Version: 1.0.0
  * Requires at least: 6.5
  * Requires PHP: 8.2
  */
 
 defined('ABSPATH') || exit;
 
-define('EVENTFLOW_VERSION', '0.9.0');
+define('EVENTFLOW_VERSION', '1.0.0');
 define('EVENTFLOW_SCHEMA_VERSION', 6);
 define('EVENTFLOW_PLUGIN_FILE', __FILE__);
 define('EVENTFLOW_PLUGIN_DIR', __DIR__);
