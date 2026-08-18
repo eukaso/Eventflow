@@ -17,6 +17,7 @@ final readonly class RestRequest
     private bool $trustedSameOrigin;
     /** @var array<string, string> */
     private array $queryParameters;
+    private string $rawBody;
 
     /** @param array<string, string> $headers @param array<string, mixed> $json @param array<string, string> $routeParameters */
     public function __construct(
@@ -27,6 +28,7 @@ final readonly class RestRequest
         array $cookies = [],
         bool $trustedSameOrigin = false,
         array $queryParameters = [],
+        string $rawBody = '',
     )
     {
         $normalized = [];
@@ -51,6 +53,7 @@ final readonly class RestRequest
             if (is_string($name) && (is_string($value) || is_int($value))) $normalizedQuery[$name] = (string) $value;
         }
         $this->queryParameters = $normalizedQuery;
+        $this->rawBody = $rawBody;
     }
 
     public function header(string $name): ?string
@@ -67,4 +70,7 @@ final readonly class RestRequest
     public function cookie(string $name): ?string { return $this->cookies[$name] ?? null; }
     public function sameOrigin(): bool { return $this->trustedSameOrigin; }
     public function query(string $name): ?string { return $this->queryParameters[$name] ?? null; }
+    /** @return array<string, string> */
+    public function headers(): array { return $this->headers; }
+    public function rawBody(): string { return $this->rawBody; }
 }

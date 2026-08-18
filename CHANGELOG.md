@@ -20,6 +20,7 @@ The project follows Semantic Versioning.
 - Least-privilege authenticated reception search plus idempotent individual, atomic bulk, and additive reversal Check-In REST commands.
 - Authenticated Communication Template draft creation and publication REST commands with strict merge-field validation and replay-safe responses.
 - Authenticated Campaign creation and execution-time audience queueing REST commands with privacy-minimized queue results.
+- Provider-authenticated webhook ingress with exact raw-body preservation and durable-before-acknowledgement job acceptance.
 
 ## [0.9.0] - 2026-08-17
 

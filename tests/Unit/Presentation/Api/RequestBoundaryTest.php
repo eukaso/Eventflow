@@ -24,11 +24,22 @@ final class RequestBoundaryTest extends TestCase
         self::assertSame('42', $request->route('event_id'));
         self::assertSame('guest', $request->query('q'));
         self::assertSame('W/"7"', $request->header('if-match'));
+        self::assertSame('{"name":"Dinner","capacity":12}', $request->rawBody());
+        self::assertSame('W/"7"', $request->headers()['if-match']);
+    }
+
+    public function testOpaqueWebhookBodyIsPreservedWithoutForcedJsonDecoding(): void
+    {
+        $request = (new WordPressRestRequestMapper())->map(new BoundaryWordPressRequest(
+            'id=evt_123&status=delivered', ['Content-Type' => ['application/x-www-form-urlencoded']], ['provider' => 'mail.test'],
+        ));
+        self::assertSame([], $request->json());
+        self::assertSame('id=evt_123&status=delivered', $request->rawBody());
     }
 
     public function testMalformedAndNonObjectJsonFailWithControlledCodes(): void
     {
-        foreach ([['{bad', 'malformed_json'], ['[1,2]', 'validation_failed']] as [$body, $code]) {
+        foreach ([['{bad', 'malformed_json'], ['not-json', 'malformed_json'], ['[1,2]', 'validation_failed']] as [$body, $code]) {
             try {
                 (new WordPressRestRequestMapper())->map(new BoundaryWordPressRequest($body));
                 self::fail('Expected invalid JSON input.');

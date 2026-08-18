@@ -1,7 +1,7 @@
 <?php
 namespace EventFlow\Application\Provider;
 use EventFlow\Application\Clock\Clock;use EventFlow\Application\Job\{JobRecord,JobRepository,JobRequest};use EventFlow\Application\Persistence\EventScope;
-final readonly class ProviderService
+final readonly class ProviderService implements ProviderWebhookIngress
 {
  public function __construct(private ProviderRepository $repository,private ProviderRegistry $providers,private JobRepository $jobs,private Clock $clock,private ProviderCircuitBreaker $circuitBreaker=new ClosedProviderCircuitBreaker()){}
  public function dispatch(EventScope $scope,int $messageId,string $provider):ProviderSendResult{$adapter=$this->providers->require($provider);$now=$this->clock->now();$this->circuitBreaker->assertAvailable($provider,$now);$message=$this->repository->lockQueuedMessage($scope,$messageId,$provider,$now);try{$result=$adapter->send($message);}catch(\Throwable){$result=new ProviderSendResult(ProviderOutcome::AMBIGUOUS,errorCode:'provider_transport_unknown');}$this->repository->recordSendResult($message,$provider,$result,$this->clock->now());if($result->outcome===ProviderOutcome::ACCEPTED)$this->circuitBreaker->recordSuccess($provider);elseif($result->outcome===ProviderOutcome::AMBIGUOUS)$this->circuitBreaker->recordFailure($provider,$this->clock->now());return $result;}

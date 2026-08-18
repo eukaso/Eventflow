@@ -23,7 +23,8 @@ final readonly class WordPressRestRequestMapper
             throw new RequestInputException('validation_failed');
         }
         $json = [];
-        if (trim($raw) !== '') {
+        $providerWebhook = array_key_exists('provider', $routes);
+        if (trim($raw) !== '' && (!$providerWebhook || $this->looksLikeJson($raw, $headers))) {
             try {
                 $decoded = json_decode($raw, true, 64, JSON_THROW_ON_ERROR);
             } catch (JsonException) {
@@ -34,7 +35,7 @@ final readonly class WordPressRestRequestMapper
             }
             $json = $decoded;
         }
-        return new RestRequest($headers, $json, $routes, $this->clientAddress(), $cookies, $this->sameOrigin($headers), $query);
+        return new RestRequest($headers, $json, $routes, $this->clientAddress(), $cookies, $this->sameOrigin($headers), $query, $raw);
     }
 
     /** @return array<string, string> */
@@ -104,5 +105,15 @@ final readonly class WordPressRestRequestMapper
             ? ':' . $explicitPort
             : '';
         return $scheme . '://' . strtolower((string) $parts['host']) . $port;
+    }
+
+    /** @param array<string, string> $headers */
+    private function looksLikeJson(string $raw, array $headers): bool
+    {
+        if (trim($raw) === '') return false;
+        foreach ($headers as $name => $value) {
+            if (strcasecmp($name, 'Content-Type') === 0 && str_contains(strtolower($value), 'json')) return true;
+        }
+        return in_array(ltrim($raw)[0] ?? '', ['{', '['], true);
     }
 }
