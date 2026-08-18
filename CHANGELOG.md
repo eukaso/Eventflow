@@ -19,6 +19,7 @@ The project follows Semantic Versioning.
 - Authenticated deterministic Seating recommendation generation and stale-safe manual attendee assignment moves.
 - Least-privilege authenticated reception search plus idempotent individual, atomic bulk, and additive reversal Check-In REST commands.
 - Authenticated Communication Template draft creation and publication REST commands with strict merge-field validation and replay-safe responses.
+- Authenticated Campaign creation and execution-time audience queueing REST commands with privacy-minimized queue results.
 
 ## [0.9.0] - 2026-08-17
 

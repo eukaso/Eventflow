@@ -160,6 +160,10 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $immutableTemplate = $translator->translate(new CommunicationException('template_immutable'), $requestId);
         self::assertSame(422, $immutableTemplate->status);
         self::assertSame('validation_failed', $immutableTemplate->body['code']);
+
+        $queuedCampaign = $translator->translate(new CommunicationException('campaign_already_queued'), $requestId);
+        self::assertSame(409, $queuedCampaign->status);
+        self::assertSame('campaign_already_queued', $queuedCampaign->body['code']);
     }
 
     public function testUnknownFailureNeverLeaksMessageTraceOrSecretContext(): void

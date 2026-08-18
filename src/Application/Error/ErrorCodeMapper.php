@@ -84,7 +84,7 @@ final readonly class ErrorCodeMapper
                 return 'resource_modified';
             }
 
-            if (in_array($code, ['attendee_already_checked_in', 'checkin_already_reversed'], true)) {
+            if (in_array($code, ['attendee_already_checked_in', 'checkin_already_reversed', 'campaign_already_queued'], true)) {
                 return $code;
             }
 
