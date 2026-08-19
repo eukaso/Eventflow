@@ -19,6 +19,7 @@ use EventFlow\Application\Export\ExportService;
 use EventFlow\Application\Health\ReadinessCheck;
 use EventFlow\Application\Health\PrivacyReconciliationReadinessCheck;
 use EventFlow\Application\GuestAccess\GuestAccessService;
+use EventFlow\Application\GuestAccess\GuestSessionAccessService;
 use EventFlow\Application\Idempotency\CanonicalRequestHasher;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Import\ImportNormalizer;
@@ -57,6 +58,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventQueryRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbExportRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbGuestAccessRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbGuestSessionAccessRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbInvitationRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbInvitationAccessRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbImportRepository;
@@ -100,6 +102,7 @@ final readonly class DatabaseFoundation
         public InvitationService $invitations,
         public InvitationAccessService $invitationAccess,
         public GuestAccessService $guestAccess,
+        public GuestSessionAccessService $guestSessionAccess,
         public AttendeeService $attendees,
         public AttendeeQueryService $attendeeQueries,
         public ImportService $imports,
@@ -258,6 +261,11 @@ final readonly class DatabaseFoundation
                 $shared->random,
                 $credentialDigester,
                 $transactions,
+            ),
+            guestSessionAccess: new GuestSessionAccessService(
+                new WpdbGuestSessionAccessRepository($database, $tableNames),
+                $authorization,
+                $shared->clock,
             ),
             attendees: new AttendeeService(
                 $attendeeRepository,

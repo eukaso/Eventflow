@@ -17,6 +17,7 @@ final readonly class PrincipalContext
         public ?EventScope $eventScope = null,
         public ?int $invitationId = null,
         public array $committedCapabilities = [],
+        public ?int $guestSessionId = null,
     ) {
         if ($principalId === '' || strlen($principalId) > 190) {
             throw new InvalidArgumentException('invalid_principal_identifier');
@@ -48,6 +49,7 @@ final readonly class PrincipalContext
             'guest_session:' . $guestSessionId,
             eventScope: $eventScope,
             invitationId: $invitationId,
+            guestSessionId: $guestSessionId,
         );
     }
 
