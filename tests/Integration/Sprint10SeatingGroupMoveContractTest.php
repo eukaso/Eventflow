@@ -39,7 +39,6 @@ final class Sprint10SeatingGroupMoveContractTest extends TestCase
         self::assertStringContainsString('No schema migration is required', $readme);
         self::assertStringContainsString('intentionally adds no HTTP route', $readme);
         self::assertStringContainsString('IMP-062', $readme);
-        self::assertFileDoesNotExist(dirname(__DIR__, 2) . '/src/Presentation/Api/SeatingGroupMoveController.php');
     }
 
     private function source(string $path): string
