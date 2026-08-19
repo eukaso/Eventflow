@@ -4,6 +4,7 @@ namespace EventFlow\Presentation\Api;
 
 use DateTimeImmutable;
 use EventFlow\Application\Event\CreateEvent;
+use EventFlow\Application\Event\EventDraftPatch;
 use EventFlow\Application\Persistence\EventScope;
 use Exception;
 use InvalidArgumentException;
@@ -46,6 +47,39 @@ final readonly class EventRequestMapper
         return new EventScope($value);
     }
 
+    /** @return array{int, ?int} */
+    public function page(RestRequest $request): array
+    {
+        return [
+            $this->queryInt($request->query('limit'), 50, 1, 100),
+            $request->query('after') === null ? null : $this->queryInt($request->query('after'), null, 1, PHP_INT_MAX),
+        ];
+    }
+
+    public function patch(RestRequest $request, int $expectedRevision): EventDraftPatch
+    {
+        $json = $request->json();
+        $allowed = ['name', 'slug', 'timezone', 'starts_at', 'ends_at', 'venue_id'];
+        if ($json === [] || array_diff(array_keys($json), $allowed) !== []) {
+            throw new RequestInputException('validation_failed');
+        }
+        $changes = [];
+        try {
+            foreach (['name', 'slug', 'timezone'] as $field) {
+                if (array_key_exists($field, $json)) $changes[$field] = $this->requiredString($json, $field);
+            }
+            foreach (['starts_at', 'ends_at'] as $field) {
+                if (array_key_exists($field, $json)) $changes[$field] = $this->date($json[$field]);
+            }
+            if (array_key_exists('venue_id', $json)) $changes['venue_id'] = $this->optionalPositiveInt($json['venue_id']);
+            return new EventDraftPatch($changes, $expectedRevision);
+        } catch (RequestInputException $failure) {
+            throw $failure;
+        } catch (InvalidArgumentException) {
+            throw new RequestInputException('validation_failed');
+        }
+    }
+
     /** @param array<string, mixed> $json */
     private function requiredString(array $json, string $field): string
     {
@@ -71,5 +105,18 @@ final readonly class EventRequestMapper
         if ($value === null) return null;
         if (!is_int($value) || $value < 1) throw new RequestInputException('validation_failed');
         return $value;
+    }
+
+    private function queryInt(?string $value, ?int $default, int $minimum, int $maximum): int
+    {
+        if ($value === null) {
+            return $default ?? throw new RequestInputException('validation_failed');
+        }
+        if (!preg_match('/^(?:0|[1-9][0-9]*)$/', $value)) {
+            throw new RequestInputException('validation_failed');
+        }
+        $integer = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => $minimum, 'max_range' => $maximum]]);
+        if ($integer === false) throw new RequestInputException('validation_failed');
+        return $integer;
     }
 }

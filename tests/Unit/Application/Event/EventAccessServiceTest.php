@@ -95,6 +95,25 @@ final class EventAccessServiceTest extends TestCase
         }
         self::assertSame(0, $fixture->events->updates);
     }
+
+    public function testDraftUpdateMapsMergedDomainInvariantFailureWithoutWriting(): void
+    {
+        $fixture = new AccessFixture();
+
+        try {
+            $fixture->service->updateDraft(
+                $fixture->principal,
+                new EventScope(51),
+                new EventDraftPatch(['name' => ''], 3),
+                'event-update-0004',
+            );
+            self::fail('Expected domain validation failure.');
+        } catch (EventLifecycleException $exception) {
+            self::assertSame('validation_failed', $exception->safeCode);
+        }
+        self::assertSame(0, $fixture->events->updates);
+        self::assertSame([], $fixture->audit->actions);
+    }
 }
 
 final class AccessFixture

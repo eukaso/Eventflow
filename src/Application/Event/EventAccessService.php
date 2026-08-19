@@ -16,6 +16,7 @@ use EventFlow\Application\Idempotency\IdempotencyResultReference;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Idempotency\IdempotentOperationResult;
 use EventFlow\Application\Persistence\EventScope;
+use InvalidArgumentException;
 
 final readonly class EventAccessService implements EventQueries, EventDraftCommands
 {
@@ -72,7 +73,11 @@ final readonly class EventAccessService implements EventQueries, EventDraftComma
                     throw new EventLifecycleException('resource_modified');
                 }
 
-                $replacement = $patch->applyTo($current);
+                try {
+                    $replacement = $patch->applyTo($current);
+                } catch (InvalidArgumentException) {
+                    throw new EventLifecycleException('validation_failed');
+                }
                 $updated = $this->events->updateDraft($current, $replacement, $this->actorUserId($principal), $this->clock->now());
                 $this->audit->recordRequired(new AuditEvent(
                     principal: $principal,

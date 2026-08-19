@@ -133,6 +133,8 @@ final class ApplicationBootstrap
         if ($bootstrap->ready && $container->database !== null) {
             $events = new EventController(
                 $container->database->eventLifecycle,
+                $container->database->eventAccess,
+                $container->database->eventAccess,
                 $container->delivery->authenticatedRequests,
                 new EventRequestMapper(),
                 new EventPresenter(),

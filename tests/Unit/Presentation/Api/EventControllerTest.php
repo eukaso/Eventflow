@@ -5,7 +5,7 @@ namespace EventFlow\Tests\Unit\Presentation\Api;
 use DateTimeImmutable;
 use EventFlow\Application\Authorization\PrincipalContext;
 use EventFlow\Application\Error\RequestIdFactory;
-use EventFlow\Application\Event\{CreateEvent, EventLifecycleCommands, EventRecord, EventStatus};
+use EventFlow\Application\Event\{CreateEvent, EventDraftCommands, EventDraftPatch, EventLifecycleCommands, EventPage, EventQueries, EventRecord, EventStatus};
 use EventFlow\Application\Idempotency\{IdempotencyOutcome, IdempotencyResultReference};
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Security\SecureRandom;
@@ -26,6 +26,78 @@ final class EventControllerTest extends TestCase
             'eventflow/v1/events/(?P<event_id>\d+)/archive',
             'eventflow/v1/events/(?P<event_id>\d+)/restore',
         ], array_keys($routes->authenticatedPosts));
+        self::assertSame([
+            'eventflow/v1/events',
+            'eventflow/v1/events/(?P<event_id>\d+)',
+        ], array_keys($routes->authenticatedGets));
+        self::assertSame(['eventflow/v1/events/(?P<event_id>\d+)'], array_keys($routes->authenticatedPatches));
+    }
+
+    public function testListAndDetailExposeBoundedProjectionWithRevisionEtag(): void
+    {
+        $port = new EventCommandPort();
+        $controller = $this->controller($port);
+
+        $list = $controller->list(new RestRequest(queryParameters: ['limit' => '2', 'after' => '40']));
+        $detail = $controller->read(new RestRequest(routeParameters: ['event_id' => '44']));
+
+        self::assertSame([2, 40], $port->pageArguments);
+        self::assertSame(44, $list->body()['data'][0]['id']);
+        self::assertNull($list->body()['meta']['next_after_event_id']);
+        self::assertSame('"3"', $detail->headers()['ETag']);
+        self::assertSame(3, $detail->body()['data']['revision']);
+    }
+
+    public function testPatchRequiresBothPreconditionsAndReturnsIncrementedEtag(): void
+    {
+        $port = new EventCommandPort();
+        $response = $this->controller($port)->update(new RestRequest(
+            ['If-Match' => '"3"', 'Idempotency-Key' => 'event-update-001'],
+            ['name' => 'Updated Dinner', 'venue_id' => null],
+            ['event_id' => '44'],
+        ));
+
+        self::assertSame('update', $port->calls[array_key_last($port->calls)]);
+        self::assertSame(3, $port->patch?->expectedRevision);
+        self::assertSame(['name' => 'Updated Dinner', 'venue_id' => null], $port->patch?->changes);
+        self::assertSame('event-update-001', $port->keys[array_key_last($port->keys)]);
+        self::assertSame('"4"', $response->headers()['ETag']);
+        self::assertSame(4, $response->body()['data']['revision']);
+
+        foreach ([
+            ['If-Match' => '"3"'],
+            ['Idempotency-Key' => 'event-update-002'],
+        ] as $headers) {
+            try {
+                $this->controller(new EventCommandPort())->update(new RestRequest($headers, ['name' => 'X'], ['event_id' => '44']));
+                self::fail('Expected required precondition failure.');
+            } catch (RequestInputException $failure) {
+                self::assertSame('precondition_required', $failure->safeCode);
+            }
+        }
+    }
+
+    public function testReadAndPatchInputsFailClosedBeforeApplicationPorts(): void
+    {
+        foreach ([
+            fn (EventController $controller) => $controller->list(new RestRequest(queryParameters: ['limit' => '101'])),
+            fn (EventController $controller) => $controller->list(new RestRequest(queryParameters: ['after' => '0'])),
+            fn (EventController $controller) => $controller->read(new RestRequest(routeParameters: ['event_id' => '../44'])),
+            fn (EventController $controller) => $controller->update(new RestRequest(['If-Match'=>'"3"','Idempotency-Key'=>'event-update-003'], [], ['event_id'=>'44'])),
+            fn (EventController $controller) => $controller->update(new RestRequest(['If-Match'=>'"3"','Idempotency-Key'=>'event-update-004'], ['admin'=>true], ['event_id'=>'44'])),
+            fn (EventController $controller) => $controller->update(new RestRequest(['If-Match'=>'"0"','Idempotency-Key'=>'event-update-005'], ['name'=>'X'], ['event_id'=>'44'])),
+            fn (EventController $controller) => $controller->update(new RestRequest(['If-Match'=>'"3"','Idempotency-Key'=>'event-update-006'], ['starts_at'=>'tomorrow'], ['event_id'=>'44'])),
+            fn (EventController $controller) => $controller->update(new RestRequest(['If-Match'=>'"3"','Idempotency-Key'=>'event-update-007'], ['venue_id'=>0], ['event_id'=>'44'])),
+        ] as $operation) {
+            $port = new EventCommandPort();
+            try {
+                $operation($this->controller($port));
+                self::fail('Expected controlled input rejection.');
+            } catch (RequestInputException $failure) {
+                self::assertContains($failure->safeCode, ['validation_failed', 'resource_not_found']);
+            }
+            self::assertSame([], $port->calls);
+        }
     }
 
     public function testCreateMapsValidatedInputAndReturnsNormalizedResource(): void
@@ -89,6 +161,8 @@ final class EventControllerTest extends TestCase
     {
         return new EventController(
             $port,
+            $port,
+            $port,
             new AuthenticatedRequestContextFactory(new EventPrincipalResolver(), new RequestIdFactory(new EventControllerRandom())),
             new EventRequestMapper(),
             new EventPresenter(),
@@ -99,12 +173,14 @@ final class EventControllerTest extends TestCase
 final class EventMemoryRoutes implements RestRouteRegistry
 {
     public array $authenticatedPosts = [];
+    public array $authenticatedGets = [];
+    public array $authenticatedPatches = [];
     public function registerPublicGet(string $namespace,string $route,callable $handler):void {}
     public function registerPublicPost(string $namespace,string $route,callable $handler):void {}
     public function registerPublicPut(string $namespace,string $route,callable $handler):void {}
     public function registerAuthenticatedPost(string $namespace,string $route,callable $handler):void { $this->authenticatedPosts[$namespace.$route]=$handler; }
-    public function registerAuthenticatedGet(string $namespace,string $route,callable $handler):void {}
-    public function registerAuthenticatedPatch(string $namespace,string $route,callable $handler):void {}
+    public function registerAuthenticatedGet(string $namespace,string $route,callable $handler):void { $this->authenticatedGets[$namespace.$route]=$handler; }
+    public function registerAuthenticatedPatch(string $namespace,string $route,callable $handler):void { $this->authenticatedPatches[$namespace.$route]=$handler; }
 }
 
 final readonly class EventPrincipalResolver implements AuthenticatedPrincipalResolver
@@ -117,9 +193,11 @@ final readonly class EventControllerRandom implements SecureRandom
     public function hex(int $bytes): string { return str_repeat('c', $bytes * 2); }
 }
 
-final class EventCommandPort implements EventLifecycleCommands
+final class EventCommandPort implements EventLifecycleCommands, EventQueries, EventDraftCommands
 {
     public array $calls=[]; public array $keys=[];
+    public array $pageArguments=[];
+    public ?EventDraftPatch $patch=null;
     public function __construct(private bool $replay=false) {}
     public function create(PrincipalContext $p,CreateEvent $e,string $k):IdempotencyOutcome { $this->calls[]='create';$this->keys[]=$k;return $this->outcome(new EventScope(44),EventStatus::DRAFT,201,$e); }
     public function activate(PrincipalContext $p,EventScope $s,string $k):IdempotencyOutcome{return $this->command('activate',$s,$k,EventStatus::ACTIVE);}
@@ -127,12 +205,16 @@ final class EventCommandPort implements EventLifecycleCommands
     public function cancel(PrincipalContext $p,EventScope $s,string $k):IdempotencyOutcome{return $this->command('cancel',$s,$k,EventStatus::CANCELLED);}
     public function archive(PrincipalContext $p,EventScope $s,string $k):IdempotencyOutcome{return $this->command('archive',$s,$k,EventStatus::ARCHIVED);}
     public function restore(PrincipalContext $p,EventScope $s,string $k):IdempotencyOutcome{return $this->command('restore',$s,$k,EventStatus::COMPLETED);}
+    public function listAccessible(PrincipalContext $principal,int $limit=50,?int $afterEventId=null):EventPage{$this->calls[]='list';$this->pageArguments=[$limit,$afterEventId];return new EventPage([$this->record(new EventScope(44))],null);}
+    public function read(PrincipalContext $principal,EventScope $scope):EventRecord{$this->calls[]='read';return $this->record($scope);}
+    public function updateDraft(PrincipalContext $principal,EventScope $scope,EventDraftPatch $patch,string $idempotencyKey):IdempotencyOutcome{$this->calls[]='update';$this->keys[]=$idempotencyKey;$this->patch=$patch;$record=new EventRecord($scope,'Updated Dinner','annual-dinner',EventStatus::DRAFT,'UTC',null,null,null,$patch->expectedRevision+1);return new IdempotencyOutcome(false,new IdempotencyResultReference('event',$scope->eventId,200),$record);}
     private function command(string $name,EventScope $s,string $k,EventStatus $status):IdempotencyOutcome{$this->calls[]=$name;$this->keys[]=$k;return $this->outcome($s,$status,200);}
     private function outcome(EventScope $s,EventStatus $status,int $code,?CreateEvent $create=null):IdempotencyOutcome
     {
         $reference=new IdempotencyResultReference('event',$s->eventId,$code);
         if($this->replay)return new IdempotencyOutcome(true,$reference);
-        $record=new EventRecord($s,$create?->name??'Annual Dinner',$create?->slug??'annual-dinner',$status,$create?->timezone??'UTC',$create?->startsAt,$create?->endsAt,$create?->venueId);
+        $record=new EventRecord($s,$create?->name??'Annual Dinner',$create?->slug??'annual-dinner',$status,$create?->timezone??'UTC',$create?->startsAt,$create?->endsAt,$create?->venueId,3);
         return new IdempotencyOutcome(false,$reference,$record);
     }
+    private function record(EventScope $scope):EventRecord{return new EventRecord($scope,'Annual Dinner','annual-dinner',EventStatus::DRAFT,'UTC',null,null,null,3);}
 }

@@ -20,4 +20,9 @@ final readonly class AuthenticatedRequestContext
     {
         return $this->idempotencyKey ?? throw new LogicException('idempotency_key_not_required_by_policy');
     }
+
+    public function requiredExpectedVersion(): int
+    {
+        return $this->expectedVersion ?? throw new LogicException('if_match_not_required_by_policy');
+    }
 }
