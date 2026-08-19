@@ -12,6 +12,7 @@ The project follows Semantic Versioning.
 - Authenticated Event list/detail REST reads and revision-guarded PATCH delivery with bounded cursors, strict field mapping, dual mutation preconditions, and strong revision ETags.
 - Dedicated Venue and Event-configuration application services with default-deny authority, validated complete-state records, bounded Venue queries, idempotent audited mutations, and optimistic concurrency.
 - Forward-only schema migration 8 adding Venue and Event-configuration revision columns without modifying the frozen Sprint 3 baseline.
+- Authenticated Venue and Event-configuration REST delivery with strict request maps, bounded pagination, dual update preconditions, revision ETags, and controlled 401/403 translation.
 
 ## [1.0.0] - 2026-08-18
 

@@ -7,6 +7,7 @@ use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
 use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeRequestMapper, AttendeeRouteRegistrar, CampaignController, CampaignPresenter, CampaignRequestMapper, CampaignRouteRegistrar, CheckInController, CheckInPresenter, CheckInRequestMapper, CheckInRouteRegistrar, EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, ImportController, ImportPresenter, ImportRequestMapper, ImportRouteRegistrar, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, ProviderWebhookController, ProviderWebhookPresenter, ProviderWebhookRequestMapper, ProviderWebhookRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SeatingPlanningController, SeatingPlanningPresenter, SeatingPlanningRequestMapper, SeatingPlanningRouteRegistrar, SeatingPreparationController, SeatingPreparationPresenter, SeatingPreparationRequestMapper, SeatingPreparationRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter, TemplateController, TemplatePresenter, TemplateRequestMapper, TemplateRouteRegistrar};
+use EventFlow\Presentation\Api\{EventConfigurationController, EventConfigurationPresenter, EventConfigurationRequestMapper, EventConfigurationRouteRegistrar, VenueController, VenuePresenter, VenueRequestMapper, VenueRouteRegistrar};
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
@@ -140,6 +141,20 @@ final class ApplicationBootstrap
                 new EventPresenter(),
             );
             (new WordPressRestRouteHooks(new EventRouteRegistrar($events), $wordpressRoutes))->register();
+            $venues = new VenueController(
+                $container->database->venues,
+                $container->delivery->authenticatedRequests,
+                new VenueRequestMapper(),
+                new VenuePresenter(),
+            );
+            (new WordPressRestRouteHooks(new VenueRouteRegistrar($venues), $wordpressRoutes))->register();
+            $eventConfigurations = new EventConfigurationController(
+                $container->database->eventConfigurations,
+                $container->delivery->authenticatedRequests,
+                new EventConfigurationRequestMapper(),
+                new EventConfigurationPresenter(),
+            );
+            (new WordPressRestRouteHooks(new EventConfigurationRouteRegistrar($eventConfigurations), $wordpressRoutes))->register();
             $memberships = new MembershipController(
                 $container->database->memberships,
                 $container->delivery->authenticatedRequests,
