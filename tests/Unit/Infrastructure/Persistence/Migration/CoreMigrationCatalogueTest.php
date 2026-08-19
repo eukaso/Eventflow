@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(9, $definitions);
+        self::assertCount(10, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -48,11 +48,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0009_invitation_revision', $definitions[8]->key);
         self::assertSame(8, $definitions[8]->fromSchemaVersion);
         self::assertSame(9, $definitions[8]->toSchemaVersion);
+        self::assertSame('0010_seating_resource_revisions', $definitions[9]->key);
+        self::assertSame(9, $definitions[9]->fromSchemaVersion);
+        self::assertSame(10, $definitions[9]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 9\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 10\\);/",
             $entryPoint,
         );
     }
@@ -156,6 +159,16 @@ final class CoreMigrationCatalogueTest extends TestCase
         $sql = implode("\n", $this->catalogue()->definitions()[7]->statements);
         self::assertStringContainsString('ADD COLUMN venue_revision', $sql);
         self::assertStringContainsString('ADD COLUMN configuration_revision', $sql);
+        self::assertStringNotContainsString('DROP ', $sql);
+        self::assertStringNotContainsString('UPDATE ', $sql);
+    }
+
+    public function testSeatingResourceRevisionMigrationIsForwardOnly(): void
+    {
+        $sql = implode("\n", $this->catalogue()->definitions()[9]->statements);
+        foreach (['ADD COLUMN table_revision', 'ADD COLUMN seat_revision', 'ADD COLUMN group_revision'] as $column) {
+            self::assertStringContainsString($column, $sql);
+        }
         self::assertStringNotContainsString('DROP ', $sql);
         self::assertStringNotContainsString('UPDATE ', $sql);
     }

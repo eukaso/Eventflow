@@ -5,6 +5,7 @@ namespace EventFlow\Tests\Unit\Infrastructure\Persistence\WordPress;
 use DateTimeImmutable;
 use DateTimeZone;
 use EventFlow\Application\Persistence\EventScope;
+use EventFlow\Application\Seating\{SeatingSeat, SeatingSeatReplacement};
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
@@ -33,6 +34,22 @@ final class WpdbSeatingRepositoryTest extends TestCase
         self::assertStringContainsString("assignment_status = 'superseded'", $wpdb->queries[0]);
         self::assertStringContainsString('seating_assignment_id = 9', $wpdb->queries[0]);
         self::assertStringContainsString('INSERT INTO wp_eventflow_seating_assignments', $wpdb->queries[1]);
+    }
+
+    public function testSeatUpdateUsesEventScopeAndGuardedRevisionIncrement(): void
+    {
+        $wpdb = new SeatingRepositoryWpdb();
+        $updated = $this->repository($wpdb)->updateSeat(
+            new EventScope(8),
+            new SeatingSeat(5, 2, 'A', true, 10, 3),
+            new SeatingSeatReplacement('A1', true, 20, 3),
+            new DateTimeImmutable('2026-08-16 20:00:00', new DateTimeZone('UTC')),
+        );
+        self::assertSame(4, $updated->revision);
+        self::assertStringContainsString('seat_revision=seat_revision+1', $wpdb->queries[0]);
+        self::assertStringContainsString('event_id=8', $wpdb->queries[0]);
+        self::assertStringContainsString('seat_id=5', $wpdb->queries[0]);
+        self::assertStringContainsString('seat_revision=3', $wpdb->queries[0]);
     }
 
     private function repository(SeatingRepositoryWpdb $wpdb): WpdbSeatingRepository { return new WpdbSeatingRepository(new WpdbAdapter($wpdb), new WpdbTableNames('wp_')); }

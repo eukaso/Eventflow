@@ -35,7 +35,7 @@ use EventFlow\Application\Observability\DiagnosticService;
 use EventFlow\Application\Provider\ProviderRegistry;
 use EventFlow\Application\Provider\ProviderService;
 use EventFlow\Application\Privacy\PrivacyService;
-use EventFlow\Application\Seating\SeatingService;
+use EventFlow\Application\Seating\{SeatingResourceService, SeatingService};
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Application\Venue\VenueService;
@@ -107,6 +107,7 @@ final readonly class DatabaseFoundation
         public AttendeeQueryService $attendeeQueries,
         public ImportService $imports,
         public SeatingService $seating,
+        public SeatingResourceService $seatingResources,
         public CheckInService $checkIn,
         public CommunicationService $communications,
         public ExportService $exports,
@@ -154,6 +155,7 @@ final readonly class DatabaseFoundation
         $attendeeRepository = new WpdbAttendeeRepository($database, $tableNames);
         $importRepository = new WpdbImportRepository($database, $tableNames);
         $jobRepository = new WpdbJobRepository($database, $tableNames);
+        $seatingRepository = new WpdbSeatingRepository($database, $tableNames);
         $exportStorage = new WordPressProtectedExportStorage($shared->random);
         $privacy = new PrivacyService(
             new WpdbPrivacyRepository($database, $tableNames),
@@ -291,12 +293,19 @@ final readonly class DatabaseFoundation
                 $transactions,
             ),
             seating: new SeatingService(
-                new WpdbSeatingRepository($database, $tableNames),
+                $seatingRepository,
                 $authorization,
                 $idempotency,
                 $audit,
                 $shared->clock,
                 $transactions,
+            ),
+            seatingResources: new SeatingResourceService(
+                $seatingRepository,
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
             ),
             checkIn: new CheckInService(
                 new WpdbCheckInRepository($database, $tableNames),

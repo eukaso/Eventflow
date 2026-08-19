@@ -107,6 +107,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0009-invitation-revision.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0010_seating_resource_revisions',
+                version: 'v1.1.0-dev',
+                fromSchemaVersion: 9,
+                toSchemaVersion: 10,
+                description: 'Add collision-free optimistic concurrency for Seating table, seat, and group resources.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0010-seating-resource-revisions.sql',
+                ),
+            ),
         ];
     }
 }

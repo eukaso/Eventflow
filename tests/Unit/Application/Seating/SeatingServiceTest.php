@@ -35,6 +35,11 @@ use EventFlow\Application\Seating\SeatingAttendee;
 use EventFlow\Application\Seating\SeatingException;
 use EventFlow\Application\Seating\SeatingGroup;
 use EventFlow\Application\Seating\SeatingRepository;
+use EventFlow\Application\Seating\SeatingResourceRepository;
+use EventFlow\Application\Seating\SeatingResourceService;
+use EventFlow\Application\Seating\SeatingTableReplacement;
+use EventFlow\Application\Seating\SeatingSeatReplacement;
+use EventFlow\Application\Seating\SeatingGroupReplacement;
 use EventFlow\Application\Seating\SeatingSeat;
 use EventFlow\Application\Seating\SeatingService;
 use EventFlow\Application\Seating\SeatingSnapshot;
@@ -105,11 +110,43 @@ final class SeatingServiceTest extends TestCase
         try { $f->service->applyRecommendation($f->principal, $f->scope, $plan, 'stale-plan'); self::fail('Expected stale plan.'); }
         catch (SeatingException $e) { self::assertSame('seating_recommendation_stale', $e->safeCode); }
     }
+
+    public function testResourceReadsAndRevisionGuardedUpdatesAreAuthoritative(): void
+    {
+        $f = new SeatingFixture(SeatingFixture::standard());
+        self::assertSame('One', $f->resources->table($f->principal, $f->scope, 1)->table->name);
+        self::assertSame('Required friends', $f->resources->group($f->principal, $f->scope, 1)->name);
+
+        $table = $f->resources->updateTable($f->principal, $f->scope, 1, new SeatingTableReplacement('Main', 4, 10, 1), 'table-update')->response;
+        self::assertSame(2, $table->table->revision);
+        self::assertSame('Main', $table->table->name);
+        $seat = $f->resources->updateSeat($f->principal, $f->scope, 1, new SeatingSeatReplacement('A1', true, 5, 1), 'seat-update')->response;
+        self::assertSame(2, $seat->revision);
+        $group = $f->resources->updateGroup($f->principal, $f->scope, 1, new SeatingGroupReplacement('Friends', 'friends', ConstraintLevel::PREFERRED, 5, [1, 3], 1), 'group-update')->response;
+        self::assertSame([1, 3], $group->attendeeIds);
+        self::assertSame(2, $group->revision);
+    }
+
+    public function testResourceChangesRejectStaleCapacityAndManagedGroups(): void
+    {
+        $f = new SeatingFixture(SeatingFixture::standard());
+        foreach ([
+            fn () => $f->resources->updateTable($f->principal, $f->scope, 1, new SeatingTableReplacement('One', 2, 1, 9), 'stale-key'),
+            fn () => $f->resources->updateTable($f->principal, $f->scope, 1, new SeatingTableReplacement('One', 1, 1, 1), 'capacity'),
+        ] as $operation) {
+            try { $operation(); self::fail('Expected resource update failure.'); }
+            catch (SeatingException $failure) { self::assertContains($failure->safeCode, ['resource_modified', 'seating_table_capacity_in_use']); }
+        }
+        $managed = new SeatingGroup(8, 'Invitation', ConstraintLevel::PREFERRED, 1, [1], 'family', 'invitation');
+        $f->repository->snapshot = new SeatingSnapshot($f->repository->snapshot->attendees, $f->repository->snapshot->tables, $f->repository->snapshot->seats, [...$f->repository->snapshot->groups, $managed], $f->repository->snapshot->assignments);
+        try { $f->resources->updateGroup($f->principal, $f->scope, 8, new SeatingGroupReplacement('Changed', 'family', ConstraintLevel::PREFERRED, 1, [1], 1), 'managed-key'); self::fail('Expected managed-group failure.'); }
+        catch (SeatingException $failure) { self::assertSame('seating_group_managed_by_invitation', $failure->safeCode); }
+    }
 }
 
 final class SeatingFixture
 {
-    public readonly EventScope $scope; public readonly PrincipalContext $principal; public readonly SeatingMemoryRepository $repository; public readonly SeatingService $service;
+    public readonly EventScope $scope; public readonly PrincipalContext $principal; public readonly SeatingMemoryRepository $repository; public readonly SeatingService $service; public readonly SeatingResourceService $resources;
     public function __construct(SeatingSnapshot $snapshot)
     {
         $this->scope = new EventScope(50); $this->principal = PrincipalContext::wordpressUser(7); $this->repository = new SeatingMemoryRepository($snapshot);
@@ -118,6 +155,7 @@ final class SeatingFixture
         $idem = new IdempotencyService(new SeatingIdempotencyRepository(), $tx, $clock, new SeatingRandom(), new CanonicalRequestHasher());
         $audit = new AuditService(new SeatingAuditRepository(), $tx, $clock, new AuditPayloadRedactor(), new AuditCanonicalizer());
         $this->service = new SeatingService($this->repository, $auth, $idem, $audit, $clock, $tx);
+        $this->resources = new SeatingResourceService($this->repository, $auth, $idem, $audit, $clock);
     }
     public static function standard(): SeatingSnapshot
     {
@@ -131,15 +169,22 @@ final class SeatingFixture
     }
 }
 
-final class SeatingMemoryRepository implements SeatingRepository
+final class SeatingMemoryRepository implements SeatingRepository, SeatingResourceRepository
 {
     public int $next = 10; public function __construct(public SeatingSnapshot $snapshot) {}
     public function createTable(EventScope $scope, string $name, int $capacity, array $seats, ?int $actorUserId, DateTimeImmutable $now): ConfiguredTable { $table = new SeatingTable($this->next++, $name, $capacity); $created = []; foreach ($seats as $i => $seat) $created[] = new SeatingSeat($this->next++, $table->tableId, $seat['label'], $seat['accessible'], $i + 1); $this->snapshot = new SeatingSnapshot($this->snapshot->attendees, [...$this->snapshot->tables, $table], [...$this->snapshot->seats, ...$created], $this->snapshot->groups, $this->snapshot->assignments); return new ConfiguredTable($table, $created); }
-    public function createGroup(EventScope $scope, string $name, string $category, ConstraintLevel $constraint, int $priority, array $attendeeIds, ?int $actorUserId, DateTimeImmutable $now): SeatingGroup { $group = new SeatingGroup($this->next++, $name, $constraint, $priority, $attendeeIds); $this->snapshot = new SeatingSnapshot($this->snapshot->attendees, $this->snapshot->tables, $this->snapshot->seats, [...$this->snapshot->groups, $group], $this->snapshot->assignments); return $group; }
+    public function createGroup(EventScope $scope, string $name, string $category, ConstraintLevel $constraint, int $priority, array $attendeeIds, ?int $actorUserId, DateTimeImmutable $now): SeatingGroup { $group = new SeatingGroup($this->next++, $name, $constraint, $priority, $attendeeIds, $category); $this->snapshot = new SeatingSnapshot($this->snapshot->attendees, $this->snapshot->tables, $this->snapshot->seats, [...$this->snapshot->groups, $group], $this->snapshot->assignments); return $group; }
     public function planningSnapshot(EventScope $scope): SeatingSnapshot { return $this->snapshot; }
     public function snapshot(EventScope $scope): SeatingSnapshot { return $this->snapshot; }
     public function assign(EventScope $scope, int $attendeeId, int $tableId, ?int $seatId, ?int $expectedAssignmentId, string $source, bool $groupOverride, ?string $overrideReason, ?int $actorUserId, DateTimeImmutable $now): SeatingAssignment { $assignments = array_values(array_filter($this->snapshot->assignments, static fn (SeatingAssignment $a): bool => $a->attendeeId !== $attendeeId)); $assignment = new SeatingAssignment($this->next++, $attendeeId, $tableId, $seatId, $source, $groupOverride, $overrideReason); $this->snapshot = new SeatingSnapshot($this->snapshot->attendees, $this->snapshot->tables, $this->snapshot->seats, $this->snapshot->groups, [...$assignments, $assignment]); return $assignment; }
     public function release(EventScope $scope, int $attendeeId, int $expectedAssignmentId, ?int $actorUserId, DateTimeImmutable $now): void { $this->snapshot = new SeatingSnapshot($this->snapshot->attendees, $this->snapshot->tables, $this->snapshot->seats, $this->snapshot->groups, array_values(array_filter($this->snapshot->assignments, static fn (SeatingAssignment $a): bool => $a->assignmentId !== $expectedAssignmentId))); }
+    public function lockTable(EventScope $scope, int $tableId): ?ConfiguredTable { foreach ($this->snapshot->tables as $table) if ($table->tableId === $tableId) return new ConfiguredTable($table, array_values(array_filter($this->snapshot->seats, fn ($seat) => $seat->tableId === $tableId))); return null; }
+    public function updateTable(EventScope $scope, SeatingTable $current, SeatingTableReplacement $replacement, int $actorUserId, DateTimeImmutable $now): ConfiguredTable { $table = new SeatingTable($current->tableId, $replacement->name, $replacement->capacity, $replacement->sortOrder, $current->revision + 1); $this->snapshot = new SeatingSnapshot($this->snapshot->attendees, array_map(fn ($candidate) => $candidate->tableId === $current->tableId ? $table : $candidate, $this->snapshot->tables), $this->snapshot->seats, $this->snapshot->groups, $this->snapshot->assignments); return new ConfiguredTable($table, $this->lockTable($scope, $table->tableId)?->seats ?? []); }
+    public function lockSeat(EventScope $scope, int $seatId): ?SeatingSeat { foreach ($this->snapshot->seats as $seat) if ($seat->seatId === $seatId) return $seat; return null; }
+    public function createSeat(EventScope $scope, int $tableId, string $label, bool $accessible, int $sortOrder, DateTimeImmutable $now): SeatingSeat { $seat = new SeatingSeat($this->next++, $tableId, $label, $accessible, $sortOrder); $this->snapshot = new SeatingSnapshot($this->snapshot->attendees, $this->snapshot->tables, [...$this->snapshot->seats, $seat], $this->snapshot->groups, $this->snapshot->assignments); return $seat; }
+    public function updateSeat(EventScope $scope, SeatingSeat $current, SeatingSeatReplacement $replacement, DateTimeImmutable $now): SeatingSeat { $seat = new SeatingSeat($current->seatId, $current->tableId, $replacement->label, $replacement->accessible, $replacement->sortOrder, $current->revision + 1); $this->snapshot = new SeatingSnapshot($this->snapshot->attendees, $this->snapshot->tables, array_map(fn ($candidate) => $candidate->seatId === $current->seatId ? $seat : $candidate, $this->snapshot->seats), $this->snapshot->groups, $this->snapshot->assignments); return $seat; }
+    public function lockGroup(EventScope $scope, int $groupId): ?SeatingGroup { foreach ($this->snapshot->groups as $group) if ($group->groupId === $groupId) return $group; return null; }
+    public function updateGroup(EventScope $scope, SeatingGroup $current, SeatingGroupReplacement $replacement, int $actorUserId, DateTimeImmutable $now): SeatingGroup { $ids = $replacement->attendeeIds; sort($ids); $group = new SeatingGroup($current->groupId, $replacement->name, $replacement->constraintLevel, $replacement->priority, $ids, $replacement->category, $current->source, $current->revision + 1); $this->snapshot = new SeatingSnapshot($this->snapshot->attendees, $this->snapshot->tables, $this->snapshot->seats, array_map(fn ($candidate) => $candidate->groupId === $current->groupId ? $group : $candidate, $this->snapshot->groups), $this->snapshot->assignments); return $group; }
 }
 
 final class SeatingMembershipReader implements MembershipReader { public function findCurrent(EventScope $eventScope, int $userId): ?MembershipSnapshot { return new MembershipSnapshot(1, $eventScope, $userId, EventRole::OWNER, false, null); } }

@@ -10,7 +10,8 @@ final readonly class SeatingSeat
         public string $label,
         public bool $accessible = false,
         public int $sortOrder = 100,
+        public int $revision = 1,
     ) {
-        if ($seatId < 1 || $tableId < 1 || trim($label) === '') throw new SeatingException('seating_seat_invalid');
+        if ($seatId < 1 || $tableId < 1 || trim($label) === '' || $sortOrder < 0 || $revision < 1) throw new SeatingException('seating_seat_invalid');
     }
 }

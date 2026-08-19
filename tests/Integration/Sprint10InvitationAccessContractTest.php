@@ -12,7 +12,7 @@ final class Sprint10InvitationAccessContractTest extends TestCase
         $migration = $this->source('database/migrations/0009-invitation-revision.sql');
         self::assertStringContainsString('ADD COLUMN invitation_revision', $migration);
         self::assertStringNotContainsString('DROP ', $migration);
-        self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 9);", $this->source('eventflow.php'));
+        self::assertMatchesRegularExpression("/define\\('EVENTFLOW_SCHEMA_VERSION', (?:9|[1-9][0-9]+)\\);/", $this->source('eventflow.php'));
     }
 
     public function testNarrowPortRevisionAndCompositionAreAccepted(): void

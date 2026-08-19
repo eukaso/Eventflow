@@ -32,7 +32,11 @@ enum AuditAction: string
     case ATTENDEE_RESTORED = 'attendee.restored';
     case PRIMARY_ATTENDEE_TRANSFERRED = 'attendee.primary_transferred';
     case SEATING_TABLE_CREATED = 'seating.table_created';
+    case SEATING_TABLE_UPDATED = 'seating.table_updated';
+    case SEATING_SEAT_CREATED = 'seating.seat_created';
+    case SEATING_SEAT_UPDATED = 'seating.seat_updated';
     case SEATING_GROUP_CREATED = 'seating.group_created';
+    case SEATING_GROUP_UPDATED = 'seating.group_updated';
     case SEATING_ASSIGNED = 'seating.assigned';
     case SEATING_RELEASED = 'seating.released';
     case CHECKIN_STATION_CREATED = 'check_in.station_created';
