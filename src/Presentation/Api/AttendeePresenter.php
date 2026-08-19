@@ -2,7 +2,7 @@
 
 namespace EventFlow\Presentation\Api;
 
-use EventFlow\Application\Attendee\AttendeeRecord;
+use EventFlow\Application\Attendee\{AttendeePage, AttendeeRecord};
 use EventFlow\Application\Error\RequestId;
 use EventFlow\Application\Idempotency\IdempotencyOutcome;
 
@@ -24,6 +24,28 @@ final readonly class AttendeePresenter
         );
     }
 
+    public function page(AttendeePage $page, RequestId $requestId): JsonApiResponse
+    {
+        return new JsonApiResponse(
+            200,
+            [
+                'data' => array_map($this->attendee(...), $page->attendees),
+                'meta' => ['next_after_attendee_id' => $page->nextAfterAttendeeId],
+                'request_id' => $requestId->value,
+            ],
+            $this->headers($requestId),
+        );
+    }
+
+    public function resource(AttendeeRecord $attendee, RequestId $requestId): JsonApiResponse
+    {
+        return new JsonApiResponse(
+            200,
+            ['data' => $this->attendee($attendee), 'request_id' => $requestId->value],
+            $this->headers($requestId),
+        );
+    }
+
     /** @return array<string, mixed> */
     private function attendee(AttendeeRecord $attendee): array
     {
@@ -38,6 +60,15 @@ final readonly class AttendeePresenter
             'phone' => $attendee->phone,
             'dietary_requirements' => $attendee->dietaryRequirements,
             'accessibility_requirements' => $attendee->accessibilityRequirements,
+        ];
+    }
+
+    /** @return array<string, string> */
+    private function headers(RequestId $requestId): array
+    {
+        return [
+            'X-Request-ID' => $requestId->value,
+            'Cache-Control' => 'no-store, max-age=0',
         ];
     }
 }

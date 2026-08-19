@@ -6,7 +6,7 @@ use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
-use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeRequestMapper, AttendeeRouteRegistrar, CampaignController, CampaignPresenter, CampaignRequestMapper, CampaignRouteRegistrar, CheckInController, CheckInPresenter, CheckInRequestMapper, CheckInRouteRegistrar, EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, ImportController, ImportPresenter, ImportRequestMapper, ImportRouteRegistrar, InvitationAccessController, InvitationAccessRequestMapper, InvitationAccessRouteRegistrar, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipQueryController, MembershipQueryRequestMapper, MembershipQueryRouteRegistrar, MembershipRequestMapper, MembershipRouteRegistrar, ProviderWebhookController, ProviderWebhookPresenter, ProviderWebhookRequestMapper, ProviderWebhookRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SeatingPlanningController, SeatingPlanningPresenter, SeatingPlanningRequestMapper, SeatingPlanningRouteRegistrar, SeatingPreparationController, SeatingPreparationPresenter, SeatingPreparationRequestMapper, SeatingPreparationRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter, TemplateController, TemplatePresenter, TemplateRequestMapper, TemplateRouteRegistrar};
+use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeQueryController, AttendeeQueryRequestMapper, AttendeeQueryRouteRegistrar, AttendeeRequestMapper, AttendeeRouteRegistrar, CampaignController, CampaignPresenter, CampaignRequestMapper, CampaignRouteRegistrar, CheckInController, CheckInPresenter, CheckInRequestMapper, CheckInRouteRegistrar, EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, ImportController, ImportPresenter, ImportRequestMapper, ImportRouteRegistrar, InvitationAccessController, InvitationAccessRequestMapper, InvitationAccessRouteRegistrar, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipQueryController, MembershipQueryRequestMapper, MembershipQueryRouteRegistrar, MembershipRequestMapper, MembershipRouteRegistrar, ProviderWebhookController, ProviderWebhookPresenter, ProviderWebhookRequestMapper, ProviderWebhookRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SeatingPlanningController, SeatingPlanningPresenter, SeatingPlanningRequestMapper, SeatingPlanningRouteRegistrar, SeatingPreparationController, SeatingPreparationPresenter, SeatingPreparationRequestMapper, SeatingPreparationRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter, TemplateController, TemplatePresenter, TemplateRequestMapper, TemplateRouteRegistrar};
 use EventFlow\Presentation\Api\{EventConfigurationController, EventConfigurationPresenter, EventConfigurationRequestMapper, EventConfigurationRouteRegistrar, VenueController, VenuePresenter, VenueRequestMapper, VenueRouteRegistrar};
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
@@ -205,6 +205,13 @@ final class ApplicationBootstrap
                 new AttendeePresenter(),
             );
             (new WordPressRestRouteHooks(new AttendeeRouteRegistrar($attendees), $wordpressRoutes))->register();
+            $attendeeQueries = new AttendeeQueryController(
+                $container->database->attendeeQueries,
+                $container->delivery->authenticatedRequests,
+                new AttendeeQueryRequestMapper(),
+                new AttendeePresenter(),
+            );
+            (new WordPressRestRouteHooks(new AttendeeQueryRouteRegistrar($attendeeQueries), $wordpressRoutes))->register();
             $seatingPreparation = new SeatingPreparationController(
                 $container->database->seating,
                 $container->delivery->authenticatedRequests,
