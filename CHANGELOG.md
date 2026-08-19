@@ -15,6 +15,7 @@ The project follows Semantic Versioning.
 - Authenticated Venue and Event-configuration REST delivery with strict request maps, bounded pagination, dual update preconditions, revision ETags, and controlled 401/403 translation.
 - Least-privilege authenticated Membership collection queries with Event scoping, capability enforcement, stable cursor pagination, minimized projections, and no-store responses.
 - Invitation list/detail, revision-guarded profile update, and secure archive/restore application contracts with capacity protection, audit, and forward-only schema 9 concurrency.
+- Authenticated Invitation list/detail/PATCH and archive/restore REST delivery with bounded cursors, strict maps, dual update preconditions, revision ETags, and no-store PII responses.
 
 ## [1.0.0] - 2026-08-18
 

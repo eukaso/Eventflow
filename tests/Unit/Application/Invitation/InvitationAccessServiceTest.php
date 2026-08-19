@@ -39,7 +39,7 @@ final class InvitationAccessServiceTest extends TestCase
             $service->update($principal, $scope, 11, new InvitationPatch(['capacity' => 2], 2), 'invitation-update-low');
             self::fail('Expected capacity protection.');
         } catch (InvitationException $failure) {
-            self::assertSame('invitation_capacity_below_attendee_count', $failure->safeCode);
+            self::assertSame('invitation_capacity_exceeded', $failure->safeCode);
         }
         self::assertSame(0, $repository->updates);
 

@@ -69,7 +69,7 @@ final readonly class InvitationAccessService implements InvitationOperations
                     throw new InvitationException('validation_failed');
                 }
                 if ($replacement->capacity < $this->invitations->activeAttendeeCount($scope, $invitationId)) {
-                    throw new InvitationException('invitation_capacity_below_attendee_count');
+                    throw new InvitationException('invitation_capacity_exceeded');
                 }
                 $updated = $this->invitations->update(
                     $current,
