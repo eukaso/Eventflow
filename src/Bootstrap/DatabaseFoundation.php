@@ -6,6 +6,7 @@ use EventFlow\Application\Audit\AuditCanonicalizer;
 use EventFlow\Application\Audit\AuditPayloadRedactor;
 use EventFlow\Application\Audit\AuditService;
 use EventFlow\Application\Attendee\AttendeeService;
+use EventFlow\Application\Attendee\AttendeeQueryService;
 use EventFlow\Application\CheckIn\CheckInService;
 use EventFlow\Application\Communication\CommunicationService;
 use EventFlow\Application\Communication\TemplateRenderer;
@@ -46,6 +47,7 @@ use EventFlow\Infrastructure\Job\MigrationWorkerSchemaGate;
 use EventFlow\Infrastructure\Import\NativeTabularSourceParser;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAttendeeRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbAttendeeQueryRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbCheckInRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbCommunicationRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAuditRepository;
@@ -99,6 +101,7 @@ final readonly class DatabaseFoundation
         public InvitationAccessService $invitationAccess,
         public GuestAccessService $guestAccess,
         public AttendeeService $attendees,
+        public AttendeeQueryService $attendeeQueries,
         public ImportService $imports,
         public SeatingService $seating,
         public CheckInService $checkIn,
@@ -262,6 +265,10 @@ final readonly class DatabaseFoundation
                 $idempotency,
                 $audit,
                 $shared->clock,
+            ),
+            attendeeQueries: new AttendeeQueryService(
+                new WpdbAttendeeQueryRepository($database, $tableNames),
+                $authorization,
             ),
             imports: new ImportService(
                 $importRepository,

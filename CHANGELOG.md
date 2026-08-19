@@ -16,6 +16,7 @@ The project follows Semantic Versioning.
 - Least-privilege authenticated Membership collection queries with Event scoping, capability enforcement, stable cursor pagination, minimized projections, and no-store responses.
 - Invitation list/detail, revision-guarded profile update, and secure archive/restore application contracts with capacity protection, audit, and forward-only schema 9 concurrency.
 - Authenticated Invitation list/detail/PATCH and archive/restore REST delivery with bounded cursors, strict maps, dual update preconditions, revision ETags, and no-store PII responses.
+- Least-privilege Attendee list/detail application projections with Event scoping, bounded cursor pagination, explicit PII fields, and separation from reception/reporting access.
 
 ## [1.0.0] - 2026-08-18
 
