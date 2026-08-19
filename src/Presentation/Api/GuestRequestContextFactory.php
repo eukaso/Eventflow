@@ -2,7 +2,7 @@
 
 namespace EventFlow\Presentation\Api;
 
-use EventFlow\Application\Error\{PreconditionDetails, PreconditionHeader, RequestIdFactory};
+use EventFlow\Application\Error\{PreconditionDetails, PreconditionHeader, RequestId, RequestIdFactory};
 use EventFlow\Application\GuestAccess\GuestSessionAuthenticator;
 
 final readonly class GuestRequestContextFactory
@@ -15,11 +15,8 @@ final readonly class GuestRequestContextFactory
 
     public function stateChanging(RestRequest $request): GuestRequestContext
     {
-        $requestId = $this->requestIds->fromUntrusted($request->header('X-Request-ID'));
-        $sessionToken = $request->cookie(GuestSessionCookie::NAME);
-        if ($sessionToken === null || !preg_match('/^[a-f0-9]{64}$/', $sessionToken)) {
-            throw new RequestInputException('guest_session_invalid');
-        }
+        $requestId = $this->requestId($request);
+        $sessionToken = $this->sessionToken($request);
         $principal = $this->sessions->authenticate(
             $sessionToken,
             $request->header('X-EventFlow-CSRF'),
@@ -32,6 +29,43 @@ final readonly class GuestRequestContextFactory
             $this->idempotencyKey($request),
             $this->expectedRevision($request),
         );
+    }
+
+    public function readOnly(RestRequest $request): GuestAuthenticatedRequestContext
+    {
+        $requestId = $this->requestId($request);
+        return new GuestAuthenticatedRequestContext(
+            $this->sessions->authenticate($this->sessionToken($request)),
+            $requestId,
+        );
+    }
+
+    public function csrfProtected(RestRequest $request): GuestAuthenticatedRequestContext
+    {
+        $requestId = $this->requestId($request);
+        return new GuestAuthenticatedRequestContext(
+            $this->sessions->authenticate(
+                $this->sessionToken($request),
+                $request->header('X-EventFlow-CSRF'),
+                true,
+                $request->sameOrigin(),
+            ),
+            $requestId,
+        );
+    }
+
+    private function requestId(RestRequest $request): RequestId
+    {
+        return $this->requestIds->fromUntrusted($request->header('X-Request-ID'));
+    }
+
+    private function sessionToken(RestRequest $request): string
+    {
+        $sessionToken = $request->cookie(GuestSessionCookie::NAME);
+        if ($sessionToken === null || !preg_match('/^[a-f0-9]{64}$/', $sessionToken)) {
+            throw new RequestInputException('guest_session_invalid');
+        }
+        return $sessionToken;
     }
 
     private function idempotencyKey(RestRequest $request): string

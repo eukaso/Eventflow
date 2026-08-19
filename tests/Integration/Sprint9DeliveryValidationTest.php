@@ -31,6 +31,7 @@ final class Sprint9DeliveryValidationTest extends TestCase
         sort($public, SORT_STRING);
         self::assertSame([
             'GuestBootstrapRouteRegistrar.php',
+            'GuestSessionAccessRouteRegistrar.php',
             'ProviderWebhookRouteRegistrar.php',
             'RsvpRouteRegistrar.php',
             'SystemRouteRegistrar.php',

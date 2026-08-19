@@ -19,6 +19,7 @@ The project follows Semantic Versioning.
 - Least-privilege Attendee list/detail application projections with Event scoping, bounded cursor pagination, explicit PII fields, and separation from reception/reporting access.
 - Authenticated Attendee list/detail REST delivery with strict route and cursor parsing, read-only port composition, and no-store PII responses.
 - Guest-session-scoped Invitation context and RSVP response reads plus exact-session logout contracts with purpose-specific permissions and credential-safe projections.
+- Cookie-authenticated guest Invitation and RSVP reads plus same-origin, CSRF-protected logout delivery with no-store responses, response ETags, and exact-path cookie expiry.
 
 ## [1.0.0] - 2026-08-18
 
