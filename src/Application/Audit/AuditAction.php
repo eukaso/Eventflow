@@ -51,7 +51,10 @@ enum AuditAction: string
     case TEMPLATE_PUBLISHED = 'template.published';
     case TEMPLATE_ARCHIVED = 'template.archived';
     case CAMPAIGN_CREATED = 'campaign.created';
+    case CAMPAIGN_UPDATED = 'campaign.updated';
+    case CAMPAIGN_SCHEDULED = 'campaign.scheduled';
     case CAMPAIGN_QUEUED = 'campaign.queued';
+    case CAMPAIGN_CANCELLED = 'campaign.cancelled';
     case IMPORT_APPLIED = 'import.applied';
     case EXPORT_REQUESTED = 'export.requested';
     case EXPORT_READY = 'export.ready';

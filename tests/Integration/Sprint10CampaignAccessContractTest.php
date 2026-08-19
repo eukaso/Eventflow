@@ -1,0 +1,9 @@
+<?php
+namespace EventFlow\Tests\Integration;
+use EventFlow\Application\Communication\{CampaignAccess,CampaignAccessService,CampaignAudiencePreview,CampaignRecord};use PHPUnit\Framework\TestCase;
+final class Sprint10CampaignAccessContractTest extends TestCase
+{
+ public function testMigrationVersionPortAndFoundationAreAccepted():void{$m=$this->source('database/migrations/0013-campaign-revision.sql');self::assertStringContainsString('campaign_revision',$m);self::assertStringNotContainsString('DROP ',$m);self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 13);",$this->source('eventflow.php'));self::assertContains(CampaignAccess::class,class_implements(CampaignAccessService::class));self::assertTrue(property_exists(CampaignRecord::class,'revision'));self::assertTrue(property_exists(CampaignAudiencePreview::class,'audienceFingerprint'));$f=$this->source('src/Bootstrap/DatabaseFoundation.php');self::assertStringContainsString('public CampaignAccessService $campaignAccess',$f);self::assertStringContainsString('$communicationRepository',$f);}
+ public function testBoundariesAuditPrivacyAndDeferralAreExplicit():void{$s=$this->source('src/Application/Communication/CampaignAccessService.php');foreach(['Capability::QUEUE_CAMPAIGN',"'campaign.update'","'campaign.schedule'","'campaign.cancel'",'previewRecipients',"hash('sha256'",'AuditAction::CAMPAIGN_UPDATED','AuditAction::CAMPAIGN_SCHEDULED','AuditAction::CAMPAIGN_CANCELLED']as$x)self::assertStringContainsString($x,$s);$r=$this->source('README-IMP-065.md');self::assertStringContainsString('intentionally adds no HTTP routes',$r);self::assertStringContainsString('IMP-066',$r);}
+ private function source(string$p):string{$s=file_get_contents(dirname(__DIR__,2).DIRECTORY_SEPARATOR.str_replace('/',DIRECTORY_SEPARATOR,$p));self::assertNotFalse($s,$p);return$s;}
+}

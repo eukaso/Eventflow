@@ -28,6 +28,7 @@ The project follows Semantic Versioning.
 - Authenticated atomic Seating group-move REST delivery with complete member maps, dual mutation preconditions, no-store responses, canonical locations, and strong concrete-result ETags.
 - Authorized Communication Template list/detail, revision-guarded draft updates, immutable new-version creation, safe archive, and authoritative stored-template preview contracts with forward-only schema 12 concurrency.
 - Authenticated Communication Template REST completion with bounded reads, strict draft patches and preview maps, dual mutation preconditions, revision ETags, UTC lifecycle fields, and no-store responses.
+- Authorized Campaign list/detail, revision-guarded draft replacement, privacy-minimized audience preview, future scheduling, and safe pre-queue cancellation contracts with forward-only schema 13 concurrency.
 
 ## [1.0.0] - 2026-08-18
 

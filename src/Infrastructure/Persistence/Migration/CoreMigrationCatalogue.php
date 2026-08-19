@@ -137,6 +137,7 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0012-communication-template-revision.sql',
                 ),
             ),
+            new MigrationDefinition(key:'0013_campaign_revision',version:'v1.1.0-dev',fromSchemaVersion:12,toSchemaVersion:13,description:'Add collision-free optimistic concurrency for Campaign updates and lifecycle changes.',statements:$this->loader->load($this->databaseDirectory.'/migrations/0013-campaign-revision.sql')),
         ];
     }
 }

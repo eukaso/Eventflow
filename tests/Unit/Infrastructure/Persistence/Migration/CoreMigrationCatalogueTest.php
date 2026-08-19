@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(12, $definitions);
+        self::assertCount(13, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -57,11 +57,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0012_communication_template_revision', $definitions[11]->key);
         self::assertSame(11, $definitions[11]->fromSchemaVersion);
         self::assertSame(12, $definitions[11]->toSchemaVersion);
+        self::assertSame('0013_campaign_revision', $definitions[12]->key);
+        self::assertSame(12, $definitions[12]->fromSchemaVersion);
+        self::assertSame(13, $definitions[12]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 12\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 13\\);/",
             $entryPoint,
         );
     }
@@ -193,6 +196,15 @@ final class CoreMigrationCatalogueTest extends TestCase
         $sql = implode("\n", $this->catalogue()->definitions()[11]->statements);
         self::assertStringContainsString('ADD COLUMN template_revision', $sql);
         self::assertStringContainsString('CHECK (template_revision >= 1)', $sql);
+        self::assertStringNotContainsString('DROP ', $sql);
+        self::assertStringNotContainsString('UPDATE ', $sql);
+    }
+
+    public function testCampaignRevisionMigrationIsForwardOnly(): void
+    {
+        $sql = implode("\n", $this->catalogue()->definitions()[12]->statements);
+        self::assertStringContainsString('ADD COLUMN campaign_revision', $sql);
+        self::assertStringContainsString('CHECK (campaign_revision >= 1)', $sql);
         self::assertStringNotContainsString('DROP ', $sql);
         self::assertStringNotContainsString('UPDATE ', $sql);
     }

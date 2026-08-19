@@ -9,6 +9,7 @@ use EventFlow\Application\Attendee\AttendeeService;
 use EventFlow\Application\Attendee\AttendeeQueryService;
 use EventFlow\Application\CheckIn\CheckInService;
 use EventFlow\Application\Communication\CommunicationService;
+use EventFlow\Application\Communication\CampaignAccessService;
 use EventFlow\Application\Communication\TemplateAccessService;
 use EventFlow\Application\Communication\TemplateRenderer;
 use EventFlow\Application\Authorization\AuthorizationService;
@@ -115,6 +116,7 @@ final readonly class DatabaseFoundation
         public CheckInService $checkIn,
         public CommunicationService $communications,
         public TemplateAccessService $templateAccess,
+        public CampaignAccessService $campaignAccess,
         public ExportService $exports,
         public PrivacyService $privacy,
         public ProviderService $providers,
@@ -355,6 +357,7 @@ final readonly class DatabaseFoundation
                 $shared->clock,
                 $templateRenderer,
             ),
+            campaignAccess: new CampaignAccessService($communicationRepository,$authorization,$idempotency,$audit,$shared->clock),
             exports: new ExportService(
                 new WpdbExportRepository($database, $tableNames),
                 new WpdbExportDataSource($database, $tableNames),

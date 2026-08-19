@@ -9,7 +9,7 @@ final class Sprint10TemplateAccessContractTest extends TestCase
 {
     public function testForwardRevisionMigrationAndCatalogueVersionAreAccepted():void
     {
-        $migration=$this->source('database/migrations/0012-communication-template-revision.sql');self::assertStringContainsString('template_revision',$migration);self::assertStringNotContainsString('DROP ',$migration);self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 12);",$this->source('eventflow.php'));$catalogue=$this->source('src/Infrastructure/Persistence/Migration/CoreMigrationCatalogue.php');self::assertStringContainsString("key: '0012_communication_template_revision'",$catalogue);self::assertStringContainsString('toSchemaVersion: 12',$catalogue);
+        $migration=$this->source('database/migrations/0012-communication-template-revision.sql');self::assertStringContainsString('template_revision',$migration);self::assertStringNotContainsString('DROP ',$migration);self::assertMatchesRegularExpression("/define\\('EVENTFLOW_SCHEMA_VERSION', (?:1[2-9]|[2-9][0-9]+)\\);/",$this->source('eventflow.php'));$catalogue=$this->source('src/Infrastructure/Persistence/Migration/CoreMigrationCatalogue.php');self::assertStringContainsString("key: '0012_communication_template_revision'",$catalogue);self::assertStringContainsString('toSchemaVersion: 12',$catalogue);
     }
 
     public function testNarrowPortProjectionAndSharedFoundationCompositionAreAccepted():void
