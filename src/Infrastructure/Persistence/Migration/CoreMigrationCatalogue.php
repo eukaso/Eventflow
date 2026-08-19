@@ -97,6 +97,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0008-venue-configuration-revisions.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0009_invitation_revision',
+                version: 'v1.1.0-dev',
+                fromSchemaVersion: 8,
+                toSchemaVersion: 9,
+                description: 'Add collision-free optimistic concurrency for Invitation updates and lifecycle changes.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0009-invitation-revision.sql',
+                ),
+            ),
         ];
     }
 }

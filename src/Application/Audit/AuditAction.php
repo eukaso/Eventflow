@@ -19,6 +19,9 @@ enum AuditAction: string
     case MEMBERSHIP_REVOKED = 'membership.revoked';
     case PRIMARY_OWNER_TRANSFERRED = 'membership.primary_owner_transferred';
     case INVITATION_CREATED = 'invitation.created';
+    case INVITATION_UPDATED = 'invitation.updated';
+    case INVITATION_ARCHIVED = 'invitation.archived';
+    case INVITATION_RESTORED = 'invitation.restored';
     case INVITATION_TOKEN_ROTATED = 'invitation.token_rotated';
     case INVITATION_REVOKED = 'invitation.revoked';
     case GUEST_LINK_CREDENTIAL_ISSUED = 'guest_link.credential_issued';

@@ -11,7 +11,7 @@ final class Sprint10VenueConfigurationContractTest extends TestCase
     public function testSchemaEightIsForwardOnlyAndBaselineRemainsFrozen(): void
     {
         $plugin=$this->source('eventflow.php');
-        self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 8)",$plugin);
+        self::assertMatchesRegularExpression("/define\\('EVENTFLOW_SCHEMA_VERSION', (?:[89]|[1-9][0-9]+)\\);/",$plugin);
         $migration=$this->source('database/migrations/0008-venue-configuration-revisions.sql');
         self::assertStringContainsString('ADD COLUMN venue_revision',$migration);
         self::assertStringContainsString('ADD COLUMN configuration_revision',$migration);

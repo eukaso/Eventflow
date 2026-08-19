@@ -51,6 +51,7 @@ final class WpdbInvitationRepository extends AbstractWpdbRepository implements I
         return new InvitationRecord(
             $this->database->lastInsertId(), $command->eventScope, $code, trim($command->primaryName),
             $command->capacity, InvitationStatus::ACTIVE, 1, $command->tokenExpiresAt,
+            $email, $phone,
         );
     }
 
@@ -59,7 +60,7 @@ final class WpdbInvitationRepository extends AbstractWpdbRepository implements I
         if ($invitationId < 1) throw new PersistenceException('invalid_invitation_id');
         $table = $this->table(TableName::INVITATIONS);
         $row = $this->database->fetchRow(
-            "SELECT invitation_id, event_id, invitation_code, primary_name, capacity, invitation_status, token_version, token_expires_at " .
+            "SELECT invitation_id, event_id, invitation_code, primary_name, primary_email, primary_phone, capacity, invitation_status, response_status, token_version, token_expires_at, organizer_notes, invitation_revision, deleted_at " .
             "FROM {$table} WHERE event_id = %d AND invitation_id = %d AND deleted_at IS NULL LIMIT 1 FOR UPDATE",
             [$scope->eventId, $invitationId],
         );
@@ -84,14 +85,19 @@ final class WpdbInvitationRepository extends AbstractWpdbRepository implements I
         $actorSql = $actorUserId === null ? 'NULL' : '%d';
         $parameters = [InvitationStatus::REVOKED->value, $this->timestamp($now)];
         if ($actorUserId !== null) $parameters[] = $actorUserId;
-        array_push($parameters, $this->timestamp($now), $invitation->eventScope->eventId, $invitation->invitationId, InvitationStatus::ACTIVE->value, $invitation->tokenVersion);
+        array_push($parameters, $this->timestamp($now), $invitation->eventScope->eventId, $invitation->invitationId, InvitationStatus::ACTIVE->value, $invitation->tokenVersion, $invitation->revision);
         if ($this->database->execute(
-            "UPDATE {$table} SET invitation_status = %s, token_revoked_at = %s, updated_by_user_id = {$actorSql}, updated_at = %s " .
-            'WHERE event_id = %d AND invitation_id = %d AND invitation_status = %s AND token_version = %d AND deleted_at IS NULL',
+            "UPDATE {$table} SET invitation_status = %s, token_revoked_at = %s, invitation_revision = invitation_revision + 1, updated_by_user_id = {$actorSql}, updated_at = %s " .
+            'WHERE event_id = %d AND invitation_id = %d AND invitation_status = %s AND token_version = %d AND invitation_revision = %d AND deleted_at IS NULL',
             $parameters,
         ) !== 1) throw new PersistenceException('invitation_revoke_conflict');
 
-        return new InvitationRecord($invitation->invitationId, $invitation->eventScope, $invitation->code, $invitation->primaryName, $invitation->capacity, InvitationStatus::REVOKED, $invitation->tokenVersion, $invitation->tokenExpiresAt);
+        return new InvitationRecord(
+            $invitation->invitationId, $invitation->eventScope, $invitation->code, $invitation->primaryName,
+            $invitation->capacity, InvitationStatus::REVOKED, $invitation->tokenVersion, $invitation->tokenExpiresAt,
+            $invitation->primaryEmail, $invitation->primaryPhone, $invitation->organizerNotes,
+            $invitation->responseStatus, $invitation->revision + 1,
+        );
     }
 
     public function invalidateGuestAccess(EventScope $scope, int $invitationId, DateTimeImmutable $now): void
@@ -118,15 +124,20 @@ final class WpdbInvitationRepository extends AbstractWpdbRepository implements I
         $parameters = [$digest, InvitationStatus::ACTIVE->value];
         if ($expiresAt !== null) $parameters[] = $this->timestamp($expiresAt);
         if ($actorUserId !== null) $parameters[] = $actorUserId;
-        array_push($parameters, $this->timestamp($now), $invitation->eventScope->eventId, $invitation->invitationId, $expected->value, $invitation->tokenVersion);
+        array_push($parameters, $this->timestamp($now), $invitation->eventScope->eventId, $invitation->invitationId, $expected->value, $invitation->tokenVersion, $invitation->revision);
         if ($this->database->execute(
             "UPDATE {$table} SET token_lookup = %s, token_version = token_version + 1, invitation_status = %s, " .
-            "token_expires_at = {$expirySql}, token_revoked_at = NULL, updated_by_user_id = {$actorSql}, updated_at = %s " .
-            'WHERE event_id = %d AND invitation_id = %d AND invitation_status = %s AND token_version = %d AND deleted_at IS NULL',
+            "token_expires_at = {$expirySql}, token_revoked_at = NULL, invitation_revision = invitation_revision + 1, updated_by_user_id = {$actorSql}, updated_at = %s " .
+            'WHERE event_id = %d AND invitation_id = %d AND invitation_status = %s AND token_version = %d AND invitation_revision = %d AND deleted_at IS NULL',
             $parameters,
         ) !== 1) throw new PersistenceException('invitation_credential_conflict');
 
-        return new InvitationRecord($invitation->invitationId, $invitation->eventScope, $invitation->code, $invitation->primaryName, $invitation->capacity, InvitationStatus::ACTIVE, $invitation->tokenVersion + 1, $expiresAt);
+        return new InvitationRecord(
+            $invitation->invitationId, $invitation->eventScope, $invitation->code, $invitation->primaryName,
+            $invitation->capacity, InvitationStatus::ACTIVE, $invitation->tokenVersion + 1, $expiresAt,
+            $invitation->primaryEmail, $invitation->primaryPhone, $invitation->organizerNotes,
+            $invitation->responseStatus, $invitation->revision + 1,
+        );
     }
 
     /** @param array<string, mixed> $row */
@@ -138,6 +149,12 @@ final class WpdbInvitationRepository extends AbstractWpdbRepository implements I
             (int) ($row['invitation_id'] ?? 0), $scope, (string) ($row['invitation_code'] ?? ''),
             (string) ($row['primary_name'] ?? ''), (int) ($row['capacity'] ?? 0), $status,
             (int) ($row['token_version'] ?? 0), $this->date($row['token_expires_at'] ?? null),
+            isset($row['primary_email']) ? (string) $row['primary_email'] : null,
+            isset($row['primary_phone']) ? (string) $row['primary_phone'] : null,
+            isset($row['organizer_notes']) ? (string) $row['organizer_notes'] : null,
+            (string) ($row['response_status'] ?? 'pending'),
+            (int) ($row['invitation_revision'] ?? 1),
+            $this->date($row['deleted_at'] ?? null),
         );
     }
 

@@ -25,6 +25,7 @@ use EventFlow\Application\Import\ImportService;
 use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Job\WorkerSchemaGate;
 use EventFlow\Application\Invitation\InvitationService;
+use EventFlow\Application\Invitation\InvitationAccessService;
 use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Membership\MembershipQueryService;
 use EventFlow\Application\Migration\MigrationRepository;
@@ -55,6 +56,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbExportRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbGuestAccessRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbInvitationRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbInvitationAccessRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbImportRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbJobRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
@@ -94,6 +96,7 @@ final readonly class DatabaseFoundation
         public MembershipService $memberships,
         public MembershipQueryService $membershipQueries,
         public InvitationService $invitations,
+        public InvitationAccessService $invitationAccess,
         public GuestAccessService $guestAccess,
         public AttendeeService $attendees,
         public ImportService $imports,
@@ -235,6 +238,13 @@ final readonly class DatabaseFoundation
                 $authorization,
             ),
             invitations: $invitationService,
+            invitationAccess: new InvitationAccessService(
+                new WpdbInvitationAccessRepository($database, $tableNames),
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+            ),
             guestAccess: new GuestAccessService(
                 $guestAccessRepository,
                 $invitationRepository,

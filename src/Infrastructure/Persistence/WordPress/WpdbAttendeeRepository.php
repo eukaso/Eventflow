@@ -96,7 +96,7 @@ final class WpdbAttendeeRepository extends AbstractWpdbRepository implements Att
         $declinedSql = $status === InvitationResponseStatus::DECLINED ? '%s' : 'NULL';
         $parameters = [$status->value]; if ($status === InvitationResponseStatus::ACCEPTED) $parameters[] = $this->timestamp($now); if ($status === InvitationResponseStatus::DECLINED) $parameters[] = $this->timestamp($now);
         array_push($parameters, $this->timestamp($now), $invitation->eventScope->eventId, $invitation->invitationId, $invitation->responseRevision, $invitation->responseStatus->value);
-        if ($this->database->execute("UPDATE {$table} SET response_status = %s, response_revision = response_revision + 1, submitted_at = {$submittedSql}, declined_at = {$declinedSql}, updated_at = %s WHERE event_id = %d AND invitation_id = %d AND response_revision = %d AND response_status = %s AND deleted_at IS NULL", $parameters) !== 1) throw new PersistenceException('guest_response_modified');
+        if ($this->database->execute("UPDATE {$table} SET response_status = %s, response_revision = response_revision + 1, invitation_revision = invitation_revision + 1, submitted_at = {$submittedSql}, declined_at = {$declinedSql}, updated_at = %s WHERE event_id = %d AND invitation_id = %d AND response_revision = %d AND response_status = %s AND deleted_at IS NULL", $parameters) !== 1) throw new PersistenceException('guest_response_modified');
         return new RsvpInvitation($invitation->invitationId, $invitation->eventScope, $invitation->capacity, $invitation->status, $status, $invitation->responseRevision + 1);
     }
 

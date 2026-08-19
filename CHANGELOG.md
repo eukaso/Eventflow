@@ -14,6 +14,7 @@ The project follows Semantic Versioning.
 - Forward-only schema migration 8 adding Venue and Event-configuration revision columns without modifying the frozen Sprint 3 baseline.
 - Authenticated Venue and Event-configuration REST delivery with strict request maps, bounded pagination, dual update preconditions, revision ETags, and controlled 401/403 translation.
 - Least-privilege authenticated Membership collection queries with Event scoping, capability enforcement, stable cursor pagination, minimized projections, and no-store responses.
+- Invitation list/detail, revision-guarded profile update, and secure archive/restore application contracts with capacity protection, audit, and forward-only schema 9 concurrency.
 
 ## [1.0.0] - 2026-08-18
 

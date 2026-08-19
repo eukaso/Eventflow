@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(8, $definitions);
+        self::assertCount(9, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -45,11 +45,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0008_venue_configuration_revisions', $definitions[7]->key);
         self::assertSame(7, $definitions[7]->fromSchemaVersion);
         self::assertSame(8, $definitions[7]->toSchemaVersion);
+        self::assertSame('0009_invitation_revision', $definitions[8]->key);
+        self::assertSame(8, $definitions[8]->fromSchemaVersion);
+        self::assertSame(9, $definitions[8]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 8\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 9\\);/",
             $entryPoint,
         );
     }
