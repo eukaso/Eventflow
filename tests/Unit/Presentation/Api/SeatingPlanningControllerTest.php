@@ -129,4 +129,9 @@ final class SeatingPlanningPort implements SeatingPlanningCommands
         $record=new SeatingAssignment(10,$attendeeId,$tableId,$seatId,'manual',$overrideRequiredGroup,$overrideReason);
         return new IdempotencyOutcome(false,new IdempotencyResultReference('seating_assignment',10,200),$record);
     }
+
+    public function applyRecommendation(PrincipalContext $principal,EventScope $scope,RecommendationPlan $plan,string $idempotencyKey):IdempotencyOutcome
+    {
+        return new IdempotencyOutcome(false,new IdempotencyResultReference('event',$scope->eventId,200),[]);
+    }
 }

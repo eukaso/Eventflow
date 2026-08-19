@@ -14,6 +14,9 @@ enum TableName: string
     case TABLES = 'tables';
     case SEATS = 'seats';
     case SEATING_ASSIGNMENTS = 'seating_assignments';
+    case SEATING_RECOMMENDATIONS = 'seating_recommendations';
+    case SEATING_RECOMMENDATION_PLACEMENTS = 'seating_recommendation_placements';
+    case SEATING_RECOMMENDATION_WARNINGS = 'seating_recommendation_warnings';
     case CHECKIN_STATIONS = 'checkin_stations';
     case CHECKINS = 'checkins';
     case COMMUNICATION_TEMPLATES = 'communication_templates';

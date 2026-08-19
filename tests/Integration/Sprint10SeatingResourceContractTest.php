@@ -12,7 +12,7 @@ final class Sprint10SeatingResourceContractTest extends TestCase
         $migration = $this->source('database/migrations/0010-seating-resource-revisions.sql');
         foreach (['table_revision', 'seat_revision', 'group_revision'] as $revision) self::assertStringContainsString('ADD COLUMN ' . $revision, $migration);
         self::assertStringNotContainsString('DROP ', $migration);
-        self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 10);", $this->source('eventflow.php'));
+        self::assertMatchesRegularExpression("/define\\('EVENTFLOW_SCHEMA_VERSION', (?:10|1[1-9]|[2-9][0-9]+)\\);/", $this->source('eventflow.php'));
         self::assertTrue(property_exists(SeatingTable::class, 'revision'));
         self::assertTrue(property_exists(SeatingSeat::class, 'revision'));
     }

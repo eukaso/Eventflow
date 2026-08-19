@@ -35,7 +35,7 @@ use EventFlow\Application\Observability\DiagnosticService;
 use EventFlow\Application\Provider\ProviderRegistry;
 use EventFlow\Application\Provider\ProviderService;
 use EventFlow\Application\Privacy\PrivacyService;
-use EventFlow\Application\Seating\{SeatingResourceService, SeatingService};
+use EventFlow\Application\Seating\{SeatingRecommendationService, SeatingResourceService, SeatingService};
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Application\Venue\VenueService;
@@ -71,6 +71,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbPrivacyRepository;
 use EventFlow\Infrastructure\Provider\WordPressTransientProviderCircuitBreaker;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRecommendationRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbVenueRepository;
 use EventFlow\Infrastructure\Observability\{ReadinessDiagnosticSource, RuntimeDiagnosticSource, SchemaDiagnosticSource};
@@ -108,6 +109,7 @@ final readonly class DatabaseFoundation
         public ImportService $imports,
         public SeatingService $seating,
         public SeatingResourceService $seatingResources,
+        public SeatingRecommendationService $seatingRecommendations,
         public CheckInService $checkIn,
         public CommunicationService $communications,
         public ExportService $exports,
@@ -194,6 +196,14 @@ final readonly class DatabaseFoundation
                 new SchemaDiagnosticSource($migrations, $config->expectedSchemaVersion),
                 new ReadinessDiagnosticSource($readinessChecks),
             ],
+        );
+        $seatingService = new SeatingService(
+            $seatingRepository,
+            $authorization,
+            $idempotency,
+            $audit,
+            $shared->clock,
+            $transactions,
         );
 
         return new self(
@@ -292,20 +302,22 @@ final readonly class DatabaseFoundation
                 $shared->random,
                 $transactions,
             ),
-            seating: new SeatingService(
-                $seatingRepository,
-                $authorization,
-                $idempotency,
-                $audit,
-                $shared->clock,
-                $transactions,
-            ),
+            seating: $seatingService,
             seatingResources: new SeatingResourceService(
                 $seatingRepository,
                 $authorization,
                 $idempotency,
                 $audit,
                 $shared->clock,
+            ),
+            seatingRecommendations: new SeatingRecommendationService(
+                $seatingService,
+                new WpdbSeatingRecommendationRepository($database, $tableNames),
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+                $transactions,
             ),
             checkIn: new CheckInService(
                 new WpdbCheckInRepository($database, $tableNames),

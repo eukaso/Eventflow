@@ -117,6 +117,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0010-seating-resource-revisions.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0011_seating_recommendations',
+                version: 'v1.1.0-dev',
+                fromSchemaVersion: 10,
+                toSchemaVersion: 11,
+                description: 'Persist normalized, snapshot-bound Seating recommendation plans for review and safe apply.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0011-seating-recommendations.sql',
+                ),
+            ),
         ];
     }
 }

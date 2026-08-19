@@ -21,4 +21,6 @@ interface SeatingPlanningCommands
         ?string $overrideReason,
         string $idempotencyKey,
     ): IdempotencyOutcome;
+
+    public function applyRecommendation(PrincipalContext $principal, EventScope $scope, RecommendationPlan $plan, string $idempotencyKey): IdempotencyOutcome;
 }

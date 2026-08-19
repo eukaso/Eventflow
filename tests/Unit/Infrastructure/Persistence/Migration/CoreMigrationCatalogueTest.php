@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(10, $definitions);
+        self::assertCount(11, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -51,11 +51,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0010_seating_resource_revisions', $definitions[9]->key);
         self::assertSame(9, $definitions[9]->fromSchemaVersion);
         self::assertSame(10, $definitions[9]->toSchemaVersion);
+        self::assertSame('0011_seating_recommendations', $definitions[10]->key);
+        self::assertSame(10, $definitions[10]->fromSchemaVersion);
+        self::assertSame(11, $definitions[10]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 10\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 11\\);/",
             $entryPoint,
         );
     }
@@ -171,6 +174,15 @@ final class CoreMigrationCatalogueTest extends TestCase
         }
         self::assertStringNotContainsString('DROP ', $sql);
         self::assertStringNotContainsString('UPDATE ', $sql);
+    }
+
+    public function testSeatingRecommendationMigrationIsNormalizedAndForwardOnly(): void
+    {
+        $sql = implode("\n", $this->catalogue()->definitions()[10]->statements);
+        foreach (['CREATE TABLE wp_eventflow_seating_recommendations', 'CREATE TABLE wp_eventflow_seating_recommendation_placements', 'CREATE TABLE wp_eventflow_seating_recommendation_warnings'] as $table) self::assertStringContainsString($table, $sql);
+        self::assertStringNotContainsString('JSON', strtoupper($sql));
+        self::assertStringNotContainsString('DROP ', $sql);
+        self::assertStringNotContainsString('UPDATE wp_eventflow_', $sql);
     }
 
     public function testDatabasePrefixFailsClosed(): void
