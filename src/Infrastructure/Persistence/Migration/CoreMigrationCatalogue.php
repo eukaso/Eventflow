@@ -87,6 +87,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0007-event-revision.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0008_venue_configuration_revisions',
+                version: 'v1.1.0-dev',
+                fromSchemaVersion: 7,
+                toSchemaVersion: 8,
+                description: 'Add collision-free optimistic concurrency for Venue and Event configuration updates.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0008-venue-configuration-revisions.sql',
+                ),
+            ),
         ];
     }
 }

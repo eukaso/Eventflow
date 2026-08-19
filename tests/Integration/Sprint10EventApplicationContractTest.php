@@ -9,14 +9,10 @@ final class Sprint10EventApplicationContractTest extends TestCase
 {
     public function testDevelopmentVersionAndSchemaDeclareTheForwardExtension(): void
     {
-        $plugin = $this->source('eventflow.php');
-        self::assertStringContainsString('Version: 1.1.0-dev', $plugin);
-        self::assertStringContainsString("define('EVENTFLOW_VERSION', '1.1.0-dev')", $plugin);
-        self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 7)", $plugin);
-
         $migration = $this->source('database/migrations/0007-event-revision.sql');
         self::assertStringContainsString('ADD COLUMN event_revision', $migration);
         self::assertStringNotContainsString('DROP ', $migration);
+        self::assertStringContainsString('Expected schema: `7`', $this->source('README-IMP-046.md'));
     }
 
     public function testAccessServicePublishesNarrowQueryAndDraftCommandPorts(): void

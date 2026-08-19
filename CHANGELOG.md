@@ -10,6 +10,8 @@ The project follows Semantic Versioning.
 - Sprint 10 Event application access contracts with membership-scoped cursor pagination, authorized detail reads, draft-only updates, required audit, and integer revision concurrency.
 - Forward-only schema migration 7 adding `event_revision` without modifying the frozen Sprint 3 baseline.
 - Authenticated Event list/detail REST reads and revision-guarded PATCH delivery with bounded cursors, strict field mapping, dual mutation preconditions, and strong revision ETags.
+- Dedicated Venue and Event-configuration application services with default-deny authority, validated complete-state records, bounded Venue queries, idempotent audited mutations, and optimistic concurrency.
+- Forward-only schema migration 8 adding Venue and Event-configuration revision columns without modifying the frozen Sprint 3 baseline.
 
 ## [1.0.0] - 2026-08-18
 

@@ -5,6 +5,8 @@ namespace EventFlow\Application\Audit;
 enum AuditEntityType: string
 {
     case EVENT = 'event';
+    case VENUE = 'venue';
+    case EVENT_CONFIGURATION = 'event_configuration';
     case MEMBERSHIP = 'membership';
     case INVITATION = 'invitation';
     case RSVP = 'rsvp';

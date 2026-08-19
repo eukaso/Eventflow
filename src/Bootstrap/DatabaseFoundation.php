@@ -13,6 +13,7 @@ use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Authorization\RoleCapabilityPolicy;
 use EventFlow\Application\Event\EventAccessService;
 use EventFlow\Application\Event\EventLifecycleService;
+use EventFlow\Application\EventConfiguration\EventConfigurationService;
 use EventFlow\Application\Export\ExportService;
 use EventFlow\Application\Health\ReadinessCheck;
 use EventFlow\Application\Health\PrivacyReconciliationReadinessCheck;
@@ -33,6 +34,7 @@ use EventFlow\Application\Privacy\PrivacyService;
 use EventFlow\Application\Seating\SeatingService;
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Transaction\TransactionManager;
+use EventFlow\Application\Venue\VenueService;
 use EventFlow\Infrastructure\Config\Config;
 use EventFlow\Infrastructure\Health\SchemaReadinessCheck;
 use EventFlow\Infrastructure\Health\WpdbConnectionReadinessCheck;
@@ -46,6 +48,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbCheckInRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbCommunicationRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAuditRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventLifecycleRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventConfigurationRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventQueryRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbExportRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
@@ -61,10 +64,12 @@ use EventFlow\Infrastructure\Provider\WordPressTransientProviderCircuitBreaker;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbTableNames;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbVenueRepository;
 use EventFlow\Infrastructure\Observability\{ReadinessDiagnosticSource, RuntimeDiagnosticSource, SchemaDiagnosticSource};
 use EventFlow\Infrastructure\Transaction\WpdbTransactionManager;
 use EventFlow\Infrastructure\WordPress\WordPressGlobalRecoveryAuthority;
 use EventFlow\Infrastructure\WordPress\WordPressEventCreationAuthority;
+use EventFlow\Infrastructure\WordPress\WordPressVenueAuthority;
 use EventFlow\Infrastructure\WordPress\WpdbEventCapabilityGate;
 
 final readonly class DatabaseFoundation
@@ -82,6 +87,8 @@ final readonly class DatabaseFoundation
         public AuditService $audit,
         public EventLifecycleService $eventLifecycle,
         public EventAccessService $eventAccess,
+        public VenueService $venues,
+        public EventConfigurationService $eventConfigurations,
         public MembershipService $memberships,
         public InvitationService $invitations,
         public GuestAccessService $guestAccess,
@@ -194,6 +201,20 @@ final readonly class DatabaseFoundation
             eventAccess: new EventAccessService(
                 $eventRepository,
                 new WpdbEventQueryRepository($database, $tableNames),
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+            ),
+            venues: new VenueService(
+                new WpdbVenueRepository($database, $tableNames),
+                new WordPressVenueAuthority(),
+                $idempotency,
+                $audit,
+                $shared->clock,
+            ),
+            eventConfigurations: new EventConfigurationService(
+                new WpdbEventConfigurationRepository($database, $tableNames),
                 $authorization,
                 $idempotency,
                 $audit,

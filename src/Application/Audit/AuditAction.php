@@ -11,6 +11,9 @@ enum AuditAction: string
     case EVENT_CANCELLED = 'event.cancelled';
     case EVENT_ARCHIVED = 'event.archived';
     case EVENT_RESTORED = 'event.restored';
+    case VENUE_CREATED = 'venue.created';
+    case VENUE_UPDATED = 'venue.updated';
+    case EVENT_CONFIGURATION_UPDATED = 'event_configuration.updated';
     case MEMBERSHIP_GRANTED = 'membership.granted';
     case MEMBERSHIP_CHANGED = 'membership.changed';
     case MEMBERSHIP_REVOKED = 'membership.revoked';
