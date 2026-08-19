@@ -26,6 +26,7 @@ use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Job\WorkerSchemaGate;
 use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Membership\MembershipService;
+use EventFlow\Application\Membership\MembershipQueryService;
 use EventFlow\Application\Migration\MigrationRepository;
 use EventFlow\Application\Observability\DiagnosticService;
 use EventFlow\Application\Provider\ProviderRegistry;
@@ -57,6 +58,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbInvitationRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbImportRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbJobRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipReader;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipQueryRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbProviderRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbPrivacyRepository;
@@ -90,6 +92,7 @@ final readonly class DatabaseFoundation
         public VenueService $venues,
         public EventConfigurationService $eventConfigurations,
         public MembershipService $memberships,
+        public MembershipQueryService $membershipQueries,
         public InvitationService $invitations,
         public GuestAccessService $guestAccess,
         public AttendeeService $attendees,
@@ -226,6 +229,10 @@ final readonly class DatabaseFoundation
                 $idempotency,
                 $audit,
                 $shared->clock,
+            ),
+            membershipQueries: new MembershipQueryService(
+                new WpdbMembershipQueryRepository($database, $tableNames),
+                $authorization,
             ),
             invitations: $invitationService,
             guestAccess: new GuestAccessService(

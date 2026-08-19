@@ -6,7 +6,7 @@ use EventFlow\Application\Health\SystemHealthService;
 use EventFlow\Infrastructure\Config\ConfigException;
 use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
-use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeRequestMapper, AttendeeRouteRegistrar, CampaignController, CampaignPresenter, CampaignRequestMapper, CampaignRouteRegistrar, CheckInController, CheckInPresenter, CheckInRequestMapper, CheckInRouteRegistrar, EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, ImportController, ImportPresenter, ImportRequestMapper, ImportRouteRegistrar, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipRequestMapper, MembershipRouteRegistrar, ProviderWebhookController, ProviderWebhookPresenter, ProviderWebhookRequestMapper, ProviderWebhookRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SeatingPlanningController, SeatingPlanningPresenter, SeatingPlanningRequestMapper, SeatingPlanningRouteRegistrar, SeatingPreparationController, SeatingPreparationPresenter, SeatingPreparationRequestMapper, SeatingPreparationRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter, TemplateController, TemplatePresenter, TemplateRequestMapper, TemplateRouteRegistrar};
+use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeRequestMapper, AttendeeRouteRegistrar, CampaignController, CampaignPresenter, CampaignRequestMapper, CampaignRouteRegistrar, CheckInController, CheckInPresenter, CheckInRequestMapper, CheckInRouteRegistrar, EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionPresenter, ImportController, ImportPresenter, ImportRequestMapper, ImportRouteRegistrar, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipQueryController, MembershipQueryRequestMapper, MembershipQueryRouteRegistrar, MembershipRequestMapper, MembershipRouteRegistrar, ProviderWebhookController, ProviderWebhookPresenter, ProviderWebhookRequestMapper, ProviderWebhookRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SeatingPlanningController, SeatingPlanningPresenter, SeatingPlanningRequestMapper, SeatingPlanningRouteRegistrar, SeatingPreparationController, SeatingPreparationPresenter, SeatingPreparationRequestMapper, SeatingPreparationRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter, TemplateController, TemplatePresenter, TemplateRequestMapper, TemplateRouteRegistrar};
 use EventFlow\Presentation\Api\{EventConfigurationController, EventConfigurationPresenter, EventConfigurationRequestMapper, EventConfigurationRouteRegistrar, VenueController, VenuePresenter, VenueRequestMapper, VenueRouteRegistrar};
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
@@ -162,6 +162,13 @@ final class ApplicationBootstrap
                 new MembershipPresenter(),
             );
             (new WordPressRestRouteHooks(new MembershipRouteRegistrar($memberships), $wordpressRoutes))->register();
+            $membershipQueries = new MembershipQueryController(
+                $container->database->membershipQueries,
+                $container->delivery->authenticatedRequests,
+                new MembershipQueryRequestMapper(),
+                new MembershipPresenter(),
+            );
+            (new WordPressRestRouteHooks(new MembershipQueryRouteRegistrar($membershipQueries), $wordpressRoutes))->register();
             $invitations = new InvitationController(
                 $container->database->invitations,
                 $container->delivery->authenticatedRequests,

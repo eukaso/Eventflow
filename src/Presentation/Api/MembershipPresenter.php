@@ -5,6 +5,7 @@ namespace EventFlow\Presentation\Api;
 use DateTimeZone;
 use EventFlow\Application\Error\RequestId;
 use EventFlow\Application\Idempotency\IdempotencyOutcome;
+use EventFlow\Application\Membership\MembershipPage;
 use EventFlow\Application\Membership\MembershipRecord;
 use EventFlow\Application\Persistence\EventScope;
 
@@ -22,6 +23,22 @@ final readonly class MembershipPresenter
                 'X-Request-ID' => $requestId->value,
                 'Cache-Control' => 'no-store, max-age=0',
                 'Location' => '/wp-json/eventflow/v1/events/' . $scope->eventId . '/memberships/' . $outcome->reference->entityId,
+            ],
+        );
+    }
+
+    public function page(MembershipPage $page, RequestId $requestId): JsonApiResponse
+    {
+        return new JsonApiResponse(
+            200,
+            [
+                'data' => array_map($this->membership(...), $page->memberships),
+                'meta' => ['next_after_membership_id' => $page->nextAfterMembershipId],
+                'request_id' => $requestId->value,
+            ],
+            [
+                'X-Request-ID' => $requestId->value,
+                'Cache-Control' => 'no-store, max-age=0',
             ],
         );
     }
