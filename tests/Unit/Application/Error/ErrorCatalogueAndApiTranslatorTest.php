@@ -86,6 +86,10 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         self::assertSame(422, $invalidSeat->status);
         self::assertSame('validation_failed', $invalidSeat->body['code']);
 
+        $changedGroup = $translator->translate(new SeatingException('seating_group_members_modified'), $requestId);
+        self::assertSame(412, $changedGroup->status);
+        self::assertSame('resource_modified', $changedGroup->body['code']);
+
         $notDownloadable = $translator->translate(new ExportException('export_not_downloadable'), $requestId);
         self::assertSame(422, $notDownloadable->status);
         self::assertSame('validation_failed', $notDownloadable->body['code']);

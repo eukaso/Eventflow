@@ -34,6 +34,8 @@ use EventFlow\Application\Seating\SeatingAssignment;
 use EventFlow\Application\Seating\SeatingAttendee;
 use EventFlow\Application\Seating\SeatingException;
 use EventFlow\Application\Seating\SeatingGroup;
+use EventFlow\Application\Seating\SeatingGroupMoveMember;
+use EventFlow\Application\Seating\SeatingGroupMoveService;
 use EventFlow\Application\Seating\SeatingRepository;
 use EventFlow\Application\Seating\SeatingResourceRepository;
 use EventFlow\Application\Seating\SeatingResourceService;
@@ -142,11 +144,77 @@ final class SeatingServiceTest extends TestCase
         try { $f->resources->updateGroup($f->principal, $f->scope, 8, new SeatingGroupReplacement('Changed', 'family', ConstraintLevel::PREFERRED, 1, [1], 1), 'managed-key'); self::fail('Expected managed-group failure.'); }
         catch (SeatingException $failure) { self::assertSame('seating_group_managed_by_invitation', $failure->safeCode); }
     }
+
+    public function testGroupMoveIsAtomicCanonicalAndReplaySafe(): void
+    {
+        $snapshot = SeatingFixture::standard();
+        $snapshot = new SeatingSnapshot(
+            $snapshot->attendees,
+            $snapshot->tables,
+            $snapshot->seats,
+            [new SeatingGroup(2, 'Friends', ConstraintLevel::PREFERRED, 5, [2, 3])],
+            $snapshot->assignments,
+        );
+        $f = new SeatingFixture($snapshot);
+        $members = [new SeatingGroupMoveMember(3, 4, null), new SeatingGroupMoveMember(2, 3, null)];
+
+        $first = $f->groupMoves->moveGroup($f->principal, $f->scope, 2, 2, 1, $members, false, null, 'group-move');
+        self::assertFalse($first->replayed);
+        self::assertSame([2, 3], array_map(static fn (SeatingAssignment $assignment): int => $assignment->attendeeId, $first->response->assignments));
+        self::assertSame([2, 2], array_map(static fn (SeatingAssignment $assignment): int => $assignment->tableId, $first->response->assignments));
+
+        $replay = $f->groupMoves->moveGroup($f->principal, $f->scope, 2, 2, 1, array_reverse($members), false, null, 'group-move');
+        self::assertTrue($replay->replayed);
+        self::assertSame('seating_group', $replay->reference->entityType);
+        self::assertSame(2, $replay->reference->entityId);
+    }
+
+    public function testGroupMoveRejectsChangedGroupAssignmentAndOccupiedSeatState(): void
+    {
+        $snapshot = SeatingFixture::standard();
+        $snapshot = new SeatingSnapshot(
+            $snapshot->attendees,
+            $snapshot->tables,
+            $snapshot->seats,
+            [new SeatingGroup(2, 'Friends', ConstraintLevel::PREFERRED, 5, [2, 3], revision: 4)],
+            [new SeatingAssignment(1, 1, 1, 1, 'manual'), new SeatingAssignment(7, 3, 2, 4, 'manual')],
+        );
+        $f = new SeatingFixture($snapshot);
+        foreach ([
+            [3, [new SeatingGroupMoveMember(2, 3, null), new SeatingGroupMoveMember(3, 6, 7)], 'resource_modified'],
+            [4, [new SeatingGroupMoveMember(2, 3, null)], 'seating_group_members_modified'],
+            [4, [new SeatingGroupMoveMember(2, 4, null), new SeatingGroupMoveMember(3, 6, 7)], 'seat_already_occupied'],
+        ] as $index => [$revision, $members, $code]) {
+            try { $f->groupMoves->moveGroup($f->principal, $f->scope, 2, 2, $revision, $members, false, null, 'invalid-' . $index); self::fail('Expected group move failure.'); }
+            catch (SeatingException $failure) { self::assertSame($code, $failure->safeCode); }
+        }
+    }
+
+    public function testGroupMoveRequiresAuthorizedReasonForOverlappingRequiredGroupSplit(): void
+    {
+        $snapshot = SeatingFixture::standard();
+        $snapshot = new SeatingSnapshot(
+            $snapshot->attendees,
+            $snapshot->tables,
+            $snapshot->seats,
+            [...$snapshot->groups, new SeatingGroup(2, 'Movers', ConstraintLevel::PREFERRED, 2, [2, 3])],
+            $snapshot->assignments,
+        );
+        $f = new SeatingFixture($snapshot);
+        $members = [new SeatingGroupMoveMember(2, 3, null), new SeatingGroupMoveMember(3, 4, null)];
+        try { $f->groupMoves->moveGroup($f->principal, $f->scope, 2, 2, 1, $members, false, null, 'override-required'); self::fail('Expected required-group protection.'); }
+        catch (SeatingException $failure) { self::assertSame('seating_group_override_required', $failure->safeCode); }
+
+        $move = $f->groupMoves->moveGroup($f->principal, $f->scope, 2, 2, 1, $members, true, 'Host approved group split', 'override-accepted')->response;
+        self::assertTrue($move->requiredGroupOverride);
+        self::assertSame('Host approved group split', $move->overrideReason);
+        self::assertNotContains(false, array_map(static fn (SeatingAssignment $assignment): bool => $assignment->groupOverride, $move->assignments), true);
+    }
 }
 
 final class SeatingFixture
 {
-    public readonly EventScope $scope; public readonly PrincipalContext $principal; public readonly SeatingMemoryRepository $repository; public readonly SeatingService $service; public readonly SeatingResourceService $resources;
+    public readonly EventScope $scope; public readonly PrincipalContext $principal; public readonly SeatingMemoryRepository $repository; public readonly SeatingService $service; public readonly SeatingResourceService $resources; public readonly SeatingGroupMoveService $groupMoves;
     public function __construct(SeatingSnapshot $snapshot)
     {
         $this->scope = new EventScope(50); $this->principal = PrincipalContext::wordpressUser(7); $this->repository = new SeatingMemoryRepository($snapshot);
@@ -156,6 +224,7 @@ final class SeatingFixture
         $audit = new AuditService(new SeatingAuditRepository(), $tx, $clock, new AuditPayloadRedactor(), new AuditCanonicalizer());
         $this->service = new SeatingService($this->repository, $auth, $idem, $audit, $clock, $tx);
         $this->resources = new SeatingResourceService($this->repository, $auth, $idem, $audit, $clock);
+        $this->groupMoves = new SeatingGroupMoveService($this->repository, $auth, $idem, $audit, $clock);
     }
     public static function standard(): SeatingSnapshot
     {

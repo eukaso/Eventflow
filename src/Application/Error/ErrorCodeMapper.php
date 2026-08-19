@@ -42,6 +42,7 @@ final readonly class ErrorCodeMapper
                 'accessible_seat_required',
                 'accessible_seat_in_use', 'seating_table_capacity_in_use',
                 'seating_table_capacity_exceeded', 'seating_group_managed_by_invitation',
+                'seating_group_move_invalid',
                 'accessible_seating_insufficient', 'seating_capacity_insufficient',
                 'seat_inventory_capacity_insufficient', 'recommendation_seed_invalid',
                 'recommendation_plan_invalid', 'recommendation_algorithm_unsupported',
@@ -83,7 +84,7 @@ final readonly class ErrorCodeMapper
                 return 'resource_not_found';
             }
 
-            if (in_array($code, ['resource_modified', 'retention_hold_active', 'privacy_action_in_progress', 'primary_owner_version_conflict', 'primary_attendee_version_conflict'], true)) {
+            if (in_array($code, ['resource_modified', 'seating_group_members_modified', 'retention_hold_active', 'privacy_action_in_progress', 'primary_owner_version_conflict', 'primary_attendee_version_conflict'], true)) {
                 return 'resource_modified';
             }
 

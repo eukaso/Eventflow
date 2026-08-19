@@ -35,7 +35,7 @@ use EventFlow\Application\Observability\DiagnosticService;
 use EventFlow\Application\Provider\ProviderRegistry;
 use EventFlow\Application\Provider\ProviderService;
 use EventFlow\Application\Privacy\PrivacyService;
-use EventFlow\Application\Seating\{SeatingRecommendationService, SeatingResourceService, SeatingService};
+use EventFlow\Application\Seating\{SeatingGroupMoveService, SeatingRecommendationService, SeatingResourceService, SeatingService};
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Transaction\TransactionManager;
 use EventFlow\Application\Venue\VenueService;
@@ -110,6 +110,7 @@ final readonly class DatabaseFoundation
         public SeatingService $seating,
         public SeatingResourceService $seatingResources,
         public SeatingRecommendationService $seatingRecommendations,
+        public SeatingGroupMoveService $seatingGroupMoves,
         public CheckInService $checkIn,
         public CommunicationService $communications,
         public ExportService $exports,
@@ -318,6 +319,13 @@ final readonly class DatabaseFoundation
                 $audit,
                 $shared->clock,
                 $transactions,
+            ),
+            seatingGroupMoves: new SeatingGroupMoveService(
+                $seatingRepository,
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
             ),
             checkIn: new CheckInService(
                 new WpdbCheckInRepository($database, $tableNames),
