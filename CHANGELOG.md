@@ -26,6 +26,7 @@ The project follows Semantic Versioning.
 - Durable Seating recommendation REST creation, review, and apply routes with strict maps, mandatory idempotency, resource locations, content ETags, and removal of the transient recommendation response path.
 - Atomic Seating group-move orchestration with exact membership concurrency, deterministic Event locks, capacity/accessibility enforcement, controlled required-group overrides, idempotency, and required audit.
 - Authenticated atomic Seating group-move REST delivery with complete member maps, dual mutation preconditions, no-store responses, canonical locations, and strong concrete-result ETags.
+- Authorized Communication Template list/detail, revision-guarded draft updates, immutable new-version creation, safe archive, and authoritative stored-template preview contracts with forward-only schema 12 concurrency.
 
 ## [1.0.0] - 2026-08-18
 

@@ -13,7 +13,7 @@ final class Sprint10SeatingRecommendationContractTest extends TestCase
         foreach (['eventflow_seating_recommendations', 'eventflow_seating_recommendation_placements', 'eventflow_seating_recommendation_warnings'] as $table) self::assertStringContainsString($table, $migration);
         self::assertStringNotContainsString(' JSON ', strtoupper($migration));
         self::assertStringNotContainsString('DROP ', $migration);
-        self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 11);", $this->source('eventflow.php'));
+        self::assertMatchesRegularExpression("/define\\('EVENTFLOW_SCHEMA_VERSION', (?:1[1-9]|[2-9][0-9]+)\\);/", $this->source('eventflow.php'));
     }
 
     public function testNarrowPortStoredAggregateAndFoundationCompositionAreAccepted(): void

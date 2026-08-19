@@ -49,7 +49,7 @@ final readonly class ErrorCodeMapper
                 'reception_search_invalid', 'reception_lookup_invalid', 'checkin_station_invalid',
                 'bulk_checkin_invalid', 'attendee_not_checkin_eligible', 'checkin_reversal_reason_required',
                 'communication_template_invalid', 'template_merge_field_invalid', 'template_render_failed',
-                'template_immutable',
+                'template_immutable', 'template_transition_invalid', 'template_in_use', 'template_actor_invalid',
                 'campaign_invalid', 'campaign_audience_invalid', 'campaign_template_invalid',
                 'campaign_channel_invalid', 'campaign_recipient_invalid', 'message_invalid',
                 'campaign_snapshot_audience_required',

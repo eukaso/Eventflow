@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(11, $definitions);
+        self::assertCount(12, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -54,11 +54,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0011_seating_recommendations', $definitions[10]->key);
         self::assertSame(10, $definitions[10]->fromSchemaVersion);
         self::assertSame(11, $definitions[10]->toSchemaVersion);
+        self::assertSame('0012_communication_template_revision', $definitions[11]->key);
+        self::assertSame(11, $definitions[11]->fromSchemaVersion);
+        self::assertSame(12, $definitions[11]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 11\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 12\\);/",
             $entryPoint,
         );
     }
@@ -183,6 +186,15 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertStringNotContainsString('JSON', strtoupper($sql));
         self::assertStringNotContainsString('DROP ', $sql);
         self::assertStringNotContainsString('UPDATE wp_eventflow_', $sql);
+    }
+
+    public function testCommunicationTemplateRevisionMigrationIsForwardOnly(): void
+    {
+        $sql = implode("\n", $this->catalogue()->definitions()[11]->statements);
+        self::assertStringContainsString('ADD COLUMN template_revision', $sql);
+        self::assertStringContainsString('CHECK (template_revision >= 1)', $sql);
+        self::assertStringNotContainsString('DROP ', $sql);
+        self::assertStringNotContainsString('UPDATE ', $sql);
     }
 
     public function testDatabasePrefixFailsClosed(): void

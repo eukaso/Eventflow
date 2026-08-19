@@ -127,6 +127,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0011-seating-recommendations.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0012_communication_template_revision',
+                version: 'v1.1.0-dev',
+                fromSchemaVersion: 11,
+                toSchemaVersion: 12,
+                description: 'Add collision-free optimistic concurrency for Communication Template updates and lifecycle changes.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0012-communication-template-revision.sql',
+                ),
+            ),
         ];
     }
 }
