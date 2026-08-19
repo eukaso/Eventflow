@@ -13,14 +13,16 @@ final readonly class TemplatePresenter
         $data = $outcome->response instanceof TemplateRecord
             ? $this->template($outcome->response)
             : ['type' => $outcome->reference->entityType, 'id' => $outcome->reference->entityId];
+        $headers = [
+            'X-Request-ID' => $requestId->value,
+            'Cache-Control' => 'no-store, max-age=0',
+            'Location' => '/wp-json/eventflow/v1/events/' . $eventId . '/communication-templates/' . $outcome->reference->entityId,
+        ];
+        if ($outcome->response instanceof TemplateRecord) $headers['ETag'] = '"' . $outcome->response->revision . '"';
         return new JsonApiResponse(
             $outcome->reference->responseStatusCode,
             ['data' => $data, 'meta' => ['replayed' => $outcome->replayed], 'request_id' => $requestId->value],
-            [
-                'X-Request-ID' => $requestId->value,
-                'Cache-Control' => 'no-store, max-age=0',
-                'Location' => '/wp-json/eventflow/v1/events/' . $eventId . '/communication-templates/' . $outcome->reference->entityId,
-            ],
+            $headers,
         );
     }
 
@@ -32,8 +34,10 @@ final readonly class TemplatePresenter
             'key' => $template->templateKey,
             'name' => $template->name,
             'channel' => $template->channel->value,
+            'type' => $template->type,
             'version' => $template->version,
             'status' => $template->status,
+            'revision' => $template->revision,
             'subject' => $template->subject,
             'body' => $template->body,
             'plain_text' => $template->plainText,
