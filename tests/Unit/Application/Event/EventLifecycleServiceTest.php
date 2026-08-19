@@ -250,7 +250,16 @@ final class EventMemoryRepository implements EventLifecycleRepository
     {
         return $this->record = new EventRecord(
             $event->scope, $event->name, $event->slug, $target, $event->timezone,
-            $event->startsAt, $event->endsAt, $event->venueId,
+            $event->startsAt, $event->endsAt, $event->venueId, $event->revision + 1,
+        );
+    }
+
+    public function updateDraft(EventRecord $current, CreateEvent $replacement, ?int $actorUserId, DateTimeImmutable $now): EventRecord
+    {
+        return $this->record = new EventRecord(
+            $current->scope, $replacement->name, $replacement->slug, EventStatus::DRAFT,
+            $replacement->timezone, $replacement->startsAt, $replacement->endsAt,
+            $replacement->venueId, $current->revision + 1,
         );
     }
 }

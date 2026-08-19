@@ -74,6 +74,7 @@ final class WpdbEventLifecycleRepository extends AbstractWpdbRepository implemen
             $event->startsAt,
             $event->endsAt,
             $event->venueId,
+            1,
         );
     }
 
@@ -167,9 +168,9 @@ final class WpdbEventLifecycleRepository extends AbstractWpdbRepository implemen
         }
         array_push($parameters, $this->timestamp($now), $event->scope->eventId, $event->status->value);
         $affected = $this->database->execute(
-            "UPDATE {$events} SET event_status = %s, updated_by_user_id = {$actorSql}, updated_at = %s " .
-            'WHERE event_id = %d AND event_status = %s AND deleted_at IS NULL',
-            $parameters,
+            "UPDATE {$events} SET event_status = %s, event_revision = event_revision + 1, updated_by_user_id = {$actorSql}, updated_at = %s " .
+            'WHERE event_id = %d AND event_status = %s AND event_revision = %d AND deleted_at IS NULL',
+            [...$parameters, $event->revision],
         );
         if ($affected !== 1) {
             throw new PersistenceException('event_transition_conflict');
@@ -184,6 +185,52 @@ final class WpdbEventLifecycleRepository extends AbstractWpdbRepository implemen
             $event->startsAt,
             $event->endsAt,
             $event->venueId,
+            $event->revision + 1,
+        );
+    }
+
+    public function updateDraft(
+        EventRecord $current,
+        CreateEvent $replacement,
+        ?int $actorUserId,
+        DateTimeImmutable $now,
+    ): EventRecord {
+        if ($current->status !== EventStatus::DRAFT || ($actorUserId !== null && $actorUserId < 1)) {
+            throw new PersistenceException('event_update_invalid');
+        }
+        $events = $this->table(TableName::EVENTS);
+        $startsSql = $replacement->startsAt === null ? 'NULL' : '%s';
+        $endsSql = $replacement->endsAt === null ? 'NULL' : '%s';
+        $venueSql = $replacement->venueId === null ? 'NULL' : '%d';
+        $actorSql = $actorUserId === null ? 'NULL' : '%d';
+        $parameters = [$replacement->name, $replacement->slug];
+        if ($replacement->startsAt !== null) $parameters[] = $this->timestamp($replacement->startsAt);
+        if ($replacement->endsAt !== null) $parameters[] = $this->timestamp($replacement->endsAt);
+        $parameters[] = $replacement->timezone;
+        if ($replacement->venueId !== null) $parameters[] = $replacement->venueId;
+        if ($actorUserId !== null) $parameters[] = $actorUserId;
+        array_push($parameters, $this->timestamp($now), $current->scope->eventId, EventStatus::DRAFT->value, $current->revision);
+
+        $affected = $this->database->execute(
+            "UPDATE {$events} SET event_name = %s, event_slug = %s, starts_at = {$startsSql}, ends_at = {$endsSql}, " .
+            "timezone = %s, venue_id = {$venueSql}, event_revision = event_revision + 1, updated_by_user_id = {$actorSql}, updated_at = %s " .
+            'WHERE event_id = %d AND event_status = %s AND event_revision = %d AND deleted_at IS NULL',
+            $parameters,
+        );
+        if ($affected !== 1) {
+            throw new PersistenceException('resource_modified');
+        }
+
+        return new EventRecord(
+            $current->scope,
+            $replacement->name,
+            $replacement->slug,
+            EventStatus::DRAFT,
+            $replacement->timezone,
+            $replacement->startsAt,
+            $replacement->endsAt,
+            $replacement->venueId,
+            $current->revision + 1,
         );
     }
 
@@ -191,7 +238,7 @@ final class WpdbEventLifecycleRepository extends AbstractWpdbRepository implemen
     {
         $events = $this->table(TableName::EVENTS);
         $row = $this->database->fetchRow(
-            "SELECT event_id, event_name, event_slug, event_status, starts_at, ends_at, timezone, venue_id FROM {$events} " .
+            "SELECT event_id, event_name, event_slug, event_status, starts_at, ends_at, timezone, venue_id, event_revision FROM {$events} " .
             'WHERE event_id = %d AND deleted_at IS NULL' . ($forUpdate ? ' FOR UPDATE' : ''),
             [$scope->eventId],
         );
@@ -212,6 +259,7 @@ final class WpdbEventLifecycleRepository extends AbstractWpdbRepository implemen
             $this->date($row['starts_at'] ?? null),
             $this->date($row['ends_at'] ?? null),
             isset($row['venue_id']) ? (int) $row['venue_id'] : null,
+            (int) ($row['event_revision'] ?? 1),
         );
     }
 

@@ -38,6 +38,7 @@ final readonly class EventPresenter
             'starts_at' => $event->startsAt?->setTimezone($utc)->format('Y-m-d\TH:i:s\Z'),
             'ends_at' => $event->endsAt?->setTimezone($utc)->format('Y-m-d\TH:i:s\Z'),
             'venue_id' => $event->venueId,
+            'revision' => $event->revision,
         ];
     }
 }

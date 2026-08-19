@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(6, $definitions);
+        self::assertCount(7, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -39,11 +39,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0006_privacy_retention', $definitions[5]->key);
         self::assertSame(5, $definitions[5]->fromSchemaVersion);
         self::assertSame(6, $definitions[5]->toSchemaVersion);
+        self::assertSame('0007_event_revision', $definitions[6]->key);
+        self::assertSame(6, $definitions[6]->fromSchemaVersion);
+        self::assertSame(7, $definitions[6]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 6\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 7\\);/",
             $entryPoint,
         );
     }
@@ -131,6 +134,15 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertStringContainsString('CREATE TABLE wp_eventflow_retention_holds', $sql);
         self::assertStringContainsString('reconciliation_status', $sql);
         self::assertStringNotContainsString('DROP TABLE', $sql);
+    }
+
+    public function testEventRevisionMigrationAddsOnlyForwardConcurrencyState(): void
+    {
+        $sql = implode("\n", $this->catalogue()->definitions()[6]->statements);
+        self::assertStringContainsString('ADD COLUMN event_revision', $sql);
+        self::assertStringContainsString('CHECK (event_revision >= 1)', $sql);
+        self::assertStringNotContainsString('DROP ', $sql);
+        self::assertStringNotContainsString('UPDATE ', $sql);
     }
 
     public function testDatabasePrefixFailsClosed(): void

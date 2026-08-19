@@ -77,6 +77,16 @@ final readonly class CoreMigrationCatalogue
                     $this->databaseDirectory . '/migrations/0006-privacy-retention.sql',
                 ),
             ),
+            new MigrationDefinition(
+                key: '0007_event_revision',
+                version: 'v1.1.0-dev',
+                fromSchemaVersion: 6,
+                toSchemaVersion: 7,
+                description: 'Add collision-free optimistic concurrency for Event updates.',
+                statements: $this->loader->load(
+                    $this->databaseDirectory . '/migrations/0007-event-revision.sql',
+                ),
+            ),
         ];
     }
 }

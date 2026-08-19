@@ -26,4 +26,12 @@ interface EventLifecycleRepository
         ?int $actorUserId,
         DateTimeImmutable $now,
     ): EventRecord;
+
+    /** Replaces mutable draft fields under the current locked revision. */
+    public function updateDraft(
+        EventRecord $current,
+        CreateEvent $replacement,
+        ?int $actorUserId,
+        DateTimeImmutable $now,
+    ): EventRecord;
 }

@@ -11,6 +11,7 @@ use EventFlow\Application\Communication\CommunicationService;
 use EventFlow\Application\Communication\TemplateRenderer;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Authorization\RoleCapabilityPolicy;
+use EventFlow\Application\Event\EventAccessService;
 use EventFlow\Application\Event\EventLifecycleService;
 use EventFlow\Application\Export\ExportService;
 use EventFlow\Application\Health\ReadinessCheck;
@@ -45,6 +46,7 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbCheckInRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbCommunicationRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAuditRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventLifecycleRepository;
+use EventFlow\Infrastructure\Persistence\WordPress\WpdbEventQueryRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbExportRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbIdempotencyRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbGuestAccessRepository;
@@ -79,6 +81,7 @@ final readonly class DatabaseFoundation
         public IdempotencyService $idempotency,
         public AuditService $audit,
         public EventLifecycleService $eventLifecycle,
+        public EventAccessService $eventAccess,
         public MembershipService $memberships,
         public InvitationService $invitations,
         public GuestAccessService $guestAccess,
@@ -183,6 +186,14 @@ final readonly class DatabaseFoundation
             eventLifecycle: new EventLifecycleService(
                 $eventRepository,
                 new WordPressEventCreationAuthority(),
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
+            ),
+            eventAccess: new EventAccessService(
+                $eventRepository,
+                new WpdbEventQueryRepository($database, $tableNames),
                 $authorization,
                 $idempotency,
                 $audit,

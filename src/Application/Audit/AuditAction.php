@@ -5,6 +5,7 @@ namespace EventFlow\Application\Audit;
 enum AuditAction: string
 {
     case EVENT_CREATED = 'event.created';
+    case EVENT_UPDATED = 'event.updated';
     case EVENT_ACTIVATED = 'event.activated';
     case EVENT_COMPLETED = 'event.completed';
     case EVENT_CANCELLED = 'event.cancelled';

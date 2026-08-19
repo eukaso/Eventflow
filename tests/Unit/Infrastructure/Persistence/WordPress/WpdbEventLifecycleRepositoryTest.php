@@ -91,6 +91,7 @@ final class WpdbEventLifecycleRepositoryTest extends TestCase
             'event_name' => 'Event',
             'event_slug' => 'event',
             'event_status' => 'completed',
+            'event_revision' => '4',
             'starts_at' => '2026-09-01 18:00:00',
             'ends_at' => '2026-09-02 01:00:00',
             'timezone' => 'UTC',
@@ -100,7 +101,23 @@ final class WpdbEventLifecycleRepositoryTest extends TestCase
         $event = $this->repository($wpdb)->lock(new EventScope(91));
 
         self::assertSame(EventStatus::COMPLETED, $event?->status);
+        self::assertSame(4, $event?->revision);
         self::assertStringContainsString('FOR UPDATE', $wpdb->queries[0]);
+    }
+
+    public function testDraftUpdateUsesRevisionGuardAndIncrementsVersion(): void
+    {
+        $wpdb = new EventRepositoryWpdb();
+        $current = new EventRecord(new EventScope(91), 'Old', 'old', EventStatus::DRAFT, 'UTC', null, null, null, 4);
+        $replacement = new CreateEvent('New', 'new', 'America/Edmonton', $this->now(), $this->now()->modify('+2 hours'), 8);
+
+        $updated = $this->repository($wpdb)->updateDraft($current, $replacement, 7, $this->now());
+
+        self::assertSame(5, $updated->revision);
+        self::assertSame('New', $updated->name);
+        self::assertStringContainsString('event_revision = event_revision + 1', $wpdb->queries[0]);
+        self::assertStringContainsString('event_revision = 4', $wpdb->queries[0]);
+        self::assertStringContainsString("event_status = 'draft'", $wpdb->queries[0]);
     }
 
     private function repository(EventRepositoryWpdb $wpdb): WpdbEventLifecycleRepository

@@ -8,15 +8,11 @@ final class Sprint9ReleasePromotionTest extends TestCase
 {
     public function testStableVersionPromotionMatchesAcceptedRelease(): void
     {
-        $plugin = $this->source('eventflow.php');
-        self::assertStringContainsString('Version: 1.0.0', $plugin);
-        self::assertStringContainsString("define('EVENTFLOW_VERSION', '1.0.0')", $plugin);
-        self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 6)", $plugin);
-
         $release = $this->source('docs/11-releases/1.0.0-sprint-9-delivery-adapters.md');
         self::assertStringContainsString('**Status:** Released', $release);
         self::assertStringContainsString('**Release tag:** `v1.0.0-delivery-adapters`', $release);
         self::assertStringContainsString('run 32129702250', $release);
+        self::assertStringContainsString('EventFlow schema: 6', $release);
 
         $acceptance = $this->source('docs/10-testing/Sprint-09-Delivery-Adapters-Acceptance-Report.md');
         self::assertStringContainsString('Result: PASS', $acceptance);
