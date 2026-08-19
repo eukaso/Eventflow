@@ -1,5 +1,7 @@
 # Changelog
 
+- IMP-066: exposed campaign list/read/update/audience-preview/schedule/cancel REST routes with revision, idempotency, privacy, and no-store response contracts.
+
 All notable changes to EventFlow will be documented in this file.
 
 The project follows Semantic Versioning.
