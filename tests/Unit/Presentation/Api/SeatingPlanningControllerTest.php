@@ -18,22 +18,8 @@ final class SeatingPlanningControllerTest extends TestCase
         $routes=new SeatingPlanningMemoryRoutes();
         (new SeatingPlanningRouteRegistrar($this->controller(new SeatingPlanningPort())))->register($routes);
         self::assertSame([
-            'POST eventflow/v1/events/(?P<event_id>\d+)/seating/recommendations',
             'POST eventflow/v1/events/(?P<event_id>\d+)/attendees/(?P<attendee_id>\d+)/seating/move',
         ],$routes->registered);
-    }
-
-    public function testRecommendationMapsSeedAndReturnsDeterministicPlan(): void
-    {
-        $port=new SeatingPlanningPort();
-        $response=$this->controller($port)->recommend(new RestRequest(
-            json:['seed'=>'published-layout-v1'],routeParameters:['event_id'=>'44'],
-        ));
-        self::assertSame('recommend',$port->calls[0]);
-        self::assertSame('published-layout-v1',$port->seed);
-        self::assertSame('greedy-groups-v1',$response->body()['data']['algorithm_version']);
-        self::assertSame(71,$response->body()['data']['placements'][0]['attendee_id']);
-        self::assertSame('group:Family A',$response->body()['data']['placements'][0]['reason']);
     }
 
     public function testMoveMapsStaleGuardAndOverrideEvidence(): void
@@ -65,8 +51,6 @@ final class SeatingPlanningControllerTest extends TestCase
     {
         $port=new SeatingPlanningPort();
         foreach ([
-            fn()=> $this->controller($port)->recommend(new RestRequest(json:['seed'=>7],routeParameters:['event_id'=>'44'])),
-            fn()=> $this->controller($port)->recommend(new RestRequest(json:['seed'=>'x','admin'=>true],routeParameters:['event_id'=>'44'])),
             fn()=> $this->controller($port)->move(new RestRequest(['Idempotency-Key'=>'seating-invalid-001'],['table_id'=>'5'],['event_id'=>'44','attendee_id'=>'71'])),
             fn()=> $this->controller($port)->move(new RestRequest(['Idempotency-Key'=>'seating-invalid-002'],['table_id'=>5,'override_required_group'=>1],['event_id'=>'44','attendee_id'=>'71'])),
             fn()=> $this->controller($port)->move(new RestRequest(['Idempotency-Key'=>'seating-invalid-003'],['table_id'=>5],['event_id'=>'44','attendee_id'=>'../71'])),

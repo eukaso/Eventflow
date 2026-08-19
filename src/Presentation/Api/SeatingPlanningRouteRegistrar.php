@@ -11,7 +11,6 @@ final readonly class SeatingPlanningRouteRegistrar implements RestRouteRegistrar
     public function register(RestRouteRegistry $routes): void
     {
         $event = '/events/(?P<event_id>\d+)';
-        $routes->registerAuthenticatedPost(SystemRouteRegistrar::NAMESPACE, $event . '/seating/recommendations', $this->controller->recommend(...));
         $routes->registerAuthenticatedPost(
             SystemRouteRegistrar::NAMESPACE,
             $event . '/attendees/(?P<attendee_id>\d+)/seating/move',

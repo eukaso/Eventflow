@@ -14,16 +14,6 @@ final readonly class SeatingPlanningController
     ) {
     }
 
-    public function recommend(RestRequest $request): ApiResponse
-    {
-        $context = $this->contexts->create($request, MutationPreconditionPolicy::NONE);
-        $input = $this->requests->recommendation($request);
-        return $this->presenter->recommendation(
-            $this->seating->recommend($context->principal, $input->scope, $input->seed),
-            $context->requestId,
-        );
-    }
-
     public function move(RestRequest $request): ApiResponse
     {
         $context = $this->contexts->create($request, MutationPreconditionPolicy::IDEMPOTENCY_KEY);

@@ -23,6 +23,7 @@ The project follows Semantic Versioning.
 - Authorized Seating resource reads and revision-guarded table, seat, and host-defined group updates with capacity/accessibility protection, required audit, and forward-only schema 10 concurrency.
 - Authenticated Seating table, seat, and group REST completion with strict partial maps, dual mutation preconditions, parent-scoped seat access, strong resource ETags, and ready-mode registration.
 - Durable snapshot-bound Seating recommendations with normalized placement/warning persistence, authorized review, locked stale-safe application, required audit, and forward-only schema 11 storage.
+- Durable Seating recommendation REST creation, review, and apply routes with strict maps, mandatory idempotency, resource locations, content ETags, and removal of the transient recommendation response path.
 
 ## [1.0.0] - 2026-08-18
 
