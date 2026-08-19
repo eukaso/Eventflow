@@ -41,6 +41,12 @@ final readonly class SeatingResourceService implements SeatingResourceAccess
         return $this->findGroup($snapshot, $groupId);
     }
 
+    public function seat(PrincipalContext $principal, EventScope $scope, int $seatId): SeatingSeat
+    {
+        $snapshot = $this->snapshot($principal, $scope);
+        return $this->findSeat($snapshot, $seatId);
+    }
+
     public function updateTable(PrincipalContext $principal, EventScope $scope, int $tableId, SeatingTableReplacement $replacement, string $idempotencyKey): IdempotencyOutcome
     {
         return $this->idempotency->execute($principal, $scope, 'seating.table.update', $idempotencyKey, ['table_id' => $tableId, 'name' => $replacement->name, 'capacity' => $replacement->capacity, 'sort_order' => $replacement->sortOrder, 'expected_revision' => $replacement->expectedRevision],

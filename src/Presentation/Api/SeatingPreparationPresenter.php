@@ -16,14 +16,17 @@ final readonly class SeatingPreparationPresenter
             $response instanceof SeatingGroup => $this->group($response),
             default => ['type' => $outcome->reference->entityType, 'id' => $outcome->reference->entityId],
         };
+        $headers = [
+            'X-Request-ID' => $requestId->value,
+            'Cache-Control' => 'no-store, max-age=0',
+            'Location' => '/wp-json/eventflow/v1/events/' . $eventId . '/' . $collection . '/' . $outcome->reference->entityId,
+        ];
+        if ($response instanceof ConfiguredTable) $headers['ETag'] = '"' . $response->table->revision . '"';
+        if ($response instanceof SeatingGroup) $headers['ETag'] = '"' . $response->revision . '"';
         return new JsonApiResponse(
             $outcome->reference->responseStatusCode,
             ['data' => $data, 'meta' => ['replayed' => $outcome->replayed], 'request_id' => $requestId->value],
-            [
-                'X-Request-ID' => $requestId->value,
-                'Cache-Control' => 'no-store, max-age=0',
-                'Location' => '/wp-json/eventflow/v1/events/' . $eventId . '/' . $collection . '/' . $outcome->reference->entityId,
-            ],
+            $headers,
         );
     }
 
@@ -52,6 +55,7 @@ final readonly class SeatingPreparationPresenter
             'name' => $configured->table->name,
             'capacity' => $configured->table->capacity,
             'sort_order' => $configured->table->sortOrder,
+            'revision' => $configured->table->revision,
             'seats' => array_map($this->seat(...), $configured->seats),
         ];
     }
@@ -64,6 +68,7 @@ final readonly class SeatingPreparationPresenter
             'label' => $seat->label,
             'accessible' => $seat->accessible,
             'sort_order' => $seat->sortOrder,
+            'revision' => $seat->revision,
         ];
     }
 
@@ -73,9 +78,12 @@ final readonly class SeatingPreparationPresenter
         return [
             'id' => $group->groupId,
             'name' => $group->name,
+            'category' => $group->category,
+            'source' => $group->source,
             'constraint_level' => $group->constraintLevel->value,
             'priority' => $group->priority,
             'attendee_ids' => $group->attendeeIds,
+            'revision' => $group->revision,
         ];
     }
 }

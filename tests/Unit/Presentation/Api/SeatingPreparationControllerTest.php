@@ -37,6 +37,8 @@ final class SeatingPreparationControllerTest extends TestCase
         self::assertSame([['label'=>'A1','accessible'=>true],['label'=>'A2','accessible'=>false]], $port->seats);
         self::assertSame(201, $response->status());
         self::assertTrue($response->body()['data']['seats'][0]['accessible']);
+        self::assertSame(1, $response->body()['data']['revision']);
+        self::assertSame('"1"', $response->headers()['ETag']);
         self::assertSame('/wp-json/eventflow/v1/events/44/tables/5', $response->headers()['Location']);
     }
 
@@ -51,6 +53,7 @@ final class SeatingPreparationControllerTest extends TestCase
         self::assertSame(ConstraintLevel::REQUIRED, $port->constraint);
         self::assertSame([7,8], $port->attendeeIds);
         self::assertSame('required', $response->body()['data']['constraint_level']);
+        self::assertSame('"1"', $response->headers()['ETag']);
         self::assertSame('/wp-json/eventflow/v1/events/44/seating-groups/6', $response->headers()['Location']);
     }
 

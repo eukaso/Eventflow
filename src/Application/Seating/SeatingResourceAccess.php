@@ -10,6 +10,7 @@ interface SeatingResourceAccess
 {
     public function snapshot(PrincipalContext $principal, EventScope $scope): SeatingSnapshot;
     public function table(PrincipalContext $principal, EventScope $scope, int $tableId): ConfiguredTable;
+    public function seat(PrincipalContext $principal, EventScope $scope, int $seatId): SeatingSeat;
     public function group(PrincipalContext $principal, EventScope $scope, int $groupId): SeatingGroup;
     public function updateTable(PrincipalContext $principal, EventScope $scope, int $tableId, SeatingTableReplacement $replacement, string $idempotencyKey): IdempotencyOutcome;
     public function createSeat(PrincipalContext $principal, EventScope $scope, int $tableId, string $label, bool $accessible, int $sortOrder, string $idempotencyKey): IdempotencyOutcome;
