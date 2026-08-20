@@ -28,6 +28,32 @@
     region.setAttribute('aria-busy', busy ? 'true' : 'false');
   };
 
+  const reportInvalidControl = (validationEvent) => {
+    const control = validationEvent.target;
+    const summaryId = 'eventflow-rsvp-error-summary';
+    let summary = document.getElementById(summaryId);
+    if (!summary) {
+      summary = document.createElement('p');
+      summary.className = 'eventflow-form-error';
+      summary.id = summaryId;
+      summary.setAttribute('role', 'alert');
+      summary.textContent = 'Check the highlighted fields and correct the information before saving your RSVP.';
+      form.prepend(summary);
+    }
+    control.setAttribute('aria-invalid', 'true');
+    control.setAttribute('aria-describedby', summaryId);
+  };
+
+  const clearInvalidControl = (inputEvent) => {
+    const control = inputEvent.target;
+    if (!control.matches('input') || !control.validity?.valid) return;
+    control.removeAttribute('aria-invalid');
+    control.removeAttribute('aria-describedby');
+    if (form.querySelector('[aria-invalid="true"]')) return;
+    const summary = document.getElementById('eventflow-rsvp-error-summary');
+    if (summary) summary.remove();
+  };
+
   const cleanCredentialFragment = () => {
     const fragment = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
     const parameters = new URLSearchParams(fragment);
@@ -269,6 +295,8 @@
     if (event.target?.name === 'response_status') updateAddGuestState();
   });
   form.addEventListener('submit', submitRsvp);
+  form.addEventListener('invalid', reportInvalidControl, true);
+  form.addEventListener('input', clearInvalidControl);
   addGuest.addEventListener('click', () => {
     if (attendeeList.children.length >= Number(invitationContext?.capacity || 1)) return;
     attendeeRow(null, 'companion');

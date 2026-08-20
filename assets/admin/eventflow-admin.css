@@ -6,6 +6,31 @@
   --ef-border: #dfe4ee;
   color: var(--ef-ink);
   max-width: 1180px;
+  overflow-wrap: anywhere;
+}
+
+.eventflow-admin :where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--ef-accent);
+  outline-offset: 2px;
+}
+
+.eventflow-admin :where(input, select, textarea) {
+  max-width: 100%;
+}
+
+.eventflow-admin [aria-invalid='true'] {
+  border-color: #d63638;
+  box-shadow: 0 0 0 1px #d63638;
+}
+
+.eventflow-form-error {
+  background: #fcf0f1;
+  border-left: 4px solid #d63638;
+  color: var(--ef-ink);
+  font-weight: 600;
+  grid-column: 1 / -1;
+  margin: 0 0 12px;
+  padding: 10px 12px;
 }
 
 .eventflow-admin__header {
@@ -666,6 +691,15 @@
   .eventflow-import-mapping .button {
     grid-column: auto;
   }
+
+  .eventflow-admin__grid,
+  .eventflow-record-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .eventflow-people__tabs {
+    flex-wrap: wrap;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -673,5 +707,21 @@
   .eventflow-admin *::before,
   .eventflow-admin *::after {
     scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .eventflow-admin :where(a, button, input, select, textarea, summary):focus-visible {
+    outline-color: Highlight;
+  }
+
+  .eventflow-people__tabs [aria-selected='true'],
+  .eventflow-form-error,
+  .eventflow-integrity--valid,
+  .eventflow-integrity--invalid {
+    border: 2px solid CanvasText;
   }
 }

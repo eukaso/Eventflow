@@ -126,6 +126,53 @@
     region.setAttribute('aria-busy', busy ? 'true' : 'false');
   };
 
+  const reportInvalidControl = (validationEvent) => {
+    const control = validationEvent.target;
+    const form = control.form;
+    if (!form || !form.id) return;
+    const summaryId = `${form.id}-error-summary`;
+    let summary = document.getElementById(summaryId);
+    if (!summary) {
+      summary = document.createElement('p');
+      summary.className = 'eventflow-form-error';
+      summary.id = summaryId;
+      summary.setAttribute('role', 'alert');
+      summary.textContent = 'Check the highlighted fields and correct the information before continuing.';
+      form.prepend(summary);
+    }
+    control.setAttribute('aria-invalid', 'true');
+    const descriptions = new Set(String(control.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+    descriptions.add(summaryId);
+    control.setAttribute('aria-describedby', Array.from(descriptions).join(' '));
+  };
+
+  const clearInvalidControl = (inputEvent) => {
+    const control = inputEvent.target;
+    if (!control.matches('input, select, textarea') || !control.validity?.valid) return;
+    control.removeAttribute('aria-invalid');
+    const form = control.form;
+    if (!form || form.querySelector('[aria-invalid="true"]')) return;
+    const summary = document.getElementById(`${form.id}-error-summary`);
+    if (summary) summary.remove();
+  };
+
+  const configureTabs = (names, select) => {
+    names.forEach((name, index) => {
+      const tab = document.getElementById(`eventflow-${name}-tab`);
+      tab.tabIndex = tab.getAttribute('aria-selected') === 'true' ? 0 : -1;
+      tab.addEventListener('click', () => select(name));
+      tab.addEventListener('keydown', (keyboardEvent) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(keyboardEvent.key)) return;
+        keyboardEvent.preventDefault();
+        const nextIndex = keyboardEvent.key === 'Home' ? 0
+          : keyboardEvent.key === 'End' ? names.length - 1
+            : (index + (keyboardEvent.key === 'ArrowRight' ? 1 : -1) + names.length) % names.length;
+        select(names[nextIndex]);
+        document.getElementById(`eventflow-${names[nextIndex]}-tab`).focus();
+      });
+    });
+  };
+
   const appendText = (parent, tagName, className, value) => {
     const element = document.createElement(tagName);
     element.className = className;
@@ -515,6 +562,7 @@
       const panel = document.getElementById(`eventflow-${candidate}-panel`);
       const selected = candidate === name;
       tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+      tab.tabIndex = selected ? 0 : -1;
       panel.hidden = !selected;
     });
   };
@@ -1263,6 +1311,7 @@
       const panel = document.getElementById(`eventflow-${candidate}-panel`);
       const selected = candidate === name;
       tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+      tab.tabIndex = selected ? 0 : -1;
       panel.hidden = !selected;
     });
   };
@@ -1553,6 +1602,7 @@
       const panel = document.getElementById(`eventflow-${candidate}-panel`);
       const selected = candidate === name;
       tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+      tab.tabIndex = selected ? 0 : -1;
       panel.hidden = !selected;
     });
   };
@@ -1922,9 +1972,9 @@
     overviewFacts.hidden = false;
     overviewMessage.textContent = 'Data and governance workspace closed.';
   });
-  peopleTabs.forEach((name) => {
-    document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectPeopleTab(name));
-  });
+  root.addEventListener('invalid', reportInvalidControl, true);
+  root.addEventListener('input', clearInvalidControl);
+  configureTabs(peopleTabs, selectPeopleTab);
   membershipForm.addEventListener('submit', submitMembership);
   invitationForm.addEventListener('submit', submitInvitation);
   invitationEditCancel.addEventListener('click', () => {
@@ -1946,9 +1996,7 @@
       .map((checkbox) => Number(checkbox.value));
     checkInAttendees(attendeeIds);
   });
-  communicationTabs.forEach((name) => {
-    document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectCommunicationTab(name));
-  });
+  configureTabs(communicationTabs, selectCommunicationTab);
   templateForm.addEventListener('submit', submitTemplate);
   campaignForm.addEventListener('submit', submitCampaign);
   messageFilterForm.addEventListener('submit', async (submissionEvent) => {
@@ -1965,9 +2013,7 @@
   });
   templatePreviewClear.addEventListener('click', clearCommunicationDetails);
   messageDetailClear.addEventListener('click', clearCommunicationDetails);
-  governanceTabs.forEach((name) => {
-    document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectGovernanceTab(name));
-  });
+  configureTabs(governanceTabs, selectGovernanceTab);
   importForm.addEventListener('submit', submitImport);
   exportForm.addEventListener('submit', submitExport);
   privacyActionForm.addEventListener('submit', submitPrivacyAction);

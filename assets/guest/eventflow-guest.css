@@ -9,6 +9,24 @@
   margin: 0 calc(50% - 50vw);
   min-height: 70vh;
   padding: clamp(18px, 5vw, 56px) 16px;
+  overflow-wrap: anywhere;
+}
+
+.eventflow-guest :where(button, input):focus-visible {
+  outline: 3px solid var(--efg-accent);
+  outline-offset: 3px;
+}
+
+.eventflow-guest [aria-invalid='true'] {
+  border-color: #b32d2e;
+  box-shadow: 0 0 0 1px #b32d2e;
+}
+
+.eventflow-guest .eventflow-form-error {
+  background: #fcf0f1;
+  border-left: 4px solid #b32d2e;
+  font-weight: 700;
+  padding: 12px;
 }
 
 .eventflow-guest__card {
@@ -171,5 +189,18 @@
 @media (prefers-reduced-motion: reduce) {
   .eventflow-guest * {
     scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .eventflow-guest :where(button, input):focus-visible {
+    outline-color: Highlight;
+  }
+
+  .eventflow-guest .eventflow-form-error {
+    border: 2px solid CanvasText;
   }
 }

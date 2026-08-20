@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-090: completed cross-experience accessibility, responsive, WordPress integration, and Sprint 11 release-candidate validation.
 - IMP-089: delivered isolated Import, Export, Privacy, Audit, and sanitized diagnostic administration in the WordPress UI.
 - IMP-088: added Template, Campaign, audience-review, scheduling/queue, Message inspection, and revision-safe retry workflows.
 - IMP-087: delivered the event-day Reception workspace with least-privilege search, individual and atomic bulk Check-In, and reasoned reversals.
