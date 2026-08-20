@@ -56,7 +56,7 @@ final readonly class ErrorCodeMapper
                 'provider_dispatch_invalid', 'provider_webhook_invalid', 'provider_webhook_too_large',
                 'provider_webhook_job_invalid', 'provider_duplicate',
                 'provider_circuit_policy_invalid',
-                'export_purpose_required', 'export_record_invalid', 'export_artifact_invalid',
+                'export_purpose_required', 'export_record_invalid', 'export_artifact_invalid', 'export_query_invalid',
                 'export_job_invalid', 'export_row_invalid', 'export_locator_invalid',
                 'export_not_ready', 'export_not_downloadable',
                 'privacy_action_invalid', 'privacy_request_invalid', 'privacy_job_invalid',

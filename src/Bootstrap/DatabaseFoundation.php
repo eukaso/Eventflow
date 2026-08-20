@@ -19,6 +19,7 @@ use EventFlow\Application\Event\EventAccessService;
 use EventFlow\Application\Event\EventLifecycleService;
 use EventFlow\Application\EventConfiguration\EventConfigurationService;
 use EventFlow\Application\Export\ExportService;
+use EventFlow\Application\Export\ExportAccessService;
 use EventFlow\Application\Health\ReadinessCheck;
 use EventFlow\Application\Health\PrivacyReconciliationReadinessCheck;
 use EventFlow\Application\GuestAccess\GuestAccessService;
@@ -122,6 +123,7 @@ final readonly class DatabaseFoundation
         public CampaignAccessService $campaignAccess,
         public MessageAccessService $messageAccess,
         public ExportService $exports,
+        public ExportAccessService $exportAccess,
         public PrivacyService $privacy,
         public ProviderService $providers,
         public JobRepository $jobs,
@@ -170,6 +172,7 @@ final readonly class DatabaseFoundation
         $communicationRepository = new WpdbCommunicationRepository($database, $tableNames);
         $templateRenderer = new TemplateRenderer();
         $exportStorage = new WordPressProtectedExportStorage($shared->random);
+        $exportRepository = new WpdbExportRepository($database, $tableNames);
         $privacy = new PrivacyService(
             new WpdbPrivacyRepository($database, $tableNames),
             $exportStorage,
@@ -372,7 +375,7 @@ final readonly class DatabaseFoundation
             campaignAccess: new CampaignAccessService($communicationRepository,$authorization,$idempotency,$audit,$shared->clock),
             messageAccess: new MessageAccessService($communicationRepository,$jobRepository,$authorization,$idempotency,$audit,$shared->clock),
             exports: new ExportService(
-                new WpdbExportRepository($database, $tableNames),
+                $exportRepository,
                 new WpdbExportDataSource($database, $tableNames),
                 $exportStorage,
                 $jobRepository,
@@ -382,6 +385,7 @@ final readonly class DatabaseFoundation
                 $shared->clock,
                 $transactions,
             ),
+            exportAccess: new ExportAccessService($exportRepository, $authorization),
             privacy: $privacy,
             providers: new ProviderService(
                 new WpdbProviderRepository($database, $tableNames),
