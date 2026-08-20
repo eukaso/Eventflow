@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-091: promoted the CI-validated Sprint 11 candidate to stable EventFlow 1.2.0 release metadata.
 - IMP-090: completed cross-experience accessibility, responsive, WordPress integration, and Sprint 11 release-candidate validation.
 - IMP-089: delivered isolated Import, Export, Privacy, Audit, and sanitized diagnostic administration in the WordPress UI.
 - IMP-088: added Template, Campaign, audience-review, scheduling/queue, Message inspection, and revision-safe retry workflows.
@@ -31,6 +32,8 @@ All notable changes to EventFlow will be documented in this file.
 The project follows Semantic Versioning.
 
 ## [Unreleased]
+
+## [1.2.0] - 2026-08-20
 
 ### Added
 - Sprint 11 UI/UX design baseline, WordPress admin integration, screen-scoped assets, readiness-aware Event discovery, and executable UI security/accessibility checks.

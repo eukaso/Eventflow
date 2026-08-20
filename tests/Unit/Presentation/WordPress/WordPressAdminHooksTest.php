@@ -91,7 +91,7 @@ namespace EventFlow\Tests\Unit\Presentation\WordPress {
             self::assertSame([
                 'restUrl' => 'https://eventflow.test/wp-json/eventflow/v1/',
                 'nonce' => 'rest-nonce',
-                'version' => '1.2.0-dev',
+                'version' => '1.2.0',
                 'bootstrapState' => 'ready',
                 'ready' => true,
             ], $GLOBALS['eventflow_test_admin_config'][2]);
@@ -113,7 +113,7 @@ namespace EventFlow\Tests\Unit\Presentation\WordPress {
             $hooks = new WordPressGuestHooks(
                 new GuestShellView(),
                 '/plugins/eventflow/eventflow.php',
-                '1.2.0-dev',
+                '1.2.0',
                 new BootstrapResult(BootstrapState::READY, true, true, []),
             );
             $hooks->register();
@@ -125,7 +125,7 @@ namespace EventFlow\Tests\Unit\Presentation\WordPress {
             self::assertSame('https://eventflow.test/plugins/eventflow/assets/guest/eventflow-guest.js', $GLOBALS['eventflow_test_admin_script'][1]);
             self::assertSame([
                 'restUrl' => 'https://eventflow.test/wp-json/eventflow/v1/',
-                'version' => '1.2.0-dev',
+                'version' => '1.2.0',
                 'bootstrapState' => 'ready',
                 'ready' => true,
             ], $GLOBALS['eventflow_test_admin_config'][2]);
@@ -136,7 +136,7 @@ namespace EventFlow\Tests\Unit\Presentation\WordPress {
             return new WordPressAdminHooks(
                 new AdminShellView(),
                 '/plugins/eventflow/eventflow.php',
-                '1.2.0-dev',
+                '1.2.0',
                 new BootstrapResult(BootstrapState::READY, true, true, []),
             );
         }

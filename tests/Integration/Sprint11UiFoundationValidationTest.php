@@ -6,11 +6,11 @@ use PHPUnit\Framework\TestCase;
 
 final class Sprint11UiFoundationValidationTest extends TestCase
 {
-    public function testDevelopmentMetadataStartsFromReleasedApiBaselineWithoutSchemaChange(): void
+    public function testStableMetadataAdvancesFromReleasedApiBaselineWithoutSchemaChange(): void
     {
         $plugin = $this->source('eventflow.php');
-        self::assertStringContainsString('Version: 1.2.0-dev', $plugin);
-        self::assertStringContainsString("define('EVENTFLOW_VERSION', '1.2.0-dev');", $plugin);
+        self::assertStringContainsString('Version: 1.2.0', $plugin);
+        self::assertStringContainsString("define('EVENTFLOW_VERSION', '1.2.0');", $plugin);
         self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 15);", $plugin);
         self::assertStringContainsString('`v1.1.0-api-completion`', $this->source('README-IMP-081.md'));
     }

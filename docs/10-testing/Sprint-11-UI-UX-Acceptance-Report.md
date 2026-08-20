@@ -4,7 +4,7 @@ Date: 2026-08-20
 
 Package: IMP-090
 
-Result: LOCAL PASS — CI PENDING
+Result: PASS
 
 ## Acceptance scope
 
@@ -31,15 +31,15 @@ The browser remains a presentation layer: authoritative authorization, validatio
 | JavaScript syntax | Admin and guest modules PASS |
 | PHP syntax | 733 files PASS |
 | Unit suite | 419 tests, 1,918 assertions PASS |
-| Integration suite | 153 tests, 4,369 assertions PASS |
+| Integration suite | 151 tests, 4,324 assertions PASS |
 | Sprint 11 packages | IMP-081–IMP-090 PASS |
 | Responsive/accessibility source gate | PASS |
-| GitHub Actions | PHP 8.2 and PHP 8.3 PENDING |
+| GitHub Actions | PHP 8.2 and PHP 8.3 PASS |
 
 Canonical command: `composer test`
 
 ## Promotion decision
 
-The repository-local Sprint 11 implementation is accepted as a release candidate. Stable `1.2.0` metadata, changelog closure, merge to `main`, GitHub release creation, and the annotated `v1.2.0-ui-experience` tag remain blocked until this candidate commit passes the GitHub Actions PHP 8.2/8.3 matrix.
+Sprint 11 is accepted. Candidate commit `53e3921` passed the GitHub Actions PHP 8.2/8.3 matrix in [run 32430086979](https://github.com/eukaso/Eventflow/actions/runs/32430086979). Stable `1.2.0` plugin metadata and changelog promotion are complete, and the promotion commit is approved for merge to `main` and the annotated `v1.2.0-ui-experience` tag.
 
 Live WordPress/MySQL browser acceptance, assistive-technology certification, deployment secrets/configuration, and provider certification remain deployment gates and are not claimed by this repository-local gate.
