@@ -62,6 +62,26 @@
   const receptionBulk = document.getElementById('eventflow-reception-bulk');
   const receptionSelection = document.getElementById('eventflow-reception-selection');
   const receptionBulkCheckIn = document.getElementById('eventflow-reception-bulk-checkin');
+  const communications = document.getElementById('eventflow-communications');
+  const communicationsClose = document.getElementById('eventflow-communications-close');
+  const communicationsNotice = document.getElementById('eventflow-communications-notice');
+  const communicationTabs = ['templates', 'campaigns', 'messages'];
+  const templateForm = document.getElementById('eventflow-template-form');
+  const campaignForm = document.getElementById('eventflow-campaign-form');
+  const messageFilterForm = document.getElementById('eventflow-message-filter-form');
+  const templateList = document.getElementById('eventflow-template-list');
+  const campaignList = document.getElementById('eventflow-campaign-list');
+  const messageList = document.getElementById('eventflow-message-list');
+  const campaignTemplate = document.getElementById('eventflow-campaign-template');
+  const templatePreview = document.getElementById('eventflow-template-preview');
+  const templatePreviewSubject = document.getElementById('eventflow-template-preview-subject');
+  const templatePreviewBody = document.getElementById('eventflow-template-preview-body');
+  const templatePreviewClear = document.getElementById('eventflow-template-preview-clear');
+  const messageDetail = document.getElementById('eventflow-message-detail');
+  const messageDetailTitle = document.getElementById('eventflow-message-detail-title');
+  const messageDetailRecipient = document.getElementById('eventflow-message-detail-recipient');
+  const messageDetailContent = document.getElementById('eventflow-message-detail-content');
+  const messageDetailClear = document.getElementById('eventflow-message-detail-clear');
   const refresh = document.getElementById('eventflow-refresh');
   const bootstrapNotice = document.getElementById('eventflow-bootstrap-notice');
   let activeEvent = null;
@@ -73,6 +93,7 @@
   let seatingTables = [];
   let seatingRecommendation = null;
   let receptionAttendees = [];
+  let communicationTemplates = [];
 
   const setStatus = (message, busy = false) => {
     status.textContent = message;
@@ -149,6 +170,7 @@
     people.hidden = true;
     seating.hidden = true;
     reception.hidden = true;
+    communications.hidden = true;
     overviewFacts.hidden = false;
     overviewTitle.textContent = String(event.name || 'Untitled event');
     overviewStatus.textContent = String(event.status || 'unknown');
@@ -187,6 +209,13 @@
     receptionButton.textContent = 'Open reception';
     receptionButton.addEventListener('click', openReception);
     overviewActions.appendChild(receptionButton);
+
+    const communicationsButton = document.createElement('button');
+    communicationsButton.className = 'button button-secondary';
+    communicationsButton.type = 'button';
+    communicationsButton.textContent = 'Communications';
+    communicationsButton.addEventListener('click', openCommunications);
+    overviewActions.appendChild(communicationsButton);
 
     (lifecycleActions[event.status] || []).forEach((action) => {
       const button = document.createElement('button');
@@ -295,6 +324,7 @@
     people.hidden = true;
     seating.hidden = true;
     reception.hidden = true;
+    communications.hidden = true;
     setup.hidden = false;
     setupNotice.textContent = 'Loading current setup…';
     fillEventForm(activeEvent);
@@ -676,6 +706,7 @@
     setup.hidden = true;
     seating.hidden = true;
     reception.hidden = true;
+    communications.hidden = true;
     overviewFacts.hidden = true;
     people.hidden = false;
     selectPeopleTab('memberships');
@@ -927,6 +958,7 @@
     setup.hidden = true;
     people.hidden = true;
     reception.hidden = true;
+    communications.hidden = true;
     overviewFacts.hidden = true;
     seating.hidden = false;
     renderRecommendation(null);
@@ -1162,6 +1194,7 @@
     seating.hidden = true;
     overviewFacts.hidden = true;
     reception.hidden = false;
+    communications.hidden = true;
     receptionAttendees = [];
     receptionSearchForm.reset();
     receptionResults.replaceChildren();
@@ -1170,6 +1203,296 @@
     receptionBulk.hidden = true;
     receptionNotice.textContent = 'Reception is ready. Search uses EventFlow records and does not depend on messaging providers.';
     field(receptionSearchForm, 'q').focus();
+  };
+
+  const communicationEventPath = () => `events/${encodeURIComponent(String(activeEvent.id))}`;
+
+  const clearCommunicationDetails = () => {
+    messageDetail.querySelectorAll('.eventflow-message-retry').forEach((button) => button.remove());
+    templatePreviewSubject.textContent = '';
+    templatePreviewBody.textContent = '';
+    templatePreview.hidden = true;
+    messageDetailTitle.textContent = 'Message detail';
+    messageDetailRecipient.textContent = '';
+    messageDetailContent.textContent = '';
+    messageDetail.hidden = true;
+  };
+
+  const selectCommunicationTab = (name) => {
+    clearCommunicationDetails();
+    communicationTabs.forEach((candidate) => {
+      const tab = document.getElementById(`eventflow-${candidate}-tab`);
+      const panel = document.getElementById(`eventflow-${candidate}-panel`);
+      const selected = candidate === name;
+      tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+      panel.hidden = !selected;
+    });
+  };
+
+  const communicationMutation = async (path, body, etag = null, method = 'POST') => {
+    communicationsNotice.textContent = 'Saving communication change…';
+    try {
+      const result = await requestJson(path, {
+        method,
+        headers: mutationHeaders(etag),
+        body: JSON.stringify(body),
+      });
+      communicationsNotice.textContent = result.payload.meta?.replayed
+        ? 'This protected operation was already accepted. Refreshing authoritative records…'
+        : 'Communication change accepted. Refreshing authoritative records…';
+      return result;
+    } catch (error) {
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      communicationsNotice.textContent = `The communication state could not be confirmed. Refresh before retrying.${reference}`;
+      return null;
+    }
+  };
+
+  const templateAction = async (template, action) => {
+    const path = `${communicationEventPath()}/communication-templates/${encodeURIComponent(String(template.id))}`;
+    try {
+      const current = await requestJson(path);
+      const result = await communicationMutation(`${path}/${action}`, {}, current.etag);
+      if (result) await loadCommunicationData();
+    } catch (error) {
+      communicationsNotice.textContent = 'The latest Template revision could not be loaded. Refresh before retrying.';
+    }
+  };
+
+  const previewTemplate = async (template) => {
+    clearCommunicationDetails();
+    const values = {};
+    (template.allowed_fields || []).forEach((name) => { values[name] = `[${name}]`; });
+    communicationsNotice.textContent = 'Rendering Template preview…';
+    try {
+      const { payload } = await requestJson(`${communicationEventPath()}/communication-templates/${encodeURIComponent(String(template.id))}/preview`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values }),
+      });
+      templatePreviewSubject.textContent = payload.data?.subject || 'No subject';
+      templatePreviewBody.textContent = payload.data?.plain_text || payload.data?.body || '';
+      templatePreview.hidden = false;
+      communicationsNotice.textContent = 'Rendered preview loaded as text. No message was sent.';
+      templatePreview.scrollIntoView({ block: 'nearest' });
+    } catch (error) {
+      communicationsNotice.textContent = 'Template preview unavailable. No message was sent.';
+    }
+  };
+
+  const renderTemplates = (templates) => {
+    communicationTemplates = templates;
+    templateList.replaceChildren();
+    campaignTemplate.replaceChildren();
+    templates.filter((template) => template.status === 'published').forEach((template) => {
+      campaignTemplate.appendChild(option(template.id, `${template.name} v${template.version}`));
+    });
+    if (!templates.length) appendText(templateList, 'p', 'eventflow-admin__status', 'No communication Templates found.');
+    templates.forEach((template) => {
+      const { card, actions } = recordCard(
+        `${template.name} v${template.version}`,
+        String(template.status || 'unknown'),
+        [String(template.channel || ''), String(template.type || ''), `Revision ${template.revision}`],
+      );
+      actions.appendChild(actionButton('Preview', () => previewTemplate(template)));
+      if (template.status === 'draft') actions.appendChild(actionButton('Publish', () => templateAction(template, 'publish')));
+      if (template.status === 'published') actions.appendChild(actionButton('Create new version', () => templateAction(template, 'new-version')));
+      if (template.status !== 'archived') actions.appendChild(actionButton('Archive', () => {
+        if (window.confirm('Archive this Template version?')) templateAction(template, 'archive');
+      }, true));
+      templateList.appendChild(card);
+    });
+  };
+
+  const campaignCommand = async (campaign, action, body = {}, confirmation = null) => {
+    if (confirmation && !window.confirm(confirmation)) return;
+    const path = `${communicationEventPath()}/campaigns/${encodeURIComponent(String(campaign.id))}`;
+    try {
+      const current = await requestJson(path);
+      const result = await communicationMutation(`${path}/${action}`, body, action === 'queue' ? null : current.etag);
+      if (result) await loadCommunicationData();
+    } catch (error) {
+      communicationsNotice.textContent = 'The latest Campaign revision could not be loaded. Refresh before retrying.';
+    }
+  };
+
+  const renderCampaigns = (campaigns) => {
+    campaignList.replaceChildren();
+    if (!campaigns.length) appendText(campaignList, 'p', 'eventflow-admin__status', 'No Campaigns found.');
+    campaigns.forEach((campaign) => {
+      const { card, actions } = recordCard(
+        String(campaign.name || 'Unnamed campaign'),
+        String(campaign.status || 'unknown'),
+        [String(campaign.channel || ''), String(campaign.purpose || ''), `Template ${campaign.template_id}`, campaign.recipient_count === null ? '' : `${campaign.recipient_count} recipients`],
+      );
+      if (campaign.status === 'draft') {
+        const previewStatus = document.createElement('p');
+        previewStatus.className = 'description';
+        previewStatus.textContent = 'Review the current audience before scheduling or sending.';
+        const scheduleForm = document.createElement('form');
+        scheduleForm.className = 'eventflow-campaign-actions';
+        const scheduleLabel = document.createElement('label');
+        const scheduleId = `eventflow-campaign-schedule-${campaign.id}`;
+        scheduleLabel.htmlFor = scheduleId;
+        scheduleLabel.textContent = 'Schedule at (ISO 8601)';
+        const scheduleInput = document.createElement('input');
+        scheduleInput.id = scheduleId;
+        scheduleInput.placeholder = '2026-09-01T18:00:00-06:00';
+        scheduleInput.required = true;
+        scheduleInput.type = 'text';
+        const scheduleButton = document.createElement('button');
+        scheduleButton.className = 'button button-secondary';
+        scheduleButton.disabled = true;
+        scheduleButton.type = 'submit';
+        scheduleButton.textContent = 'Schedule';
+        const sendButton = actionButton('Queue now', () => campaignCommand(campaign, 'queue', {}, 'Queue this reviewed audience now?'));
+        sendButton.disabled = true;
+        scheduleForm.append(scheduleLabel, scheduleInput, scheduleButton);
+        scheduleForm.addEventListener('submit', (submissionEvent) => {
+          submissionEvent.preventDefault();
+          campaignCommand(campaign, 'schedule', { scheduled_at: scheduleInput.value.trim() }, 'Schedule this Campaign for the reviewed audience?');
+        });
+        const previewButton = actionButton('Preview audience', async () => {
+          communicationsNotice.textContent = 'Calculating the current Campaign audience…';
+          try {
+            const { payload } = await requestJson(`${communicationEventPath()}/campaigns/${encodeURIComponent(String(campaign.id))}/audience-preview`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({}),
+            });
+            previewStatus.textContent = `${payload.data?.recipient_count || 0} recipients in the reviewed audience. Scheduling and queueing are now enabled for this view.`;
+            scheduleButton.disabled = false;
+            sendButton.disabled = false;
+            communicationsNotice.textContent = 'Audience preview complete. Review the recipient count before continuing.';
+          } catch (error) {
+            previewStatus.textContent = 'Audience preview unavailable. Scheduling and queueing remain disabled.';
+            communicationsNotice.textContent = 'Audience preview failed. No messages were scheduled or sent.';
+          }
+        });
+        actions.append(previewButton, sendButton);
+        card.insertBefore(previewStatus, actions);
+        card.appendChild(scheduleForm);
+      }
+      if (campaign.status === 'scheduled') actions.appendChild(actionButton('Cancel schedule', () => campaignCommand(campaign, 'cancel', {}, 'Cancel this scheduled Campaign?'), true));
+      campaignList.appendChild(card);
+    });
+  };
+
+  const showMessageDetail = async (message) => {
+    clearCommunicationDetails();
+    communicationsNotice.textContent = 'Loading protected Message detail…';
+    try {
+      const { payload, etag } = await requestJson(`${communicationEventPath()}/messages/${encodeURIComponent(String(message.id))}`);
+      const detail = payload.data || {};
+      messageDetailTitle.textContent = detail.subject || `Message ${detail.id}`;
+      messageDetailRecipient.textContent = `${detail.recipient_name || 'Recipient'} — ${detail.recipient_address || ''}`;
+      messageDetailContent.textContent = detail.plain_text || detail.content || '';
+      messageDetail.hidden = false;
+      communicationsNotice.textContent = 'Protected Message detail loaded.';
+      if (detail.status === 'failed') {
+        const retry = actionButton('Retry failed message', async () => {
+          const result = await communicationMutation(`${communicationEventPath()}/messages/${encodeURIComponent(String(detail.id))}/retry`, {}, etag);
+          if (result) {
+            clearCommunicationDetails();
+            await loadMessages();
+          }
+        });
+        retry.classList.add('eventflow-message-retry');
+        messageDetail.appendChild(retry);
+      }
+    } catch (error) {
+      clearCommunicationDetails();
+      communicationsNotice.textContent = 'Message detail unavailable.';
+    }
+  };
+
+  const renderMessages = (messages) => {
+    messageList.replaceChildren();
+    if (!messages.length) appendText(messageList, 'p', 'eventflow-admin__status', 'No Messages match this filter.');
+    messages.forEach((message) => {
+      const { card, actions } = recordCard(
+        message.subject || `Message ${message.id}`,
+        String(message.status || 'unknown'),
+        [message.recipient_name || '', String(message.channel || ''), `Attempts ${message.attempt_count || 0}`],
+      );
+      actions.appendChild(actionButton('View detail', () => showMessageDetail(message)));
+      messageList.appendChild(card);
+    });
+  };
+
+  const loadMessages = async () => {
+    const campaignId = nullableText(messageFilterForm, 'campaign_id');
+    const messageStatus = nullableText(messageFilterForm, 'status');
+    const messageQuery = ['limit=100'];
+    if (campaignId) messageQuery.push(`campaign_id=${encodeURIComponent(campaignId)}`);
+    if (messageStatus) messageQuery.push(`status=${encodeURIComponent(messageStatus)}`);
+    const { payload } = await requestJson(`${communicationEventPath()}/messages?${messageQuery.join('&')}`);
+    renderMessages(Array.isArray(payload.data) ? payload.data : []);
+  };
+
+  const loadCommunicationData = async () => {
+    if (!activeEvent) return;
+    clearCommunicationDetails();
+    communicationsNotice.textContent = 'Loading Templates, Campaigns, and Messages…';
+    const [templates, campaigns, messages] = await Promise.allSettled([
+      requestJson(`${communicationEventPath()}/communication-templates?limit=100`),
+      requestJson(`${communicationEventPath()}/campaigns?limit=100`),
+      requestJson(`${communicationEventPath()}/messages?limit=100`),
+    ]);
+    const failures = [];
+    if (templates.status === 'fulfilled') renderTemplates(templates.value.payload.data || []);
+    else { templateList.replaceChildren(); failures.push('Templates unavailable.'); }
+    if (campaigns.status === 'fulfilled') renderCampaigns(campaigns.value.payload.data || []);
+    else { campaignList.replaceChildren(); failures.push('Campaigns unavailable.'); }
+    if (messages.status === 'fulfilled') renderMessages(messages.value.payload.data || []);
+    else { messageList.replaceChildren(); failures.push('Messages unavailable.'); }
+    disableForm(templateForm, templates.status !== 'fulfilled');
+    disableForm(campaignForm, templates.status !== 'fulfilled' || campaigns.status !== 'fulfilled' || campaignTemplate.options.length === 0);
+    disableForm(messageFilterForm, messages.status !== 'fulfilled');
+    communicationsNotice.textContent = failures.join(' ') || 'Communication records loaded.';
+  };
+
+  const openCommunications = async () => {
+    if (!activeEvent) return;
+    clearCredential();
+    setup.hidden = true;
+    people.hidden = true;
+    seating.hidden = true;
+    reception.hidden = true;
+    overviewFacts.hidden = true;
+    communications.hidden = false;
+    selectCommunicationTab('templates');
+    await loadCommunicationData();
+  };
+
+  const submitTemplate = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    const fields = String(field(templateForm, 'allowed_fields').value || '').split(',').map((value) => value.trim()).filter(Boolean);
+    const result = await communicationMutation(`${communicationEventPath()}/communication-templates`, {
+      key: String(field(templateForm, 'key').value).trim(),
+      name: String(field(templateForm, 'name').value).trim(),
+      channel: String(field(templateForm, 'channel').value),
+      type: String(field(templateForm, 'type').value).trim(),
+      subject: nullableText(templateForm, 'subject'),
+      body: String(field(templateForm, 'body').value),
+      plain_text: nullableText(templateForm, 'plain_text'),
+      allowed_fields: fields,
+    });
+    if (result) { templateForm.reset(); await loadCommunicationData(); }
+  };
+
+  const submitCampaign = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    const ids = String(field(campaignForm, 'invitation_ids').value || '').split(',').map((value) => Number(value.trim())).filter((value) => Number.isInteger(value) && value > 0);
+    const result = await communicationMutation(`${communicationEventPath()}/campaigns`, {
+      template_id: Number(field(campaignForm, 'template_id').value),
+      name: String(field(campaignForm, 'name').value).trim(),
+      channel: String(field(campaignForm, 'channel').value),
+      purpose: String(field(campaignForm, 'purpose').value),
+      audience_mode: String(field(campaignForm, 'audience_mode').value),
+      audience: { filter: String(field(campaignForm, 'filter').value).trim(), invitation_ids: ids },
+    });
+    if (result) { campaignForm.reset(); await loadCommunicationData(); }
   };
 
   const renderEvents = (events) => {
@@ -1216,6 +1539,7 @@
       overview.hidden = true;
       seating.hidden = true;
       reception.hidden = true;
+      communications.hidden = true;
       eventsView.hidden = false;
       renderEvents(Array.isArray(payload.data) ? payload.data : []);
     } catch (error) {
@@ -1255,6 +1579,12 @@
     overviewFacts.hidden = false;
     overviewMessage.textContent = 'Reception workspace closed.';
   });
+  communicationsClose.addEventListener('click', () => {
+    clearCommunicationDetails();
+    communications.hidden = true;
+    overviewFacts.hidden = false;
+    overviewMessage.textContent = 'Communications workspace closed.';
+  });
   peopleTabs.forEach((name) => {
     document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectPeopleTab(name));
   });
@@ -1279,6 +1609,25 @@
       .map((checkbox) => Number(checkbox.value));
     checkInAttendees(attendeeIds);
   });
+  communicationTabs.forEach((name) => {
+    document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectCommunicationTab(name));
+  });
+  templateForm.addEventListener('submit', submitTemplate);
+  campaignForm.addEventListener('submit', submitCampaign);
+  messageFilterForm.addEventListener('submit', async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    clearCommunicationDetails();
+    communicationsNotice.textContent = 'Filtering Messages…';
+    try {
+      await loadMessages();
+      communicationsNotice.textContent = 'Message filter applied.';
+    } catch (error) {
+      messageList.replaceChildren();
+      communicationsNotice.textContent = 'Messages could not be filtered. Check the filter and try again.';
+    }
+  });
+  templatePreviewClear.addEventListener('click', clearCommunicationDetails);
+  messageDetailClear.addEventListener('click', clearCommunicationDetails);
   credentialClear.addEventListener('click', clearCredential);
   credentialCopy.addEventListener('click', async () => {
     try {

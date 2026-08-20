@@ -277,6 +277,58 @@ final readonly class AdminShellView
           <p class="eventflow-admin__status">Search for a guest to begin reception.</p>
         </div>
       </section>
+      <section class="eventflow-communications" id="eventflow-communications" aria-labelledby="eventflow-communications-title" hidden>
+        <div class="eventflow-setup__heading">
+          <div>
+            <p class="eventflow-admin__eyebrow">Communications</p>
+            <h3 id="eventflow-communications-title">Templates, campaigns, and messages</h3>
+          </div>
+          <button class="button-link" id="eventflow-communications-close" type="button">Close communications workspace</button>
+        </div>
+        <p class="eventflow-setup__notice" id="eventflow-communications-notice" role="status"></p>
+        <div class="eventflow-people__tabs" role="tablist" aria-label="Communication administration">
+          <button aria-controls="eventflow-templates-panel" aria-selected="true" class="button" id="eventflow-templates-tab" role="tab" type="button">Templates</button>
+          <button aria-controls="eventflow-campaigns-panel" aria-selected="false" class="button" id="eventflow-campaigns-tab" role="tab" type="button">Campaigns</button>
+          <button aria-controls="eventflow-messages-panel" aria-selected="false" class="button" id="eventflow-messages-tab" role="tab" type="button">Messages</button>
+        </div>
+        <section id="eventflow-templates-panel" role="tabpanel" aria-labelledby="eventflow-templates-tab">
+          <form class="eventflow-communication-form" id="eventflow-template-form">
+            <label for="eventflow-template-key">Template key</label><input id="eventflow-template-key" name="key" required type="text">
+            <label for="eventflow-template-name">Name</label><input id="eventflow-template-name" name="name" required type="text">
+            <label for="eventflow-template-channel">Channel</label><select id="eventflow-template-channel" name="channel"><option value="email">Email</option><option value="sms">SMS</option></select>
+            <label for="eventflow-template-type">Type</label><input id="eventflow-template-type" name="type" required type="text" value="general">
+            <label for="eventflow-template-subject">Subject</label><input id="eventflow-template-subject" name="subject" type="text">
+            <label for="eventflow-template-fields">Allowed fields</label><input id="eventflow-template-fields" name="allowed_fields" placeholder="guest_name, event_name" type="text">
+            <label class="eventflow-communication-form__wide" for="eventflow-template-body">Body</label><textarea class="eventflow-communication-form__wide" id="eventflow-template-body" name="body" required rows="5"></textarea>
+            <label class="eventflow-communication-form__wide" for="eventflow-template-plain">Plain text</label><textarea class="eventflow-communication-form__wide" id="eventflow-template-plain" name="plain_text" rows="3"></textarea>
+            <button class="button button-primary" type="submit">Create draft template</button>
+          </form>
+          <div class="eventflow-record-list" id="eventflow-template-list"></div>
+          <div class="eventflow-communication-preview" id="eventflow-template-preview" hidden><h4>Rendered preview</h4><p id="eventflow-template-preview-subject"></p><pre id="eventflow-template-preview-body"></pre><button class="button-link" id="eventflow-template-preview-clear" type="button">Clear preview</button></div>
+        </section>
+        <section id="eventflow-campaigns-panel" role="tabpanel" aria-labelledby="eventflow-campaigns-tab" hidden>
+          <form class="eventflow-communication-form" id="eventflow-campaign-form">
+            <label for="eventflow-campaign-template">Published template</label><select id="eventflow-campaign-template" name="template_id" required></select>
+            <label for="eventflow-campaign-name">Name</label><input id="eventflow-campaign-name" name="name" required type="text">
+            <label for="eventflow-campaign-channel">Channel</label><select id="eventflow-campaign-channel" name="channel"><option value="email">Email</option><option value="sms">SMS</option></select>
+            <label for="eventflow-campaign-purpose">Purpose</label><select id="eventflow-campaign-purpose" name="purpose"><option value="invitation">Invitation</option><option value="reminder">Reminder</option><option value="event_update">Event update</option><option value="operational">Operational</option></select>
+            <label for="eventflow-campaign-audience-mode">Audience mode</label><select id="eventflow-campaign-audience-mode" name="audience_mode"><option value="dynamic">Dynamic</option><option value="snapshot">Snapshot</option></select>
+            <label for="eventflow-campaign-filter">Audience filter</label><input id="eventflow-campaign-filter" name="filter" required type="text" value="active_invitations">
+            <label for="eventflow-campaign-invitations">Invitation IDs</label><input id="eventflow-campaign-invitations" name="invitation_ids" placeholder="Optional: 3, 8" type="text">
+            <button class="button button-primary" type="submit">Create campaign</button>
+          </form>
+          <div class="eventflow-record-list" id="eventflow-campaign-list"></div>
+        </section>
+        <section id="eventflow-messages-panel" role="tabpanel" aria-labelledby="eventflow-messages-tab" hidden>
+          <form class="eventflow-inline-form" id="eventflow-message-filter-form">
+            <label for="eventflow-message-campaign">Campaign ID</label><input id="eventflow-message-campaign" min="1" name="campaign_id" type="number">
+            <label for="eventflow-message-status">Status</label><input id="eventflow-message-status" name="status" pattern="[a-z][a-z_]{1,31}" type="text">
+            <button class="button button-secondary" type="submit">Filter messages</button>
+          </form>
+          <div class="eventflow-record-list" id="eventflow-message-list"></div>
+          <div class="eventflow-communication-preview" id="eventflow-message-detail" hidden><h4 id="eventflow-message-detail-title">Message detail</h4><p id="eventflow-message-detail-recipient"></p><pre id="eventflow-message-detail-content"></pre><button class="button-link" id="eventflow-message-detail-clear" type="button">Clear message detail</button></div>
+        </section>
+      </section>
     </section>
   </main>
 </div>

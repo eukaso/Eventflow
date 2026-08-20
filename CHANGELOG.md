@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-088: added Template, Campaign, audience-review, scheduling/queue, Message inspection, and revision-safe retry workflows.
 - IMP-087: delivered the event-day Reception workspace with least-privilege search, individual and atomic bulk Check-In, and reasoned reversals.
 - IMP-086: added the accessible Event-scoped seating workspace for tables, groups, readiness, manual placement, and review-before-apply recommendations.
 - IMP-085: delivered a mobile-first shortcode guest Invitation and RSVP experience with clean fragment bootstrap, server sessions, CSRF, ETags, and idempotency.
@@ -37,6 +38,7 @@ The project follows Semantic Versioning.
 - Public mobile-first Invitation and RSVP shortcode with fragment-only credential transport, clean-URL bootstrap, party reconciliation, response concurrency, and exact-session logout.
 - Accessible seating workspace with table and group preparation, readiness feedback, manual placement, and explicit recommendation review and application.
 - Event-day Reception search with table/seat context, large controls, idempotent individual and bulk arrival recording, duplicate reconciliation, and reasoned append-only reversals.
+- Event-scoped communication administration for Template lifecycle and text-only previews, Campaign audience review/scheduling/queueing, and protected Message inspection and retry.
 
 ## [1.1.0] - 2026-08-20
 

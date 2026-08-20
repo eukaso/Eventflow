@@ -100,3 +100,12 @@ Package boundaries may be split further, but they may not bypass the API or weak
 - Duplicate and ambiguous outcomes never display a new successful arrival until authoritative search state confirms it.
 - Corrections require a reason and append a reversal instead of removing Check-In history.
 - Persistent labels, keyboard alternatives, live status, 44-pixel controls, and mobile stacking support event-day accessibility.
+
+## 11. IMP-088 communication decisions
+
+- Template and Message bodies are rendered as inert text and cleared when their detail surface or workspace closes.
+- Only published Templates populate Campaign creation; all server lifecycle and compatibility rules remain authoritative.
+- Campaign scheduling and immediate queueing remain disabled until a current audience preview succeeds and exposes its recipient count.
+- Preview failure cannot schedule or send, and delivery-affecting actions require explicit confirmation.
+- Revision-sensitive Template, Campaign, and Message actions read current ETags immediately before mutation and also use cryptographic idempotency keys.
+- Template, Campaign, and Message reads fail independently; filters remain bounded and use only accepted Event-scoped APIs.
