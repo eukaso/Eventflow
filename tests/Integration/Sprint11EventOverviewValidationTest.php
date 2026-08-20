@@ -14,7 +14,11 @@ final class Sprint11EventOverviewValidationTest extends TestCase
         }
         self::assertStringContainsString("method: 'POST'", $script);
         self::assertStringContainsString("'Idempotency-Key': key", $script);
-        self::assertStringNotContainsString("'If-Match'", $script);
+        $lifecycle = strstr($script, 'const transitionEvent =', false);
+        self::assertIsString($lifecycle);
+        $lifecycle = strstr($lifecycle, 'const field =', true);
+        self::assertIsString($lifecycle);
+        self::assertStringNotContainsString("'If-Match'", $lifecycle);
     }
 
     public function testMutationUsesSecureKeysAndReconcilesBeforeRetry(): void

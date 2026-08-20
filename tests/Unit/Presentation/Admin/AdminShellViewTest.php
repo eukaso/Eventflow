@@ -20,6 +20,10 @@ final class AdminShellViewTest extends TestCase
         self::assertStringContainsString('type="button"', $html);
         self::assertStringContainsString('id="eventflow-overview"', $html);
         self::assertStringContainsString('aria-label="Event lifecycle actions"', $html);
+        self::assertStringContainsString('id="eventflow-event-form"', $html);
+        self::assertStringContainsString('id="eventflow-configuration-form"', $html);
+        self::assertStringContainsString('id="eventflow-venue-form"', $html);
+        self::assertStringContainsString('id="eventflow-setup-notice" role="status"', $html);
     }
 
     public function testNonReadyShellContainsNoBusinessDataOrExecutableMarkup(): void

@@ -126,6 +126,97 @@
   margin: 20px 0 0;
 }
 
+.eventflow-setup {
+  border-top: 1px solid var(--ef-border);
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.eventflow-setup__heading,
+.eventflow-setup__columns {
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.eventflow-setup__heading h3 {
+  font-size: 1.4rem;
+  margin: 4px 0 12px;
+}
+
+.eventflow-setup__notice {
+  background: #f0f4ff;
+  border-left: 4px solid var(--ef-accent);
+  margin: 0 0 20px;
+  min-height: 1.5em;
+  padding: 10px 12px;
+}
+
+.eventflow-form {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.eventflow-form fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.eventflow-form legend {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.eventflow-form label:not(.eventflow-form__check) {
+  display: block;
+  font-weight: 600;
+  margin: 14px 0 6px;
+}
+
+.eventflow-form input[type='text'],
+.eventflow-form input[type='number'],
+.eventflow-form select,
+.eventflow-form textarea {
+  box-sizing: border-box;
+  max-width: none;
+  width: 100%;
+}
+
+.eventflow-form__check {
+  display: block;
+  margin: 14px 0;
+}
+
+.eventflow-form button[type='submit'] {
+  margin-top: 18px;
+}
+
+.eventflow-venue-create {
+  border-top: 1px solid var(--ef-border);
+  margin-top: 28px;
+  padding-top: 20px;
+}
+
+.eventflow-venue-create summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.eventflow-form--compact {
+  display: grid;
+  gap: 8px 12px;
+  grid-template-columns: minmax(100px, 160px) minmax(180px, 1fr);
+  margin-top: 16px;
+  max-width: 720px;
+}
+
+.eventflow-form--compact label:not(.eventflow-form__check),
+.eventflow-form--compact button[type='submit'] {
+  margin: 0;
+}
+
 @media (max-width: 600px) {
   .eventflow-admin__header {
     align-items: stretch;
@@ -136,6 +227,10 @@
     flex-direction: column;
   }
 
+  .eventflow-setup__columns {
+    flex-direction: column;
+  }
+
   .eventflow-overview__facts {
     grid-template-columns: 1fr;
   }
@@ -143,6 +238,10 @@
   .eventflow-overview__facts dt {
     border-bottom: 0;
     padding-bottom: 0;
+  }
+
+  .eventflow-form--compact {
+    grid-template-columns: 1fr;
   }
 }
 

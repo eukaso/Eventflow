@@ -41,6 +41,71 @@ final readonly class AdminShellView
       </div>
       <dl class="eventflow-overview__facts" id="eventflow-overview-facts"></dl>
       <p class="eventflow-overview__message" id="eventflow-overview-message" role="status"></p>
+      <section class="eventflow-setup" id="eventflow-setup" aria-labelledby="eventflow-setup-title" hidden>
+        <div class="eventflow-setup__heading">
+          <div>
+            <p class="eventflow-admin__eyebrow">Configuration</p>
+            <h3 id="eventflow-setup-title">Event setup</h3>
+          </div>
+          <button class="button-link" id="eventflow-setup-close" type="button">Close setup</button>
+        </div>
+        <p class="eventflow-setup__notice" id="eventflow-setup-notice" role="status"></p>
+        <div class="eventflow-setup__columns">
+          <form class="eventflow-form" id="eventflow-event-form">
+            <fieldset>
+              <legend>Event details</legend>
+              <p class="description">Event details can be changed only while the Event is a draft.</p>
+              <label for="eventflow-event-name">Name</label>
+              <input class="regular-text" id="eventflow-event-name" name="name" maxlength="190" required type="text">
+              <label for="eventflow-event-slug">Slug</label>
+              <input class="regular-text" id="eventflow-event-slug" name="slug" maxlength="190" pattern="[a-z0-9](?:[a-z0-9-]*[a-z0-9])?" required type="text">
+              <label for="eventflow-event-timezone">Timezone</label>
+              <input class="regular-text" id="eventflow-event-timezone" name="timezone" required type="text">
+              <label for="eventflow-event-starts">Starts at</label>
+              <input class="regular-text" id="eventflow-event-starts" name="starts_at" placeholder="2026-09-01T18:00:00-06:00" type="text">
+              <label for="eventflow-event-ends">Ends at</label>
+              <input class="regular-text" id="eventflow-event-ends" name="ends_at" placeholder="2026-09-01T22:00:00-06:00" type="text">
+              <label for="eventflow-event-venue">Venue</label>
+              <select id="eventflow-event-venue" name="venue_id"><option value="">No venue selected</option></select>
+              <button class="button button-primary" type="submit">Save Event details</button>
+            </fieldset>
+          </form>
+          <form class="eventflow-form" id="eventflow-configuration-form">
+            <fieldset>
+              <legend>Guest and seating settings</legend>
+              <label for="eventflow-welcome-message">Welcome message</label>
+              <textarea class="large-text" id="eventflow-welcome-message" name="welcome_message" rows="4"></textarea>
+              <label for="eventflow-confirmation-message">Confirmation message</label>
+              <textarea class="large-text" id="eventflow-confirmation-message" name="confirmation_message" rows="4"></textarea>
+              <label for="eventflow-dress-code">Dress code</label>
+              <input class="regular-text" id="eventflow-dress-code" name="dress_code" maxlength="255" type="text">
+              <label for="eventflow-confirmation-opens">RSVP opens</label>
+              <input class="regular-text" id="eventflow-confirmation-opens" name="confirmation_opens_at" placeholder="2026-07-01T09:00:00-06:00" type="text">
+              <label for="eventflow-confirmation-closes">RSVP closes</label>
+              <input class="regular-text" id="eventflow-confirmation-closes" name="confirmation_closes_at" placeholder="2026-08-15T23:59:00-06:00" type="text">
+              <label for="eventflow-seating-mode">Seating mode</label>
+              <select id="eventflow-seating-mode" name="seating_mode"><option value="table">Table</option><option value="seat">Assigned seat</option></select>
+              <label class="eventflow-form__check"><input id="eventflow-guest-edits" name="allow_guest_edits" type="checkbox"> Allow guests to edit responses</label>
+              <label class="eventflow-form__check"><input id="eventflow-automatic-seating" name="automatic_seating_enabled" type="checkbox"> Enable assisted seating</label>
+              <button class="button button-primary" type="submit">Save guest settings</button>
+            </fieldset>
+          </form>
+        </div>
+        <details class="eventflow-venue-create">
+          <summary>Add a venue</summary>
+          <form class="eventflow-form eventflow-form--compact" id="eventflow-venue-form">
+            <label for="eventflow-venue-name">Venue name</label>
+            <input class="regular-text" id="eventflow-venue-name" name="name" maxlength="190" required type="text">
+            <label for="eventflow-venue-city">City</label>
+            <input class="regular-text" id="eventflow-venue-city" name="city" maxlength="120" type="text">
+            <label for="eventflow-venue-country">Country code</label>
+            <input id="eventflow-venue-country" name="country_code" maxlength="2" pattern="[A-Za-z]{2}" size="4" type="text">
+            <label for="eventflow-venue-capacity">Default capacity</label>
+            <input id="eventflow-venue-capacity" min="1" name="default_capacity" type="number">
+            <button class="button button-secondary" type="submit">Create venue</button>
+          </form>
+        </details>
+      </section>
     </section>
   </main>
 </div>
