@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-085: delivered a mobile-first shortcode guest Invitation and RSVP experience with clean fragment bootstrap, server sessions, CSRF, ETags, and idempotency.
 - IMP-084: added Event-scoped Membership, Invitation, and Attendee administration with revision-safe Invitation edits and ephemeral return-once credential handling.
 - IMP-083: delivered revision-safe Event setup, Event-configuration, Venue creation, and Venue assignment workflows in the WordPress admin UI.
 - IMP-082: added an accessible organizer Event overview with idempotent, server-authorized lifecycle controls and authoritative state refresh.
@@ -31,6 +32,7 @@ The project follows Semantic Versioning.
 - Organizer Event detail navigation and status-aware activate, complete, cancel, archive, and restore controls with CSPRNG idempotency and post-mutation reconciliation.
 - Revision-safe draft Event and guest/seating configuration forms plus server-authorized Venue discovery, creation, and assignment.
 - Event-scoped people administration for Membership grants/transitions, Invitation creation/profile/credential lifecycle, and Attendee creation/transitions with isolated access failures.
+- Public mobile-first Invitation and RSVP shortcode with fragment-only credential transport, clean-URL bootstrap, party reconciliation, response concurrency, and exact-session logout.
 
 ## [1.1.0] - 2026-08-20
 

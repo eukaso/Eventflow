@@ -1,0 +1,91 @@
+<?php
+
+namespace EventFlow\Tests\Integration;
+
+use PHPUnit\Framework\TestCase;
+
+final class Sprint11GuestExperienceValidationTest extends TestCase
+{
+    public function testCredentialComesOnlyFromFragmentAndHistoryIsCleanedBeforeBootstrap(): void
+    {
+        $script = $this->source('assets/guest/eventflow-guest.js');
+        self::assertStringContainsString('window.location.hash', $script);
+        self::assertStringContainsString("parameters.get('eventflow-invitation')", $script);
+        self::assertStringContainsString('window.history.replaceState', $script);
+        self::assertStringContainsString('/^[a-f0-9]{64}$/', $script);
+        $clean = strpos($script, 'const invitationCredential = cleanCredentialFragment()');
+        $bootstrap = strpos($script, 'if (invitationCredential) await bootstrap(invitationCredential)');
+        self::assertIsInt($clean);
+        self::assertIsInt($bootstrap);
+        self::assertLessThan($bootstrap, $clean);
+        self::assertStringNotContainsString("searchParams.get('eventflow", $script);
+    }
+
+    public function testGuestSecretsRemainOutOfStorageCookiesAndLocalizedConfiguration(): void
+    {
+        $script = $this->source('assets/guest/eventflow-guest.js');
+        foreach (['localStorage', 'sessionStorage', 'document.cookie', 'console.', 'location.href =', 'location.search ='] as $forbidden) {
+            self::assertStringNotContainsString($forbidden, $script);
+        }
+        $hooks = $this->source('src/Presentation/WordPress/WordPressGuestHooks.php');
+        foreach (['credential', 'csrf', 'sessionToken', 'nonce'] as $forbidden) {
+            self::assertStringNotContainsString($forbidden, $hooks);
+        }
+        foreach (['restUrl', 'version', 'bootstrapState', 'ready'] as $allowed) {
+            self::assertStringContainsString($allowed, $hooks);
+        }
+    }
+
+    public function testRsvpMutationCarriesEveryAcceptedSecurityPrecondition(): void
+    {
+        $script = $this->source('assets/guest/eventflow-guest.js');
+        foreach (["method: 'PUT'", "'Idempotency-Key': idempotencyKey()", "'If-Match': responseEtag", "'X-EventFlow-CSRF': csrfToken", "credentials: 'same-origin'", "cache: 'no-store'"] as $expected) {
+            self::assertStringContainsString($expected, $script);
+        }
+        self::assertStringContainsString('window.crypto.getRandomValues', $script);
+        self::assertStringNotContainsString('Math.random', $script);
+    }
+
+    public function testRsvpPayloadPreservesIdentityCapacityAndDeclineRules(): void
+    {
+        $script = $this->source('assets/guest/eventflow-guest.js');
+        foreach (['attendee_id:', 'display_name:', 'role:', 'email:', 'phone:', 'dietary_requirements:', 'accessibility_requirements:'] as $field) {
+            self::assertStringContainsString($field, $script);
+        }
+        self::assertStringContainsString("responseStatus === 'accepted' ? attendeePayload() : []", $script);
+        self::assertStringContainsString('attendeeList.children.length >= Number(invitationContext?.capacity || 1)', $script);
+        self::assertStringContainsString("attendeeRow({ display_name: context.primary_name }, 'primary')", $script);
+    }
+
+    public function testPublicRenderingIsAccessibleAndNeverParsesApiContentAsHtml(): void
+    {
+        $script = $this->source('assets/guest/eventflow-guest.js');
+        self::assertStringContainsString('textContent', $script);
+        foreach (['innerHTML', 'insertAdjacentHTML', 'document.write', 'eval('] as $forbidden) {
+            self::assertStringNotContainsString($forbidden, $script);
+        }
+        $view = $this->source('src/Presentation/Guest/GuestShellView.php');
+        foreach (['aria-busy="true"', 'role="status"', 'Will you attend?', 'Your party'] as $expected) {
+            self::assertStringContainsString($expected, $view);
+        }
+    }
+
+    public function testShortcodeAndAssetsAreComposedFromApplicationBootstrap(): void
+    {
+        $hooks = $this->source('src/Presentation/WordPress/WordPressGuestHooks.php');
+        self::assertStringContainsString("SHORTCODE = 'eventflow_rsvp'", $hooks);
+        self::assertStringContainsString('add_shortcode', $hooks);
+        self::assertStringContainsString('assets/guest/eventflow-guest.js', $hooks);
+        self::assertStringContainsString('assets/guest/eventflow-guest.css', $hooks);
+        $bootstrap = $this->source('src/Bootstrap/ApplicationBootstrap.php');
+        self::assertStringContainsString('new WordPressGuestHooks(', $bootstrap);
+        self::assertStringContainsString('new GuestShellView()', $bootstrap);
+    }
+
+    private function source(string $path): string
+    {
+        $source = file_get_contents(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path));
+        self::assertIsString($source, $path);
+        return $source;
+    }
+}

@@ -28,6 +28,7 @@ The target experience families are:
 - No secrets, reusable guest credentials, raw logs, or unnecessary PII are embedded into page markup or localized script configuration.
 - Mutable-resource screens retain ETags and send `If-Match`; retry-sensitive commands retain `Idempotency-Key`.
 - A non-ready bootstrap state renders a bounded recovery notice and does not request protected Event data.
+- Guest links place the bootstrap credential in the URL fragment; the browser removes it before credential exchange and retains CSRF material only in memory.
 
 ## 3. Navigation model
 

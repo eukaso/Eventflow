@@ -15,6 +15,12 @@ namespace {
             return 'toplevel_page_eventflow';
         }
     }
+    if (!function_exists('add_shortcode')) {
+        function add_shortcode(string $tag, callable $callback): void
+        {
+            $GLOBALS['eventflow_test_admin_shortcode'] = compact('tag', 'callback');
+        }
+    }
     if (!function_exists('plugin_dir_url')) {
         function plugin_dir_url(string $file): string { return 'https://eventflow.test/plugins/eventflow/'; }
     }
@@ -45,7 +51,8 @@ namespace {
 namespace EventFlow\Tests\Unit\Presentation\WordPress {
     use EventFlow\Bootstrap\{BootstrapResult, BootstrapState};
     use EventFlow\Presentation\Admin\AdminShellView;
-    use EventFlow\Presentation\WordPress\WordPressAdminHooks;
+    use EventFlow\Presentation\Guest\GuestShellView;
+    use EventFlow\Presentation\WordPress\{WordPressAdminHooks, WordPressGuestHooks};
     use PHPUnit\Framework\TestCase;
 
     final class WordPressAdminHooksTest extends TestCase
@@ -99,6 +106,29 @@ namespace EventFlow\Tests\Unit\Presentation\WordPress {
             self::assertIsString($html);
             self::assertStringContainsString('id="eventflow-admin"', $html);
             self::assertStringNotContainsString('<script', $html);
+        }
+
+        public function testGuestShortcodeEnqueuesOnlyPublicAssetsAndNonSensitiveConfig(): void
+        {
+            $hooks = new WordPressGuestHooks(
+                new GuestShellView(),
+                '/plugins/eventflow/eventflow.php',
+                '1.2.0-dev',
+                new BootstrapResult(BootstrapState::READY, true, true, []),
+            );
+            $hooks->register();
+            self::assertSame('eventflow_rsvp', $GLOBALS['eventflow_test_admin_shortcode']['tag']);
+            $html = ($GLOBALS['eventflow_test_admin_shortcode']['callback'])();
+
+            self::assertStringContainsString('id="eventflow-guest"', $html);
+            self::assertSame('https://eventflow.test/plugins/eventflow/assets/guest/eventflow-guest.css', $GLOBALS['eventflow_test_admin_style'][1]);
+            self::assertSame('https://eventflow.test/plugins/eventflow/assets/guest/eventflow-guest.js', $GLOBALS['eventflow_test_admin_script'][1]);
+            self::assertSame([
+                'restUrl' => 'https://eventflow.test/wp-json/eventflow/v1/',
+                'version' => '1.2.0-dev',
+                'bootstrapState' => 'ready',
+                'ready' => true,
+            ], $GLOBALS['eventflow_test_admin_config'][2]);
         }
 
         private function hooks(): WordPressAdminHooks

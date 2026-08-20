@@ -16,7 +16,8 @@ use EventFlow\Presentation\Api\{AuditController, AuditPresenter, AuditRequestMap
 use EventFlow\Presentation\Api\{DiagnosticController, DiagnosticPresenter, DiagnosticRequestMapper, DiagnosticRouteRegistrar};
 use EventFlow\Infrastructure\Import\HardenedImportUploadGuard;
 use EventFlow\Presentation\Admin\AdminShellView;
-use EventFlow\Presentation\WordPress\{WordPressAdminHooks, WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
+use EventFlow\Presentation\Guest\GuestShellView;
+use EventFlow\Presentation\WordPress\{WordPressAdminHooks, WordPressGuestHooks, WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
 final class ApplicationBootstrap
@@ -380,6 +381,12 @@ final class ApplicationBootstrap
 
         (new WordPressAdminHooks(
             new AdminShellView(),
+            (string) EVENTFLOW_PLUGIN_FILE,
+            (string) EVENTFLOW_VERSION,
+            $bootstrap,
+        ))->register();
+        (new WordPressGuestHooks(
+            new GuestShellView(),
             (string) EVENTFLOW_PLUGIN_FILE,
             (string) EVENTFLOW_VERSION,
             $bootstrap,
