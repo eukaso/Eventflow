@@ -109,3 +109,13 @@ Package boundaries may be split further, but they may not bypass the API or weak
 - Preview failure cannot schedule or send, and delivery-affecting actions require explicit confirmation.
 - Revision-sensitive Template, Campaign, and Message actions read current ETags immediately before mutation and also use cryptographic idempotency keys.
 - Template, Campaign, and Message reads fail independently; filters remain bounded and use only accepted Event-scoped APIs.
+
+## 12. IMP-089 data and governance decisions
+
+- Import accepts only browser file parameters through multipart upload; it never accepts or displays server paths.
+- Mapping validation, dry-run review, and a separate confirmed apply command precede Import mutation; revision-sensitive commands use fresh ETags.
+- Export requires a purpose, calls out PII, confirms PII requests, and downloads only through authenticated private no-store delivery.
+- Privacy Actions require explicit irreversible-action confirmation; retention holds and release remain separate audited commands.
+- Audit history is bounded and text-only, while integrity verification is an explicit action with a non-color status result.
+- Diagnostics are loaded only on demand from the sanitized endpoint; raw logs are outside the UI contract.
+- Import, Export, Privacy, Audit, and diagnostic authorization failures remain isolated by domain.

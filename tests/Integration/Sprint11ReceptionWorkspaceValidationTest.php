@@ -13,7 +13,11 @@ final class Sprint11ReceptionWorkspaceValidationTest extends TestCase
             self::assertStringContainsString($route, $script);
         }
         foreach (['primary_email', 'primary_phone', 'dietary_requirements', 'accessibility_requirements', 'wp_eventflow_'] as $forbidden) {
-            $receptionSource = substr($script, strpos($script, 'const receptionEventPath'));
+            $start = strpos($script, 'const receptionEventPath');
+            $end = strpos($script, 'const communicationEventPath');
+            self::assertIsInt($start);
+            self::assertIsInt($end);
+            $receptionSource = substr($script, $start, $end - $start);
             self::assertStringNotContainsString($forbidden, $receptionSource);
         }
     }

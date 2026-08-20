@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-089: delivered isolated Import, Export, Privacy, Audit, and sanitized diagnostic administration in the WordPress UI.
 - IMP-088: added Template, Campaign, audience-review, scheduling/queue, Message inspection, and revision-safe retry workflows.
 - IMP-087: delivered the event-day Reception workspace with least-privilege search, individual and atomic bulk Check-In, and reasoned reversals.
 - IMP-086: added the accessible Event-scoped seating workspace for tables, groups, readiness, manual placement, and review-before-apply recommendations.
@@ -39,6 +40,7 @@ The project follows Semantic Versioning.
 - Accessible seating workspace with table and group preparation, readiness feedback, manual placement, and explicit recommendation review and application.
 - Event-day Reception search with table/seat context, large controls, idempotent individual and bulk arrival recording, duplicate reconciliation, and reasoned append-only reversals.
 - Event-scoped communication administration for Template lifecycle and text-only previews, Campaign audience review/scheduling/queueing, and protected Message inspection and retry.
+- Isolated data/governance administration for hardened Import staging and apply, purpose-bound Export delivery, Privacy Actions and holds, Audit integrity, and sanitized diagnostics.
 
 ## [1.1.0] - 2026-08-20
 

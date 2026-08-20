@@ -82,6 +82,32 @@
   const messageDetailRecipient = document.getElementById('eventflow-message-detail-recipient');
   const messageDetailContent = document.getElementById('eventflow-message-detail-content');
   const messageDetailClear = document.getElementById('eventflow-message-detail-clear');
+  const governance = document.getElementById('eventflow-governance');
+  const governanceClose = document.getElementById('eventflow-governance-close');
+  const governanceNotice = document.getElementById('eventflow-governance-notice');
+  const governanceTabs = ['imports', 'exports', 'privacy', 'audit', 'diagnostics'];
+  const importForm = document.getElementById('eventflow-import-form');
+  const exportForm = document.getElementById('eventflow-export-form');
+  const privacyActionForm = document.getElementById('eventflow-privacy-action-form');
+  const holdForm = document.getElementById('eventflow-hold-form');
+  const auditFilterForm = document.getElementById('eventflow-audit-filter-form');
+  const importList = document.getElementById('eventflow-import-list');
+  const exportList = document.getElementById('eventflow-export-list');
+  const privacyActionList = document.getElementById('eventflow-privacy-action-list');
+  const holdList = document.getElementById('eventflow-hold-list');
+  const auditList = document.getElementById('eventflow-audit-list');
+  const importDetail = document.getElementById('eventflow-import-detail');
+  const importDetailContent = document.getElementById('eventflow-import-detail-content');
+  const importDetailClear = document.getElementById('eventflow-import-detail-clear');
+  const auditIntegrity = document.getElementById('eventflow-audit-integrity');
+  const auditIntegrityResult = document.getElementById('eventflow-audit-integrity-result');
+  const auditDetail = document.getElementById('eventflow-audit-detail');
+  const auditDetailContent = document.getElementById('eventflow-audit-detail-content');
+  const auditDetailClear = document.getElementById('eventflow-audit-detail-clear');
+  const diagnosticsLoad = document.getElementById('eventflow-diagnostics-load');
+  const diagnosticsDetail = document.getElementById('eventflow-diagnostics-detail');
+  const diagnosticsContent = document.getElementById('eventflow-diagnostics-content');
+  const diagnosticsClear = document.getElementById('eventflow-diagnostics-clear');
   const refresh = document.getElementById('eventflow-refresh');
   const bootstrapNotice = document.getElementById('eventflow-bootstrap-notice');
   let activeEvent = null;
@@ -171,6 +197,7 @@
     seating.hidden = true;
     reception.hidden = true;
     communications.hidden = true;
+    governance.hidden = true;
     overviewFacts.hidden = false;
     overviewTitle.textContent = String(event.name || 'Untitled event');
     overviewStatus.textContent = String(event.status || 'unknown');
@@ -216,6 +243,13 @@
     communicationsButton.textContent = 'Communications';
     communicationsButton.addEventListener('click', openCommunications);
     overviewActions.appendChild(communicationsButton);
+
+    const governanceButton = document.createElement('button');
+    governanceButton.className = 'button button-secondary';
+    governanceButton.type = 'button';
+    governanceButton.textContent = 'Data and governance';
+    governanceButton.addEventListener('click', openGovernance);
+    overviewActions.appendChild(governanceButton);
 
     (lifecycleActions[event.status] || []).forEach((action) => {
       const button = document.createElement('button');
@@ -325,6 +359,7 @@
     seating.hidden = true;
     reception.hidden = true;
     communications.hidden = true;
+    governance.hidden = true;
     setup.hidden = false;
     setupNotice.textContent = 'Loading current setup…';
     fillEventForm(activeEvent);
@@ -707,6 +742,7 @@
     seating.hidden = true;
     reception.hidden = true;
     communications.hidden = true;
+    governance.hidden = true;
     overviewFacts.hidden = true;
     people.hidden = false;
     selectPeopleTab('memberships');
@@ -959,6 +995,7 @@
     people.hidden = true;
     reception.hidden = true;
     communications.hidden = true;
+    governance.hidden = true;
     overviewFacts.hidden = true;
     seating.hidden = false;
     renderRecommendation(null);
@@ -1195,6 +1232,7 @@
     overviewFacts.hidden = true;
     reception.hidden = false;
     communications.hidden = true;
+    governance.hidden = true;
     receptionAttendees = [];
     receptionSearchForm.reset();
     receptionResults.replaceChildren();
@@ -1461,6 +1499,7 @@
     reception.hidden = true;
     overviewFacts.hidden = true;
     communications.hidden = false;
+    governance.hidden = true;
     selectCommunicationTab('templates');
     await loadCommunicationData();
   };
@@ -1493,6 +1532,297 @@
       audience: { filter: String(field(campaignForm, 'filter').value).trim(), invitation_ids: ids },
     });
     if (result) { campaignForm.reset(); await loadCommunicationData(); }
+  };
+
+  const governanceEventPath = () => `events/${encodeURIComponent(String(activeEvent.id))}`;
+
+  const clearGovernanceDetails = () => {
+    importDetailContent.textContent = '';
+    importDetail.hidden = true;
+    auditDetailContent.textContent = '';
+    auditDetail.hidden = true;
+    diagnosticsContent.textContent = '';
+    diagnosticsDetail.hidden = true;
+    auditIntegrityResult.replaceChildren();
+  };
+
+  const selectGovernanceTab = (name) => {
+    clearGovernanceDetails();
+    governanceTabs.forEach((candidate) => {
+      const tab = document.getElementById(`eventflow-${candidate}-tab`);
+      const panel = document.getElementById(`eventflow-${candidate}-panel`);
+      const selected = candidate === name;
+      tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+      panel.hidden = !selected;
+    });
+  };
+
+  const governanceMutation = async (path, body, etag = null, method = 'POST') => {
+    governanceNotice.textContent = 'Saving privileged change…';
+    try {
+      const result = await requestJson(path, { method, headers: mutationHeaders(etag), body: JSON.stringify(body) });
+      governanceNotice.textContent = result.payload.meta?.replayed
+        ? 'This protected operation was already accepted. Refreshing authoritative records…'
+        : 'Privileged change accepted. Refreshing authoritative records…';
+      return result;
+    } catch (error) {
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      governanceNotice.textContent = `The privileged change could not be confirmed. Refresh before retrying.${reference}`;
+      return null;
+    }
+  };
+
+  const loadImportRows = async (job) => {
+    clearGovernanceDetails();
+    governanceNotice.textContent = 'Loading bounded Import rows…';
+    try {
+      const { payload } = await requestJson(`${governanceEventPath()}/imports/${encodeURIComponent(String(job.id))}/rows?limit=100`);
+      importDetailContent.textContent = JSON.stringify(payload.data || [], null, 2);
+      importDetail.hidden = false;
+      governanceNotice.textContent = 'Import row review loaded. Raw and normalized values remain protected in this view.';
+    } catch (error) {
+      governanceNotice.textContent = 'Import rows unavailable.';
+    }
+  };
+
+  const importTransition = async (job, action) => {
+    if (action === 'apply' && !window.confirm('Apply this validated Import to the Event?')) return;
+    if (action === 'cancel' && !window.confirm('Cancel this Import job?')) return;
+    const path = `${governanceEventPath()}/imports/${encodeURIComponent(String(job.id))}`;
+    try {
+      const current = await requestJson(path);
+      const result = await governanceMutation(`${path}/${action}`, {}, current.etag);
+      if (result) await loadGovernanceData();
+    } catch (error) {
+      governanceNotice.textContent = 'The latest Import revision could not be loaded. Refresh before retrying.';
+    }
+  };
+
+  const validateImportMapping = async (job, form) => {
+    const mapping = { primary_name: String(field(form, 'primary_name').value).trim() };
+    ['primary_email', 'primary_phone', 'capacity'].forEach((name) => {
+      const source = String(field(form, name).value || '').trim();
+      if (source) mapping[name] = source;
+    });
+    const path = `${governanceEventPath()}/imports/${encodeURIComponent(String(job.id))}`;
+    try {
+      const current = await requestJson(path);
+      const result = await governanceMutation(`${path}/validate`, { mapping }, current.etag);
+      if (result) await loadGovernanceData();
+    } catch (error) {
+      governanceNotice.textContent = 'The latest Import revision could not be loaded. Refresh before validating.';
+    }
+  };
+
+  const renderImports = (jobs) => {
+    importList.replaceChildren();
+    if (!jobs.length) appendText(importList, 'p', 'eventflow-admin__status', 'No Import jobs found.');
+    jobs.forEach((job) => {
+      const { card, actions } = recordCard(
+        String(job.source_filename || `Import ${job.id}`),
+        String(job.status || 'unknown'),
+        [`Rows ${job.total_rows}`, `Valid ${job.valid_rows}`, `Warnings ${job.warning_rows}`, `Invalid ${job.invalid_rows}`, `Revision ${job.revision}`],
+      );
+      actions.appendChild(actionButton('Review rows', () => loadImportRows(job)));
+      if (job.status === 'uploaded' || job.status === 'staged') {
+        const mappingForm = document.createElement('form');
+        mappingForm.className = 'eventflow-import-mapping';
+        ['primary_name', 'primary_email', 'primary_phone', 'capacity'].forEach((name) => {
+          const label = document.createElement('label');
+          const id = `eventflow-import-${job.id}-${name}`;
+          label.htmlFor = id;
+          label.textContent = `${name.replaceAll('_', ' ')} column`;
+          const input = document.createElement('input');
+          input.id = id;
+          input.name = name;
+          input.required = name === 'primary_name';
+          input.type = 'text';
+          mappingForm.append(label, input);
+        });
+        const validateButton = document.createElement('button');
+        validateButton.className = 'button button-secondary';
+        validateButton.type = 'submit';
+        validateButton.textContent = 'Validate mapping';
+        mappingForm.appendChild(validateButton);
+        mappingForm.addEventListener('submit', (submissionEvent) => { submissionEvent.preventDefault(); validateImportMapping(job, mappingForm); });
+        card.appendChild(mappingForm);
+      }
+      if (job.status === 'validated') {
+        actions.appendChild(actionButton('Dry-run result', async () => {
+          try {
+            const { payload } = await requestJson(`${governanceEventPath()}/imports/${encodeURIComponent(String(job.id))}/dry-run`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+            clearGovernanceDetails();
+            importDetailContent.textContent = JSON.stringify(payload.data || {}, null, 2);
+            importDetail.hidden = false;
+            governanceNotice.textContent = 'Dry-run result loaded. No records were applied.';
+          } catch (error) { governanceNotice.textContent = 'Dry-run result unavailable. No records were applied.'; }
+        }));
+        actions.appendChild(actionButton('Apply import', () => importTransition(job, 'apply')));
+      }
+      if (!['completed', 'cancelled'].includes(job.status)) actions.appendChild(actionButton('Cancel', () => importTransition(job, 'cancel'), true));
+      importList.appendChild(card);
+    });
+  };
+
+  const downloadExport = async (record) => {
+    governanceNotice.textContent = 'Authorizing protected Export download…';
+    try {
+      const response = await fetch(`${config.restUrl}${governanceEventPath()}/exports/${encodeURIComponent(String(record.id))}/download`, { credentials: 'same-origin', headers: requestHeaders() });
+      if (!response.ok) throw new Error('download_failed');
+      const blob = await response.blob();
+      const disposition = response.headers.get('Content-Disposition') || '';
+      const matched = disposition.match(/filename="([^"\\/]+)"/);
+      const filename = matched ? matched[1] : `eventflow-export-${record.id}.${record.format}`;
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl;
+      anchor.download = filename;
+      anchor.click();
+      URL.revokeObjectURL(objectUrl);
+      governanceNotice.textContent = 'Protected Export download started.';
+    } catch (error) {
+      governanceNotice.textContent = 'Export download failed. Request a new authorization by trying again.';
+    }
+  };
+
+  const renderExports = (exports) => {
+    exportList.replaceChildren();
+    if (!exports.length) appendText(exportList, 'p', 'eventflow-admin__status', 'No Exports found.');
+    exports.forEach((record) => {
+      const { card, actions } = recordCard(
+        `${record.type} export`, String(record.status || 'unknown'),
+        [String(record.format || ''), record.contains_pii ? 'Contains PII' : 'No PII', record.expires_at ? `Expires ${record.expires_at}` : '', record.artifact_size_bytes ? `${record.artifact_size_bytes} bytes` : ''],
+      );
+      if (record.status === 'ready') actions.appendChild(actionButton('Download', () => downloadExport(record)));
+      exportList.appendChild(card);
+    });
+  };
+
+  const renderPrivacy = (actions, holds) => {
+    privacyActionList.replaceChildren();
+    holdList.replaceChildren();
+    if (!actions.length) appendText(privacyActionList, 'p', 'eventflow-admin__status', 'No Privacy Actions found.');
+    actions.forEach((record) => {
+      const { card } = recordCard(`Invitation ${record.invitation_id}`, String(record.status || 'unknown'), [String(record.request_kind || ''), String(record.checkpoint || ''), String(record.policy_version || '')]);
+      privacyActionList.appendChild(card);
+    });
+    if (!holds.length) appendText(holdList, 'p', 'eventflow-admin__status', 'No retention holds found.');
+    holds.forEach((record) => {
+      const { card, actions: controls } = recordCard(record.invitation_id ? `Invitation ${record.invitation_id}` : 'Event-wide hold', String(record.status || 'unknown'), [String(record.policy_version || ''), String(record.reason || '')]);
+      if (record.status === 'active') controls.appendChild(actionButton('Release hold', async () => {
+        if (!window.confirm('Release this retention hold?')) return;
+        const result = await governanceMutation(`${governanceEventPath()}/retention-holds/${encodeURIComponent(String(record.id))}/release`, {});
+        if (result) await loadGovernanceData();
+      }, true));
+      holdList.appendChild(card);
+    });
+  };
+
+  const showAuditDetail = async (record) => {
+    clearGovernanceDetails();
+    governanceNotice.textContent = 'Loading protected Audit detail…';
+    try {
+      const { payload } = await requestJson(`${governanceEventPath()}/audit/${encodeURIComponent(String(record.id))}`);
+      auditDetailContent.textContent = JSON.stringify(payload.data || {}, null, 2);
+      auditDetail.hidden = false;
+      governanceNotice.textContent = 'Audit detail loaded.';
+    } catch (error) { governanceNotice.textContent = 'Audit detail unavailable.'; }
+  };
+
+  const renderAudit = (entries) => {
+    auditList.replaceChildren();
+    if (!entries.length) appendText(auditList, 'p', 'eventflow-admin__status', 'No Audit records match this filter.');
+    entries.forEach((entry) => {
+      const { card, actions } = recordCard(String(entry.summary || entry.action), String(entry.action || 'unknown'), [String(entry.entity_type || ''), entry.entity_id ? `Entity ${entry.entity_id}` : '', String(entry.source || ''), String(entry.occurred_at || '')]);
+      actions.appendChild(actionButton('View detail', () => showAuditDetail(entry)));
+      auditList.appendChild(card);
+    });
+  };
+
+  const loadAudit = async () => {
+    const query = ['limit=100'];
+    const action = nullableText(auditFilterForm, 'action');
+    const entity = nullableText(auditFilterForm, 'entity_type');
+    if (action) query.push(`action=${encodeURIComponent(action)}`);
+    if (entity) query.push(`entity_type=${encodeURIComponent(entity)}`);
+    const { payload } = await requestJson(`${governanceEventPath()}/audit?${query.join('&')}`);
+    renderAudit(payload.data || []);
+  };
+
+  const loadGovernanceData = async () => {
+    if (!activeEvent) return;
+    clearGovernanceDetails();
+    governanceNotice.textContent = 'Loading privileged data domains…';
+    const [imports, exports, privacyActions, holds, audit] = await Promise.allSettled([
+      requestJson(`${governanceEventPath()}/imports?limit=100`),
+      requestJson(`${governanceEventPath()}/exports?limit=100`),
+      requestJson(`${governanceEventPath()}/privacy-actions?limit=100`),
+      requestJson(`${governanceEventPath()}/retention-holds?limit=100`),
+      requestJson(`${governanceEventPath()}/audit?limit=100`),
+    ]);
+    const failures = [];
+    if (imports.status === 'fulfilled') renderImports(imports.value.payload.data || []); else { importList.replaceChildren(); failures.push('Imports unavailable.'); }
+    if (exports.status === 'fulfilled') renderExports(exports.value.payload.data || []); else { exportList.replaceChildren(); failures.push('Exports unavailable.'); }
+    if (privacyActions.status === 'fulfilled' && holds.status === 'fulfilled') renderPrivacy(privacyActions.value.payload.data || [], holds.value.payload.data || []);
+    else { privacyActionList.replaceChildren(); holdList.replaceChildren(); failures.push('Privacy administration unavailable.'); }
+    if (audit.status === 'fulfilled') renderAudit(audit.value.payload.data || []); else { auditList.replaceChildren(); failures.push('Audit unavailable.'); }
+    disableForm(importForm, imports.status !== 'fulfilled');
+    disableForm(exportForm, exports.status !== 'fulfilled');
+    disableForm(privacyActionForm, privacyActions.status !== 'fulfilled');
+    disableForm(holdForm, holds.status !== 'fulfilled');
+    disableForm(auditFilterForm, audit.status !== 'fulfilled');
+    governanceNotice.textContent = failures.join(' ') || 'Privileged data domains loaded.';
+  };
+
+  const openGovernance = async () => {
+    if (!activeEvent) return;
+    clearCredential();
+    clearCommunicationDetails();
+    setup.hidden = true;
+    people.hidden = true;
+    seating.hidden = true;
+    reception.hidden = true;
+    communications.hidden = true;
+    overviewFacts.hidden = true;
+    governance.hidden = false;
+    selectGovernanceTab('imports');
+    await loadGovernanceData();
+  };
+
+  const submitImport = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    governanceNotice.textContent = 'Uploading and staging Import securely…';
+    const body = new FormData(importForm);
+    try {
+      const response = await fetch(`${config.restUrl}${governanceEventPath()}/imports`, { method: 'POST', credentials: 'same-origin', headers: requestHeaders({ 'Idempotency-Key': idempotencyKey() }), body });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.code || 'upload_failed');
+      importForm.reset();
+      await loadGovernanceData();
+      governanceNotice.textContent = 'Import staged. Configure and validate its column mapping before apply.';
+    } catch (error) { governanceNotice.textContent = 'Import upload failed. Verify the file and try again.'; }
+  };
+
+  const submitExport = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    const containsPii = field(exportForm, 'type').value !== 'event_summary';
+    if (containsPii && !window.confirm('Request this PII-containing Export for the stated purpose?')) return;
+    const result = await governanceMutation(`${governanceEventPath()}/exports`, { type: String(field(exportForm, 'type').value), format: String(field(exportForm, 'format').value), purpose: String(field(exportForm, 'purpose').value).trim() });
+    if (result) { exportForm.reset(); await loadGovernanceData(); }
+  };
+
+  const submitPrivacyAction = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    if (!window.confirm('Request this destructive Privacy Action? Processing may be irreversible.')) return;
+    const result = await governanceMutation(`${governanceEventPath()}/privacy-actions`, { invitation_id: Number(field(privacyActionForm, 'invitation_id').value), policy_version: String(field(privacyActionForm, 'policy_version').value).trim(), purpose: String(field(privacyActionForm, 'purpose').value).trim() });
+    if (result) { privacyActionForm.reset(); await loadGovernanceData(); }
+  };
+
+  const submitHold = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    const invitation = String(field(holdForm, 'invitation_id').value || '');
+    const result = await governanceMutation(`${governanceEventPath()}/retention-holds`, { invitation_id: invitation ? Number(invitation) : null, policy_version: String(field(holdForm, 'policy_version').value).trim(), reason: String(field(holdForm, 'reason').value).trim() });
+    if (result) { holdForm.reset(); await loadGovernanceData(); }
   };
 
   const renderEvents = (events) => {
@@ -1540,6 +1870,7 @@
       seating.hidden = true;
       reception.hidden = true;
       communications.hidden = true;
+      governance.hidden = true;
       eventsView.hidden = false;
       renderEvents(Array.isArray(payload.data) ? payload.data : []);
     } catch (error) {
@@ -1585,6 +1916,12 @@
     overviewFacts.hidden = false;
     overviewMessage.textContent = 'Communications workspace closed.';
   });
+  governanceClose.addEventListener('click', () => {
+    clearGovernanceDetails();
+    governance.hidden = true;
+    overviewFacts.hidden = false;
+    overviewMessage.textContent = 'Data and governance workspace closed.';
+  });
   peopleTabs.forEach((name) => {
     document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectPeopleTab(name));
   });
@@ -1628,6 +1965,45 @@
   });
   templatePreviewClear.addEventListener('click', clearCommunicationDetails);
   messageDetailClear.addEventListener('click', clearCommunicationDetails);
+  governanceTabs.forEach((name) => {
+    document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectGovernanceTab(name));
+  });
+  importForm.addEventListener('submit', submitImport);
+  exportForm.addEventListener('submit', submitExport);
+  privacyActionForm.addEventListener('submit', submitPrivacyAction);
+  holdForm.addEventListener('submit', submitHold);
+  auditFilterForm.addEventListener('submit', async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    clearGovernanceDetails();
+    governanceNotice.textContent = 'Filtering Audit history…';
+    try { await loadAudit(); governanceNotice.textContent = 'Audit filter applied.'; }
+    catch (error) { auditList.replaceChildren(); governanceNotice.textContent = 'Audit history could not be filtered.'; }
+  });
+  auditIntegrity.addEventListener('click', async () => {
+    clearGovernanceDetails();
+    governanceNotice.textContent = 'Verifying the pinned Audit chain…';
+    try {
+      const { payload } = await requestJson(`${governanceEventPath()}/audit/integrity`);
+      const report = payload.data || {};
+      appendText(auditIntegrityResult, 'p', report.valid ? 'eventflow-integrity--valid' : 'eventflow-integrity--invalid', report.valid
+        ? `Audit chain verified across ${report.record_count} records.`
+        : `Audit integrity failure: ${report.failure_code || 'unknown'}.`);
+      governanceNotice.textContent = report.valid ? 'Audit integrity verified.' : 'Audit integrity verification failed.';
+    } catch (error) { governanceNotice.textContent = 'Audit integrity could not be verified.'; }
+  });
+  diagnosticsLoad.addEventListener('click', async () => {
+    clearGovernanceDetails();
+    governanceNotice.textContent = 'Loading sanitized diagnostics…';
+    try {
+      const { payload } = await requestJson(`${governanceEventPath()}/diagnostics`);
+      diagnosticsContent.textContent = JSON.stringify(payload.data || {}, null, 2);
+      diagnosticsDetail.hidden = false;
+      governanceNotice.textContent = 'Sanitized diagnostics loaded. Raw logs are not available in this workspace.';
+    } catch (error) { governanceNotice.textContent = 'Diagnostics unavailable for this Event or current role.'; }
+  });
+  importDetailClear.addEventListener('click', clearGovernanceDetails);
+  auditDetailClear.addEventListener('click', clearGovernanceDetails);
+  diagnosticsClear.addEventListener('click', clearGovernanceDetails);
   credentialClear.addEventListener('click', clearCredential);
   credentialCopy.addEventListener('click', async () => {
     try {

@@ -449,6 +449,71 @@
   width: 100%;
 }
 
+.eventflow-governance {
+  border-top: 1px solid var(--ef-border);
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.eventflow-governance__tabs {
+  flex-wrap: wrap;
+}
+
+.eventflow-governance__detail,
+.eventflow-governance__integrity {
+  background: #f7f8fb;
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  margin: 20px 0;
+  padding: 16px;
+}
+
+.eventflow-governance__detail pre {
+  background: var(--ef-surface);
+  border: 1px solid var(--ef-border);
+  max-height: 420px;
+  overflow: auto;
+  padding: 12px;
+  white-space: pre-wrap;
+}
+
+.eventflow-governance__integrity:empty {
+  display: none;
+}
+
+.eventflow-integrity--valid,
+.eventflow-integrity--invalid {
+  font-weight: 700;
+  margin: 0;
+}
+
+.eventflow-integrity--valid {
+  border-left: 4px solid #008a20;
+  padding-left: 10px;
+}
+
+.eventflow-integrity--invalid {
+  border-left: 4px solid #d63638;
+  padding-left: 10px;
+}
+
+.eventflow-import-mapping {
+  border-top: 1px solid var(--ef-border);
+  display: grid;
+  gap: 6px 10px;
+  grid-template-columns: minmax(110px, 1fr) minmax(140px, 2fr);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.eventflow-import-mapping label {
+  font-weight: 700;
+}
+
+.eventflow-import-mapping .button {
+  grid-column: 1 / -1;
+}
+
 .eventflow-people__tabs {
   border-bottom: 1px solid var(--ef-border);
   display: flex;
@@ -591,6 +656,14 @@
   }
 
   .eventflow-communication-form__wide {
+    grid-column: auto;
+  }
+
+  .eventflow-import-mapping {
+    grid-template-columns: 1fr;
+  }
+
+  .eventflow-import-mapping .button {
     grid-column: auto;
   }
 }

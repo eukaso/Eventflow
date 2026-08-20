@@ -329,6 +329,47 @@ final readonly class AdminShellView
           <div class="eventflow-communication-preview" id="eventflow-message-detail" hidden><h4 id="eventflow-message-detail-title">Message detail</h4><p id="eventflow-message-detail-recipient"></p><pre id="eventflow-message-detail-content"></pre><button class="button-link" id="eventflow-message-detail-clear" type="button">Clear message detail</button></div>
         </section>
       </section>
+      <section class="eventflow-governance" id="eventflow-governance" aria-labelledby="eventflow-governance-title" hidden>
+        <div class="eventflow-setup__heading"><div><p class="eventflow-admin__eyebrow">Data and governance</p><h3 id="eventflow-governance-title">Imports, exports, privacy, audit, and diagnostics</h3></div><button class="button-link" id="eventflow-governance-close" type="button">Close data workspace</button></div>
+        <p class="eventflow-setup__notice" id="eventflow-governance-notice" role="status"></p>
+        <div class="eventflow-people__tabs eventflow-governance__tabs" role="tablist" aria-label="Data and governance administration">
+          <button aria-controls="eventflow-imports-panel" aria-selected="true" class="button" id="eventflow-imports-tab" role="tab" type="button">Imports</button>
+          <button aria-controls="eventflow-exports-panel" aria-selected="false" class="button" id="eventflow-exports-tab" role="tab" type="button">Exports</button>
+          <button aria-controls="eventflow-privacy-panel" aria-selected="false" class="button" id="eventflow-privacy-tab" role="tab" type="button">Privacy</button>
+          <button aria-controls="eventflow-audit-panel" aria-selected="false" class="button" id="eventflow-audit-tab" role="tab" type="button">Audit</button>
+          <button aria-controls="eventflow-diagnostics-panel" aria-selected="false" class="button" id="eventflow-diagnostics-tab" role="tab" type="button">Diagnostics</button>
+        </div>
+        <section id="eventflow-imports-panel" role="tabpanel" aria-labelledby="eventflow-imports-tab">
+          <form class="eventflow-inline-form" enctype="multipart/form-data" id="eventflow-import-form">
+            <label for="eventflow-import-source">CSV or XLSX source</label><input accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" id="eventflow-import-source" name="source" required type="file">
+            <button class="button button-primary" type="submit">Stage import</button>
+          </form>
+          <div class="eventflow-record-list" id="eventflow-import-list"></div>
+          <div class="eventflow-governance__detail" id="eventflow-import-detail" hidden><h4>Import rows</h4><pre id="eventflow-import-detail-content"></pre><button class="button-link" id="eventflow-import-detail-clear" type="button">Clear import detail</button></div>
+        </section>
+        <section id="eventflow-exports-panel" role="tabpanel" aria-labelledby="eventflow-exports-tab" hidden>
+          <form class="eventflow-inline-form" id="eventflow-export-form">
+            <label for="eventflow-export-type">Export type</label><select id="eventflow-export-type" name="type"><option value="event_summary">Event summary</option><option value="attendees">Attendees</option><option value="invitations">Invitations</option><option value="check_ins">Check-ins</option></select>
+            <label for="eventflow-export-format">Format</label><select id="eventflow-export-format" name="format"><option value="csv">CSV</option><option value="jsonl">JSON Lines</option></select>
+            <label for="eventflow-export-purpose">Purpose</label><input id="eventflow-export-purpose" maxlength="500" name="purpose" required type="text">
+            <button class="button button-primary" type="submit">Request export</button>
+          </form>
+          <div class="eventflow-record-list" id="eventflow-export-list"></div>
+        </section>
+        <section id="eventflow-privacy-panel" role="tabpanel" aria-labelledby="eventflow-privacy-tab" hidden>
+          <div class="eventflow-seating__columns">
+            <form class="eventflow-communication-form" id="eventflow-privacy-action-form"><h4 class="eventflow-communication-form__wide">Request privacy action</h4><label for="eventflow-privacy-invitation">Invitation ID</label><input id="eventflow-privacy-invitation" min="1" name="invitation_id" required type="number"><label for="eventflow-privacy-policy">Policy version</label><input id="eventflow-privacy-policy" name="policy_version" required type="text"><label class="eventflow-communication-form__wide" for="eventflow-privacy-purpose">Purpose</label><input class="eventflow-communication-form__wide" id="eventflow-privacy-purpose" maxlength="500" name="purpose" required type="text"><button class="button button-primary" type="submit">Request privacy action</button></form>
+            <form class="eventflow-communication-form" id="eventflow-hold-form"><h4 class="eventflow-communication-form__wide">Place retention hold</h4><label for="eventflow-hold-invitation">Invitation ID</label><input id="eventflow-hold-invitation" min="1" name="invitation_id" placeholder="Optional Event-wide hold" type="number"><label for="eventflow-hold-policy">Policy version</label><input id="eventflow-hold-policy" name="policy_version" required type="text"><label class="eventflow-communication-form__wide" for="eventflow-hold-reason">Reason</label><input class="eventflow-communication-form__wide" id="eventflow-hold-reason" maxlength="500" name="reason" required type="text"><button class="button button-primary" type="submit">Place retention hold</button></form>
+          </div>
+          <div class="eventflow-seating__columns"><div><h4>Privacy actions</h4><div class="eventflow-record-list" id="eventflow-privacy-action-list"></div></div><div><h4>Retention holds</h4><div class="eventflow-record-list" id="eventflow-hold-list"></div></div></div>
+        </section>
+        <section id="eventflow-audit-panel" role="tabpanel" aria-labelledby="eventflow-audit-tab" hidden>
+          <form class="eventflow-inline-form" id="eventflow-audit-filter-form"><label for="eventflow-audit-action">Action</label><input id="eventflow-audit-action" name="action" type="text"><label for="eventflow-audit-entity">Entity type</label><input id="eventflow-audit-entity" name="entity_type" type="text"><button class="button button-secondary" type="submit">Filter audit history</button><button class="button button-secondary" id="eventflow-audit-integrity" type="button">Verify audit chain</button></form>
+          <div class="eventflow-governance__integrity" id="eventflow-audit-integrity-result"></div><div class="eventflow-record-list" id="eventflow-audit-list"></div>
+          <div class="eventflow-governance__detail" id="eventflow-audit-detail" hidden><h4>Audit detail</h4><pre id="eventflow-audit-detail-content"></pre><button class="button-link" id="eventflow-audit-detail-clear" type="button">Clear audit detail</button></div>
+        </section>
+        <section id="eventflow-diagnostics-panel" role="tabpanel" aria-labelledby="eventflow-diagnostics-tab" hidden><p>Diagnostics are sanitized by the server and never include raw logs.</p><button class="button button-secondary" id="eventflow-diagnostics-load" type="button">Load sanitized diagnostics</button><div class="eventflow-governance__detail" id="eventflow-diagnostics-detail" hidden><h4>Diagnostic bundle</h4><pre id="eventflow-diagnostics-content"></pre><button class="button-link" id="eventflow-diagnostics-clear" type="button">Clear diagnostics</button></div></section>
+      </section>
     </section>
   </main>
 </div>
