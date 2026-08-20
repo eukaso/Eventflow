@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-087: delivered the event-day Reception workspace with least-privilege search, individual and atomic bulk Check-In, and reasoned reversals.
 - IMP-086: added the accessible Event-scoped seating workspace for tables, groups, readiness, manual placement, and review-before-apply recommendations.
 - IMP-085: delivered a mobile-first shortcode guest Invitation and RSVP experience with clean fragment bootstrap, server sessions, CSRF, ETags, and idempotency.
 - IMP-084: added Event-scoped Membership, Invitation, and Attendee administration with revision-safe Invitation edits and ephemeral return-once credential handling.
@@ -35,6 +36,7 @@ The project follows Semantic Versioning.
 - Event-scoped people administration for Membership grants/transitions, Invitation creation/profile/credential lifecycle, and Attendee creation/transitions with isolated access failures.
 - Public mobile-first Invitation and RSVP shortcode with fragment-only credential transport, clean-URL bootstrap, party reconciliation, response concurrency, and exact-session logout.
 - Accessible seating workspace with table and group preparation, readiness feedback, manual placement, and explicit recommendation review and application.
+- Event-day Reception search with table/seat context, large controls, idempotent individual and bulk arrival recording, duplicate reconciliation, and reasoned append-only reversals.
 
 ## [1.1.0] - 2026-08-20
 

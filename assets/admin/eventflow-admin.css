@@ -277,6 +277,109 @@
   display: none;
 }
 
+.eventflow-reception {
+  border-top: 1px solid var(--ef-border);
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.eventflow-reception__search {
+  align-items: end;
+  background: #f7f8fb;
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(200px, 2fr) minmax(120px, 1fr) minmax(180px, 2fr) auto;
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.eventflow-reception__search label,
+.eventflow-reception-card__reversal label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.eventflow-reception__search input,
+.eventflow-reception-card__reversal input {
+  box-sizing: border-box;
+  min-height: 44px;
+  width: 100%;
+}
+
+.eventflow-reception__primary {
+  min-height: 44px !important;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+}
+
+.eventflow-reception__bulk {
+  align-items: center;
+  background: #f0f4ff;
+  border-left: 4px solid var(--ef-accent);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+}
+
+.eventflow-reception__bulk p {
+  font-weight: 700;
+  margin: 0;
+}
+
+.eventflow-reception__results {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.eventflow-reception__results > h4,
+.eventflow-reception__results > .eventflow-admin__status {
+  grid-column: 1 / -1;
+}
+
+.eventflow-reception-card {
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.eventflow-reception-card__name {
+  font-size: 1.15rem;
+  margin: 6px 0;
+}
+
+.eventflow-reception-card__select {
+  display: block;
+  font-weight: 700;
+  margin: 12px 0;
+  min-height: 32px;
+}
+
+.eventflow-reception-card__select input {
+  height: 22px;
+  width: 22px;
+}
+
+.eventflow-reception-card > .button,
+.eventflow-reception-card__reversal .button {
+  min-height: 44px;
+}
+
+.eventflow-reception-card__reversal {
+  border-top: 1px solid var(--ef-border);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.eventflow-reception-card__reversal .button {
+  margin-top: 8px;
+}
+
 .eventflow-people__tabs {
   border-bottom: 1px solid var(--ef-border);
   display: flex;
@@ -402,6 +505,15 @@
   .eventflow-seating__columns,
   .eventflow-inline-form--seating {
     grid-template-columns: 1fr;
+  }
+
+  .eventflow-reception__search {
+    grid-template-columns: 1fr;
+  }
+
+  .eventflow-reception__bulk {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 

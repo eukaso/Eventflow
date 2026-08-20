@@ -91,3 +91,12 @@ Package boundaries may be split further, but they may not bypass the API or weak
 - Readiness controls whether the browser offers recommendation generation; the server remains authoritative.
 - Generated recommendations are review artifacts and require a separate, confirmed apply command.
 - Seating mutations use cryptographic idempotency keys, while accepted APIs retain all capacity, constraint, scope, transaction, and audit enforcement.
+
+## 10. IMP-087 reception decisions
+
+- Reception uses the least-privilege EventFlow projection: attendee identity, confirmation, table/seat, and effective Check-In state only.
+- Search is explicit, local, Event-scoped, and independent of messaging-provider availability.
+- Individual and multi-select arrival controls use the accepted idempotent commands; multi-select is one atomic bulk request.
+- Duplicate and ambiguous outcomes never display a new successful arrival until authoritative search state confirms it.
+- Corrections require a reason and append a reversal instead of removing Check-In history.
+- Persistent labels, keyboard alternatives, live status, 44-pixel controls, and mobile stacking support event-day accessibility.

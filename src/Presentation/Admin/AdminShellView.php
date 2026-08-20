@@ -244,6 +244,39 @@ final readonly class AdminShellView
           <div id="eventflow-recommendation-result"></div>
         </section>
       </section>
+      <section class="eventflow-reception" id="eventflow-reception" aria-labelledby="eventflow-reception-title" hidden>
+        <div class="eventflow-setup__heading">
+          <div>
+            <p class="eventflow-admin__eyebrow">Event day</p>
+            <h3 id="eventflow-reception-title">Reception and check-in</h3>
+          </div>
+          <button class="button-link" id="eventflow-reception-close" type="button">Close reception workspace</button>
+        </div>
+        <p class="eventflow-setup__notice" id="eventflow-reception-notice" role="status"></p>
+        <form class="eventflow-reception__search" id="eventflow-reception-search-form" role="search">
+          <div>
+            <label for="eventflow-reception-query">Guest or companion name</label>
+            <input id="eventflow-reception-query" maxlength="190" minlength="2" name="q" required type="search">
+          </div>
+          <div>
+            <label for="eventflow-reception-station">Station ID</label>
+            <input id="eventflow-reception-station" min="1" name="station_id" placeholder="Optional" type="number">
+          </div>
+          <div>
+            <label for="eventflow-reception-notes">Arrival notes</label>
+            <input id="eventflow-reception-notes" maxlength="2000" name="notes" placeholder="Optional" type="text">
+          </div>
+          <button class="button button-primary eventflow-reception__primary" type="submit">Search attendees</button>
+        </form>
+        <div class="eventflow-reception__bulk" id="eventflow-reception-bulk" hidden>
+          <p id="eventflow-reception-selection">No attendees selected.</p>
+          <button class="button button-primary eventflow-reception__primary" id="eventflow-reception-bulk-checkin" type="button">Check in selected</button>
+        </div>
+        <div class="eventflow-reception__results" id="eventflow-reception-results" aria-labelledby="eventflow-reception-results-title">
+          <h4 id="eventflow-reception-results-title">Search results</h4>
+          <p class="eventflow-admin__status">Search for a guest to begin reception.</p>
+        </div>
+      </section>
     </section>
   </main>
 </div>

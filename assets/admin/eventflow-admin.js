@@ -54,6 +54,14 @@
   const placementTable = document.getElementById('eventflow-placement-table');
   const placementSeat = document.getElementById('eventflow-placement-seat');
   const recommendationResult = document.getElementById('eventflow-recommendation-result');
+  const reception = document.getElementById('eventflow-reception');
+  const receptionClose = document.getElementById('eventflow-reception-close');
+  const receptionNotice = document.getElementById('eventflow-reception-notice');
+  const receptionSearchForm = document.getElementById('eventflow-reception-search-form');
+  const receptionResults = document.getElementById('eventflow-reception-results');
+  const receptionBulk = document.getElementById('eventflow-reception-bulk');
+  const receptionSelection = document.getElementById('eventflow-reception-selection');
+  const receptionBulkCheckIn = document.getElementById('eventflow-reception-bulk-checkin');
   const refresh = document.getElementById('eventflow-refresh');
   const bootstrapNotice = document.getElementById('eventflow-bootstrap-notice');
   let activeEvent = null;
@@ -64,6 +72,7 @@
   let editingInvitationEtag = null;
   let seatingTables = [];
   let seatingRecommendation = null;
+  let receptionAttendees = [];
 
   const setStatus = (message, busy = false) => {
     status.textContent = message;
@@ -139,6 +148,7 @@
     setup.hidden = true;
     people.hidden = true;
     seating.hidden = true;
+    reception.hidden = true;
     overviewFacts.hidden = false;
     overviewTitle.textContent = String(event.name || 'Untitled event');
     overviewStatus.textContent = String(event.status || 'unknown');
@@ -170,6 +180,13 @@
     seatingButton.textContent = 'Plan seating';
     seatingButton.addEventListener('click', openSeating);
     overviewActions.appendChild(seatingButton);
+
+    const receptionButton = document.createElement('button');
+    receptionButton.className = 'button button-primary';
+    receptionButton.type = 'button';
+    receptionButton.textContent = 'Open reception';
+    receptionButton.addEventListener('click', openReception);
+    overviewActions.appendChild(receptionButton);
 
     (lifecycleActions[event.status] || []).forEach((action) => {
       const button = document.createElement('button');
@@ -277,6 +294,7 @@
     overviewFacts.hidden = true;
     people.hidden = true;
     seating.hidden = true;
+    reception.hidden = true;
     setup.hidden = false;
     setupNotice.textContent = 'Loading current setup…';
     fillEventForm(activeEvent);
@@ -657,6 +675,7 @@
     resetInvitationEditor();
     setup.hidden = true;
     seating.hidden = true;
+    reception.hidden = true;
     overviewFacts.hidden = true;
     people.hidden = false;
     selectPeopleTab('memberships');
@@ -907,6 +926,7 @@
     clearCredential();
     setup.hidden = true;
     people.hidden = true;
+    reception.hidden = true;
     overviewFacts.hidden = true;
     seating.hidden = false;
     renderRecommendation(null);
@@ -984,6 +1004,174 @@
     }
   };
 
+  const receptionEventPath = () => `events/${encodeURIComponent(String(activeEvent.id))}`;
+
+  const receptionContext = () => {
+    const stationValue = String(field(receptionSearchForm, 'station_id').value || '');
+    return {
+      stationId: stationValue ? Number(stationValue) : null,
+      notes: nullableText(receptionSearchForm, 'notes'),
+    };
+  };
+
+  const updateReceptionSelection = () => {
+    const selected = receptionResults.querySelectorAll('input[name="reception_attendee"]:checked');
+    receptionBulk.hidden = receptionAttendees.length === 0;
+    receptionSelection.textContent = `${selected.length} attendee${selected.length === 1 ? '' : 's'} selected.`;
+    receptionBulkCheckIn.disabled = selected.length === 0;
+  };
+
+  const refreshReceptionSearch = async () => {
+    const query = String(field(receptionSearchForm, 'q').value || '').trim();
+    if (query.length < 2) return;
+    receptionNotice.textContent = 'Searching local reception records…';
+    disableForm(receptionSearchForm, true);
+    try {
+      const { payload } = await requestJson(`${receptionEventPath()}/reception/attendees?q=${encodeURIComponent(query)}&limit=50`);
+      receptionAttendees = Array.isArray(payload.data) ? payload.data : [];
+      renderReceptionResults(receptionAttendees);
+      receptionNotice.textContent = `${receptionAttendees.length} matching attendee${receptionAttendees.length === 1 ? '' : 's'} found.`;
+    } catch (error) {
+      receptionAttendees = [];
+      receptionResults.replaceChildren();
+      appendText(receptionResults, 'h4', '', 'Search results');
+      appendText(receptionResults, 'p', 'eventflow-admin__status', 'Reception search is temporarily unavailable. Try again without leaving this workspace.');
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      receptionNotice.textContent = `Search failed.${reference}`;
+      updateReceptionSelection();
+    } finally {
+      disableForm(receptionSearchForm, false);
+      field(receptionSearchForm, 'q').focus();
+    }
+  };
+
+  const runReceptionMutation = async (path, body, pendingMessage) => {
+    receptionNotice.textContent = pendingMessage;
+    receptionResults.querySelectorAll('button, input').forEach((control) => { control.disabled = true; });
+    receptionBulkCheckIn.disabled = true;
+    try {
+      const result = await requestJson(path, {
+        method: 'POST',
+        headers: mutationHeaders(),
+        body: JSON.stringify(body),
+      });
+      receptionNotice.textContent = result.payload.meta?.replayed
+        ? 'The protected operation was already recorded. Refreshing current reception state…'
+        : 'Arrival state recorded. Refreshing current reception records…';
+      await refreshReceptionSearch();
+      return true;
+    } catch (error) {
+      const duplicate = error.code === 'attendee_already_checked_in' || error.code === 'checkin_already_reversed';
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      receptionNotice.textContent = duplicate
+        ? `This arrival state was already recorded; no duplicate action was created. Search again to reconcile.${reference}`
+        : `The arrival state could not be confirmed. Search again before retrying.${reference}`;
+      renderReceptionResults(receptionAttendees);
+      return false;
+    }
+  };
+
+  const checkInAttendees = async (attendeeIds) => {
+    if (!attendeeIds.length) return;
+    const context = receptionContext();
+    const bulk = attendeeIds.length > 1;
+    const path = `${receptionEventPath()}/check-ins${bulk ? '/bulk' : ''}`;
+    const body = bulk
+      ? { attendee_ids: attendeeIds, station_id: context.stationId, method: 'search', notes: context.notes }
+      : { attendee_id: attendeeIds[0], station_id: context.stationId, method: 'search', notes: context.notes };
+    await runReceptionMutation(path, body, `Recording ${attendeeIds.length} arrival${attendeeIds.length === 1 ? '' : 's'}…`);
+  };
+
+  const reverseCheckIn = async (attendee, form) => {
+    const reason = String(field(form, 'reason').value || '').trim();
+    if (!reason) {
+      receptionNotice.textContent = 'Enter a correction reason before reversing a check-in.';
+      field(form, 'reason').focus();
+      return;
+    }
+    await runReceptionMutation(
+      `${receptionEventPath()}/check-ins/${encodeURIComponent(String(attendee.active_check_in_id))}/reverse`,
+      { reason },
+      `Reversing the recorded arrival for ${attendee.display_name}…`,
+    );
+  };
+
+  const renderReceptionResults = (attendees) => {
+    receptionResults.replaceChildren();
+    appendText(receptionResults, 'h4', '', 'Search results');
+    if (!attendees.length) {
+      appendText(receptionResults, 'p', 'eventflow-admin__status', 'No matching attendees found. Try another name.');
+      updateReceptionSelection();
+      return;
+    }
+    attendees.forEach((attendee) => {
+      const card = document.createElement('article');
+      card.className = 'eventflow-reception-card';
+      appendText(card, 'p', 'eventflow-event-card__status', attendee.checked_in ? 'Checked in' : String(attendee.attendance_status || 'unknown'));
+      appendText(card, 'h5', 'eventflow-reception-card__name', String(attendee.display_name || 'Unnamed attendee'));
+      appendText(card, 'p', 'eventflow-person-card__facts', attendee.table_name
+        ? `Table ${attendee.table_name}${attendee.seat_label ? ` • Seat ${attendee.seat_label}` : ''}`
+        : 'No table assigned');
+      if (!attendee.checked_in && attendee.attendance_status === 'confirmed') {
+        const selectionLabel = document.createElement('label');
+        selectionLabel.className = 'eventflow-reception-card__select';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = 'reception_attendee';
+        checkbox.value = String(attendee.id);
+        checkbox.addEventListener('change', updateReceptionSelection);
+        selectionLabel.append(checkbox, document.createTextNode(' Select for bulk check-in'));
+        card.appendChild(selectionLabel);
+        card.appendChild(actionButton('Check in now', () => checkInAttendees([Number(attendee.id)])));
+      } else if (attendee.checked_in && attendee.active_check_in_id) {
+        const form = document.createElement('form');
+        form.className = 'eventflow-reception-card__reversal';
+        const label = document.createElement('label');
+        const inputId = `eventflow-reversal-reason-${attendee.id}`;
+        label.htmlFor = inputId;
+        label.textContent = 'Correction reason';
+        const input = document.createElement('input');
+        input.id = inputId;
+        input.maxLength = 500;
+        input.name = 'reason';
+        input.required = true;
+        input.type = 'text';
+        const button = document.createElement('button');
+        button.className = 'button button-secondary';
+        button.type = 'submit';
+        button.textContent = 'Reverse check-in';
+        form.append(label, input, button);
+        form.addEventListener('submit', (submissionEvent) => {
+          submissionEvent.preventDefault();
+          reverseCheckIn(attendee, form);
+        });
+        card.appendChild(form);
+      } else {
+        appendText(card, 'p', 'description', 'This attendee is not currently eligible for check-in.');
+      }
+      receptionResults.appendChild(card);
+    });
+    updateReceptionSelection();
+  };
+
+  const openReception = () => {
+    if (!activeEvent) return;
+    clearCredential();
+    setup.hidden = true;
+    people.hidden = true;
+    seating.hidden = true;
+    overviewFacts.hidden = true;
+    reception.hidden = false;
+    receptionAttendees = [];
+    receptionSearchForm.reset();
+    receptionResults.replaceChildren();
+    appendText(receptionResults, 'h4', '', 'Search results');
+    appendText(receptionResults, 'p', 'eventflow-admin__status', 'Search for a guest to begin reception.');
+    receptionBulk.hidden = true;
+    receptionNotice.textContent = 'Reception is ready. Search uses EventFlow records and does not depend on messaging providers.';
+    field(receptionSearchForm, 'q').focus();
+  };
+
   const renderEvents = (events) => {
     list.replaceChildren();
     if (!events.length) {
@@ -1027,6 +1215,7 @@
       activeConfigurationEtag = null;
       overview.hidden = true;
       seating.hidden = true;
+      reception.hidden = true;
       eventsView.hidden = false;
       renderEvents(Array.isArray(payload.data) ? payload.data : []);
     } catch (error) {
@@ -1060,6 +1249,12 @@
     overviewFacts.hidden = false;
     overviewMessage.textContent = 'Seating workspace closed.';
   });
+  receptionClose.addEventListener('click', () => {
+    reception.hidden = true;
+    receptionAttendees = [];
+    overviewFacts.hidden = false;
+    overviewMessage.textContent = 'Reception workspace closed.';
+  });
   peopleTabs.forEach((name) => {
     document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectPeopleTab(name));
   });
@@ -1075,6 +1270,15 @@
   placementForm.addEventListener('submit', submitPlacement);
   placementTable.addEventListener('change', populatePlacementSeats);
   recommendationForm.addEventListener('submit', submitRecommendation);
+  receptionSearchForm.addEventListener('submit', (submissionEvent) => {
+    submissionEvent.preventDefault();
+    refreshReceptionSearch();
+  });
+  receptionBulkCheckIn.addEventListener('click', () => {
+    const attendeeIds = Array.from(receptionResults.querySelectorAll('input[name="reception_attendee"]:checked'))
+      .map((checkbox) => Number(checkbox.value));
+    checkInAttendees(attendeeIds);
+  });
   credentialClear.addEventListener('click', clearCredential);
   credentialCopy.addEventListener('click', async () => {
     try {
