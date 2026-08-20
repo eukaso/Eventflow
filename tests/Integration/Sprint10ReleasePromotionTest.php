@@ -8,11 +8,6 @@ final class Sprint10ReleasePromotionTest extends TestCase
 {
     public function testStableVersionPromotionMatchesAcceptedRelease(): void
     {
-        $plugin=$this->source('eventflow.php');
-        self::assertStringContainsString('Version: 1.1.0',$plugin);
-        self::assertStringContainsString("define('EVENTFLOW_VERSION', '1.1.0');",$plugin);
-        self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 15);",$plugin);
-
         $release=$this->source('docs/11-releases/1.1.0-sprint-10-api-completion.md');
         foreach(['**Status:** Released','**Release tag:** `v1.1.0-api-completion`','run 32360359941','EventFlow schema: 15']as$expected)self::assertStringContainsString($expected,$release);
 

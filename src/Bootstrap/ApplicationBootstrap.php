@@ -15,7 +15,8 @@ use EventFlow\Presentation\Api\{PrivacyController, PrivacyPresenter, PrivacyRequ
 use EventFlow\Presentation\Api\{AuditController, AuditPresenter, AuditRequestMapper, AuditRouteRegistrar};
 use EventFlow\Presentation\Api\{DiagnosticController, DiagnosticPresenter, DiagnosticRequestMapper, DiagnosticRouteRegistrar};
 use EventFlow\Infrastructure\Import\HardenedImportUploadGuard;
-use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
+use EventFlow\Presentation\Admin\AdminShellView;
+use EventFlow\Presentation\WordPress\{WordPressAdminHooks, WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
 final class ApplicationBootstrap
@@ -68,6 +69,7 @@ final class ApplicationBootstrap
             };
             self::$result = $result;
             self::registerRoutes($container, $result);
+            self::registerAdminUi($result);
             return $result;
         } catch (ConfigException $e) {
             return self::$result = new BootstrapResult(
@@ -368,6 +370,20 @@ final class ApplicationBootstrap
             );
             (new WordPressRestRouteHooks(new DiagnosticRouteRegistrar($diagnostics), $wordpressRoutes))->register();
         }
+    }
+
+    private static function registerAdminUi(BootstrapResult $bootstrap): void
+    {
+        if (!defined('EVENTFLOW_PLUGIN_FILE') || !defined('EVENTFLOW_VERSION')) {
+            return;
+        }
+
+        (new WordPressAdminHooks(
+            new AdminShellView(),
+            (string) EVENTFLOW_PLUGIN_FILE,
+            (string) EVENTFLOW_VERSION,
+            $bootstrap,
+        ))->register();
     }
 
 }

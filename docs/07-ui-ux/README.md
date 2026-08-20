@@ -1,5 +1,5 @@
-# EF-DOC-007 — UI/UX Design Guide
+# EventFlow UI/UX
 
-Status: Planned.
+Sprint 11 implements the browser experiences defined by [EF-DOC-009](EF-DOC-009-EventFlow-UI-UX-Design-v1.0.md).
 
-Will define public mobile-first guest experiences, organizer workflows, accessibility requirements, visual patterns, form behavior, and event-day operational interfaces.
+The UI remains a thin presentation layer over EventFlow's authoritative REST and application-service contracts. It never substitutes client-side visibility, routing, or controls for server-side authorization.
