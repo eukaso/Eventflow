@@ -27,6 +27,7 @@ use EventFlow\Application\Idempotency\CanonicalRequestHasher;
 use EventFlow\Application\Idempotency\IdempotencyService;
 use EventFlow\Application\Import\ImportNormalizer;
 use EventFlow\Application\Import\ImportService;
+use EventFlow\Application\Import\ImportAdministrationService;
 use EventFlow\Application\Job\JobRepository;
 use EventFlow\Application\Job\WorkerSchemaGate;
 use EventFlow\Application\Invitation\InvitationService;
@@ -110,6 +111,7 @@ final readonly class DatabaseFoundation
         public AttendeeService $attendees,
         public AttendeeQueryService $attendeeQueries,
         public ImportService $imports,
+        public ImportAdministrationService $importAdministration,
         public SeatingService $seating,
         public SeatingResourceService $seatingResources,
         public SeatingRecommendationService $seatingRecommendations,
@@ -310,6 +312,14 @@ final readonly class DatabaseFoundation
                 $shared->clock,
                 $shared->random,
                 $transactions,
+            ),
+            importAdministration: new ImportAdministrationService(
+                $importRepository,
+                $jobRepository,
+                $authorization,
+                $idempotency,
+                $audit,
+                $shared->clock,
             ),
             seating: $seatingService,
             seatingResources: new SeatingResourceService(

@@ -139,6 +139,7 @@ final readonly class CoreMigrationCatalogue
             ),
             new MigrationDefinition(key:'0013_campaign_revision',version:'v1.1.0-dev',fromSchemaVersion:12,toSchemaVersion:13,description:'Add collision-free optimistic concurrency for Campaign updates and lifecycle changes.',statements:$this->loader->load($this->databaseDirectory.'/migrations/0013-campaign-revision.sql')),
             new MigrationDefinition(key:'0014_message_revision',version:'v1.1.0-dev',fromSchemaVersion:13,toSchemaVersion:14,description:'Add collision-free optimistic concurrency for Message retry transitions.',statements:$this->loader->load($this->databaseDirectory.'/migrations/0014-message-revision.sql')),
+            new MigrationDefinition(key:'0015_import_administration',version:'v1.1.0-dev',fromSchemaVersion:14,toSchemaVersion:15,description:'Add collision-free optimistic concurrency and cancellation time for Import administration.',statements:$this->loader->load($this->databaseDirectory.'/migrations/0015-import-administration.sql')),
         ];
     }
 }

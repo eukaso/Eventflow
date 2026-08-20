@@ -20,7 +20,7 @@ final class CoreMigrationCatalogueTest extends TestCase
     {
         $definitions = $this->catalogue()->definitions();
 
-        self::assertCount(14, $definitions);
+        self::assertCount(15, $definitions);
         self::assertSame('0001_sprint_3_baseline', $definitions[0]->key);
         self::assertSame(0, $definitions[0]->fromSchemaVersion);
         self::assertSame(1, $definitions[0]->toSchemaVersion);
@@ -63,11 +63,14 @@ final class CoreMigrationCatalogueTest extends TestCase
         self::assertSame('0014_message_revision', $definitions[13]->key);
         self::assertSame(13, $definitions[13]->fromSchemaVersion);
         self::assertSame(14, $definitions[13]->toSchemaVersion);
+        self::assertSame('0015_import_administration', $definitions[14]->key);
+        self::assertSame(14, $definitions[14]->fromSchemaVersion);
+        self::assertSame(15, $definitions[14]->toSchemaVersion);
 
         $entryPoint = file_get_contents($this->databaseDirectory . '/../eventflow.php');
         self::assertIsString($entryPoint);
         self::assertMatchesRegularExpression(
-            "/define\\('EVENTFLOW_SCHEMA_VERSION', 14\\);/",
+            "/define\\('EVENTFLOW_SCHEMA_VERSION', 15\\);/",
             $entryPoint,
         );
     }
@@ -217,6 +220,16 @@ final class CoreMigrationCatalogueTest extends TestCase
         $sql = implode("\n", $this->catalogue()->definitions()[13]->statements);
         self::assertStringContainsString('ADD COLUMN message_revision', $sql);
         self::assertStringContainsString('CHECK (message_revision >= 1)', $sql);
+        self::assertStringNotContainsString('DROP ', $sql);
+        self::assertStringNotContainsString('UPDATE ', $sql);
+    }
+
+    public function testImportAdministrationMigrationIsForwardOnly(): void
+    {
+        $sql = implode("\n", $this->catalogue()->definitions()[14]->statements);
+        self::assertStringContainsString('ADD COLUMN import_revision', $sql);
+        self::assertStringContainsString('ADD COLUMN cancelled_at', $sql);
+        self::assertStringContainsString('CHECK (import_revision >= 1)', $sql);
         self::assertStringNotContainsString('DROP ', $sql);
         self::assertStringNotContainsString('UPDATE ', $sql);
     }

@@ -10,4 +10,5 @@ enum ImportStatus: string
     case APPLYING = 'applying';
     case COMPLETED = 'completed';
     case FAILED = 'failed';
+    case CANCELLED = 'cancelled';
 }

@@ -57,6 +57,8 @@ enum AuditAction: string
     case CAMPAIGN_CANCELLED = 'campaign.cancelled';
     case MESSAGE_RETRY_REQUESTED = 'message.retry_requested';
     case IMPORT_APPLIED = 'import.applied';
+    case IMPORT_APPLY_REQUESTED = 'import.apply_requested';
+    case IMPORT_CANCELLED = 'import.cancelled';
     case EXPORT_REQUESTED = 'export.requested';
     case EXPORT_READY = 'export.ready';
     case EXPORT_DOWNLOADED = 'export.downloaded';
