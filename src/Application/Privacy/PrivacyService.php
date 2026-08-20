@@ -14,7 +14,7 @@ use EventFlow\Application\Job\{JobRecord, JobRepository, JobRequest};
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Transaction\TransactionManager;
 
-final readonly class PrivacyService implements PrivacyReconciliationGate
+final readonly class PrivacyService implements PrivacyReconciliationGate, PrivacyCommands
 {
     public function __construct(
         private PrivacyRepository $repository,

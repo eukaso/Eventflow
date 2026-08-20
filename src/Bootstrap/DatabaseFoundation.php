@@ -41,6 +41,7 @@ use EventFlow\Application\Observability\DiagnosticService;
 use EventFlow\Application\Provider\ProviderRegistry;
 use EventFlow\Application\Provider\ProviderService;
 use EventFlow\Application\Privacy\PrivacyService;
+use EventFlow\Application\Privacy\PrivacyAccessService;
 use EventFlow\Application\Seating\{SeatingGroupMoveService, SeatingRecommendationService, SeatingResourceService, SeatingService};
 use EventFlow\Application\Security\CredentialDigester;
 use EventFlow\Application\Transaction\TransactionManager;
@@ -127,6 +128,7 @@ final readonly class DatabaseFoundation
         public ExportAccessService $exportAccess,
         public ExportArtifactReader $exportArtifacts,
         public PrivacyService $privacy,
+        public PrivacyAccessService $privacyAccess,
         public ProviderService $providers,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
@@ -175,8 +177,9 @@ final readonly class DatabaseFoundation
         $templateRenderer = new TemplateRenderer();
         $exportStorage = new WordPressProtectedExportStorage($shared->random);
         $exportRepository = new WpdbExportRepository($database, $tableNames);
+        $privacyRepository = new WpdbPrivacyRepository($database, $tableNames);
         $privacy = new PrivacyService(
-            new WpdbPrivacyRepository($database, $tableNames),
+            $privacyRepository,
             $exportStorage,
             $jobRepository,
             $authorization,
@@ -390,6 +393,7 @@ final readonly class DatabaseFoundation
             exportAccess: new ExportAccessService($exportRepository, $authorization),
             exportArtifacts: $exportStorage,
             privacy: $privacy,
+            privacyAccess: new PrivacyAccessService($privacyRepository, $authorization),
             providers: new ProviderService(
                 new WpdbProviderRepository($database, $tableNames),
                 new ProviderRegistry(),

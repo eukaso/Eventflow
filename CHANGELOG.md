@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-073: added primary-owner Privacy Action and retention-hold access contracts with bounded Event-scoped queries.
 - IMP-072: exposed Export create/list/detail and integrity-verified protected download routes with raw WordPress delivery.
 - IMP-071: added authorized Export list/detail access with bounded cursors and explicit PII collection filtering.
 - IMP-070: delivered hardened multipart Import staging and complete administration, mapping, review, apply, and cancellation routes.

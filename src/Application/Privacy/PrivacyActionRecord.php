@@ -2,6 +2,7 @@
 
 namespace EventFlow\Application\Privacy;
 
+use DateTimeImmutable;
 use EventFlow\Application\Persistence\EventScope;
 
 final readonly class PrivacyActionRecord
@@ -20,6 +21,9 @@ final readonly class PrivacyActionRecord
         public string $purpose,
         public string $status,
         public string $checkpoint,
+        public ?string $failureCode = null,
+        public ?DateTimeImmutable $requestedAt = null,
+        public ?DateTimeImmutable $completedAt = null,
     ) {
         if (
             $privacyActionId < 1 || $invitationId < 1
@@ -28,6 +32,8 @@ final readonly class PrivacyActionRecord
             || trim($purpose) === '' || strlen($purpose) > 500
             || !in_array($status, ['pending', 'processing', 'failed', 'completed'], true)
             || !in_array($checkpoint, self::CHECKPOINTS, true)
+            || ($failureCode !== null && ($failureCode === '' || strlen($failureCode) > 100))
+            || ($requestedAt !== null && $completedAt !== null && $completedAt < $requestedAt)
         ) {
             throw new PrivacyException('privacy_action_invalid');
         }

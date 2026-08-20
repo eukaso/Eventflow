@@ -59,7 +59,7 @@ final readonly class ErrorCodeMapper
                 'export_purpose_required', 'export_record_invalid', 'export_artifact_invalid', 'export_query_invalid', 'export_download_grant_invalid',
                 'export_job_invalid', 'export_row_invalid', 'export_locator_invalid',
                 'export_not_ready', 'export_not_downloadable',
-                'privacy_action_invalid', 'privacy_request_invalid', 'privacy_job_invalid',
+                'privacy_action_invalid', 'privacy_request_invalid', 'privacy_job_invalid', 'privacy_query_invalid',
                 'import_query_invalid', 'import_result_invalid', 'import_apply_request_invalid',
                 'import_upload_invalid', 'import_upload_staging_failed',
                 'privacy_checkpoint_invalid', 'retention_hold_invalid', 'retention_hold_not_active',

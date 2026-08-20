@@ -5,10 +5,10 @@ namespace EventFlow\Infrastructure\Persistence\WordPress;
 use DateTimeImmutable;
 use DateTimeZone;
 use EventFlow\Application\Persistence\EventScope;
-use EventFlow\Application\Privacy\{PrivacyActionRecord, PrivacyException, PrivacyRepository, RetentionHoldRecord};
+use EventFlow\Application\Privacy\{PrivacyAccessRepository, PrivacyActionPage, PrivacyActionRecord, PrivacyException, PrivacyRepository, RetentionHoldPage, RetentionHoldRecord};
 use EventFlow\Infrastructure\Persistence\{PersistenceException, TableName};
 
-final class WpdbPrivacyRepository extends AbstractWpdbRepository implements PrivacyRepository
+final class WpdbPrivacyRepository extends AbstractWpdbRepository implements PrivacyRepository, PrivacyAccessRepository
 {
     public function createAction(EventScope $scope, int $invitationId, string $kind, string $policyVersion, string $purpose, ?int $actorUserId, DateTimeImmutable $now): PrivacyActionRecord
     {
@@ -29,7 +29,7 @@ final class WpdbPrivacyRepository extends AbstractWpdbRepository implements Priv
         if ($this->database->execute("INSERT INTO {$table} (event_id,invitation_id,request_kind,policy_version,purpose,action_status,checkpoint,requested_by_user_id,requested_at,created_at,updated_at) VALUES (%d,%d,%s,%s,%s,'pending','requested',{$actorSql},%s,%s,%s)", $parameters) !== 1) {
             throw new PersistenceException('privacy_action_create_failed');
         }
-        return new PrivacyActionRecord($this->database->lastInsertId(), $scope, $invitationId, $kind, $policyVersion, $purpose, 'pending', 'requested');
+        return new PrivacyActionRecord($this->database->lastInsertId(), $scope, $invitationId, $kind, $policyVersion, $purpose, 'pending', 'requested', requestedAt: $now);
     }
 
     public function resume(EventScope $scope, int $actionId, DateTimeImmutable $now): PrivacyActionRecord
@@ -45,8 +45,16 @@ final class WpdbPrivacyRepository extends AbstractWpdbRepository implements Priv
         }
         $this->assertNoHold($scope, $action->invitationId);
         $this->database->execute("UPDATE {$table} SET action_status='processing',failure_code=NULL,updated_at=%s WHERE event_id=%d AND privacy_action_id=%d", [$this->time($now), $scope->eventId, $actionId]);
-        return new PrivacyActionRecord($actionId, $scope, $action->invitationId, $action->requestKind, $action->policyVersion, $action->purpose, 'processing', $action->checkpoint);
+        return new PrivacyActionRecord($actionId, $scope, $action->invitationId, $action->requestKind, $action->policyVersion, $action->purpose, 'processing', $action->checkpoint, requestedAt: $action->requestedAt, completedAt: $action->completedAt);
     }
+
+    public function listActions(EventScope$scope,int$limit,?int$after,?string$status,?string$kind,?int$invitationId):PrivacyActionPage{$table=$this->table(TableName::PRIVACY_ACTIONS);$where='';$parameters=[$scope->eventId];if($after!==null){$where.=' AND privacy_action_id>%d';$parameters[]=$after;}if($status!==null){$where.=' AND action_status=%s';$parameters[]=$status;}if($kind!==null){$where.=' AND request_kind=%s';$parameters[]=$kind;}if($invitationId!==null){$where.=' AND invitation_id=%d';$parameters[]=$invitationId;}$parameters[]=$limit+1;$rows=$this->database->fetchAll("SELECT * FROM {$table} WHERE event_id=%d{$where} ORDER BY privacy_action_id ASC LIMIT %d",$parameters);$more=count($rows)>$limit;if($more)array_pop($rows);$actions=array_map(fn(array$row):PrivacyActionRecord=>$this->action($row,$scope),$rows);return new PrivacyActionPage($actions,$more&&$actions!==[]?$actions[array_key_last($actions)]->privacyActionId:null);}
+
+    public function findAction(EventScope$scope,int$actionId):?PrivacyActionRecord{$table=$this->table(TableName::PRIVACY_ACTIONS);$row=$this->database->fetchRow("SELECT * FROM {$table} WHERE event_id=%d AND privacy_action_id=%d LIMIT 1",[$scope->eventId,$actionId]);return$row===null?null:$this->action($row,$scope);}
+
+    public function listHolds(EventScope$scope,int$limit,?int$after,?string$status,?int$invitationId):RetentionHoldPage{$table=$this->table(TableName::RETENTION_HOLDS);$where='';$parameters=[$scope->eventId];if($after!==null){$where.=' AND retention_hold_id>%d';$parameters[]=$after;}if($status!==null){$where.=' AND hold_status=%s';$parameters[]=$status;}if($invitationId!==null){$where.=' AND invitation_id=%d';$parameters[]=$invitationId;}$parameters[]=$limit+1;$rows=$this->database->fetchAll("SELECT * FROM {$table} WHERE event_id=%d{$where} ORDER BY retention_hold_id ASC LIMIT %d",$parameters);$more=count($rows)>$limit;if($more)array_pop($rows);$holds=array_map(fn(array$row):RetentionHoldRecord=>$this->hold($row,$scope),$rows);return new RetentionHoldPage($holds,$more&&$holds!==[]?$holds[array_key_last($holds)]->retentionHoldId:null);}
+
+    public function findHold(EventScope$scope,int$holdId):?RetentionHoldRecord{$table=$this->table(TableName::RETENTION_HOLDS);$row=$this->database->fetchRow("SELECT * FROM {$table} WHERE event_id=%d AND retention_hold_id=%d LIMIT 1",[$scope->eventId,$holdId]);return$row===null?null:$this->hold($row,$scope);}
 
     public function advance(PrivacyActionRecord $action, string $checkpoint, DateTimeImmutable $now): PrivacyActionRecord
     {
@@ -54,7 +62,7 @@ final class WpdbPrivacyRepository extends AbstractWpdbRepository implements Priv
         if ($this->database->execute("UPDATE {$table} SET action_status='processing',checkpoint=%s,failure_code=NULL,updated_at=%s WHERE event_id=%d AND privacy_action_id=%d AND checkpoint=%s", [$checkpoint, $this->time($now), $action->eventScope->eventId, $action->privacyActionId, $action->checkpoint]) !== 1) {
             throw new PrivacyException('resource_modified');
         }
-        return new PrivacyActionRecord($action->privacyActionId, $action->eventScope, $action->invitationId, $action->requestKind, $action->policyVersion, $action->purpose, 'processing', $checkpoint);
+        return new PrivacyActionRecord($action->privacyActionId, $action->eventScope, $action->invitationId, $action->requestKind, $action->policyVersion, $action->purpose, 'processing', $checkpoint, requestedAt: $action->requestedAt, completedAt: $action->completedAt);
     }
 
     public function fail(PrivacyActionRecord $action, string $failureCode, DateTimeImmutable $now): void
@@ -127,7 +135,7 @@ final class WpdbPrivacyRepository extends AbstractWpdbRepository implements Priv
         if ($this->database->execute("UPDATE {$table} SET action_status='completed',checkpoint='completed',completed_at=%s,failure_code=NULL,updated_at=%s WHERE event_id=%d AND privacy_action_id=%d AND checkpoint='tombstone_recorded'", [$timestamp, $timestamp, $action->eventScope->eventId, $action->privacyActionId]) !== 1) {
             throw new PrivacyException('resource_modified');
         }
-        return new PrivacyActionRecord($action->privacyActionId, $action->eventScope, $action->invitationId, $action->requestKind, $action->policyVersion, $action->purpose, 'completed', 'completed');
+        return new PrivacyActionRecord($action->privacyActionId, $action->eventScope, $action->invitationId, $action->requestKind, $action->policyVersion, $action->purpose, 'completed', 'completed', requestedAt: $action->requestedAt, completedAt: $now);
     }
 
     public function placeHold(EventScope $scope, ?int $invitationId, string $policyVersion, string $reason, int $actorUserId, DateTimeImmutable $now): RetentionHoldRecord
@@ -152,7 +160,7 @@ final class WpdbPrivacyRepository extends AbstractWpdbRepository implements Priv
         }
         array_push($parameters, $policyVersion, $reason, $actorUserId, $this->time($now), $this->time($now), $this->time($now));
         $this->database->execute("INSERT INTO {$table} (event_id,invitation_id,policy_version,reason,hold_status,placed_by_user_id,placed_at,created_at,updated_at) VALUES (%d,{$invitationSql},%s,%s,'active',%d,%s,%s,%s)", $parameters);
-        return new RetentionHoldRecord($this->database->lastInsertId(), $scope, $invitationId, $policyVersion, $reason, 'active');
+        return new RetentionHoldRecord($this->database->lastInsertId(), $scope, $invitationId, $policyVersion, $reason, 'active', $actorUserId, placedAt: $now);
     }
 
     public function releaseHold(EventScope $scope, int $holdId, int $actorUserId, DateTimeImmutable $now): RetentionHoldRecord
@@ -167,7 +175,7 @@ final class WpdbPrivacyRepository extends AbstractWpdbRepository implements Priv
         }
         $timestamp = $this->time($now);
         $this->database->execute("UPDATE {$table} SET hold_status='released',released_by_user_id=%d,released_at=%s,updated_at=%s WHERE event_id=%d AND retention_hold_id=%d AND hold_status='active'", [$actorUserId, $timestamp, $timestamp, $scope->eventId, $holdId]);
-        return new RetentionHoldRecord($holdId, $scope, $row['invitation_id'] === null ? null : (int) $row['invitation_id'], (string) $row['policy_version'], (string) $row['reason'], 'released');
+        return new RetentionHoldRecord($holdId, $scope, $row['invitation_id'] === null ? null : (int) $row['invitation_id'], (string) $row['policy_version'], (string) $row['reason'], 'released', (int)$row['placed_by_user_id'], $actorUserId, $this->nullableDate($row['placed_at']??null), $now);
     }
 
     public function isReconciled(): bool
@@ -219,8 +227,13 @@ final class WpdbPrivacyRepository extends AbstractWpdbRepository implements Priv
     /** @param array<string, mixed> $row */
     private function action(array $row, EventScope $scope): PrivacyActionRecord
     {
-        return new PrivacyActionRecord((int) $row['privacy_action_id'], $scope, (int) $row['invitation_id'], (string) $row['request_kind'], (string) $row['policy_version'], (string) $row['purpose'], (string) $row['action_status'], (string) $row['checkpoint']);
+        return new PrivacyActionRecord((int) $row['privacy_action_id'], $scope, (int) $row['invitation_id'], (string) $row['request_kind'], (string) $row['policy_version'], (string) $row['purpose'], (string) $row['action_status'], (string) $row['checkpoint'], $row['failure_code']===null?null:(string)$row['failure_code'], $this->nullableDate($row['requested_at']??null), $this->nullableDate($row['completed_at']??null));
     }
+
+    /** @param array<string,mixed> $row */
+    private function hold(array$row,EventScope$scope):RetentionHoldRecord{return new RetentionHoldRecord((int)$row['retention_hold_id'],$scope,$row['invitation_id']===null?null:(int)$row['invitation_id'],(string)$row['policy_version'],(string)$row['reason'],(string)$row['hold_status'],(int)$row['placed_by_user_id'],$row['released_by_user_id']===null?null:(int)$row['released_by_user_id'],$this->nullableDate($row['placed_at']??null),$this->nullableDate($row['released_at']??null));}
+
+    private function nullableDate(mixed$value):?DateTimeImmutable{return is_string($value)&&$value!==''?new DateTimeImmutable($value,new DateTimeZone('UTC')):null;}
 
     private function time(DateTimeImmutable $date): string
     {
