@@ -4,6 +4,8 @@ namespace EventFlow\Tests\Unit\Infrastructure\Export;
 
 use DateTimeImmutable;
 use EventFlow\Application\Export\ExportFormat;
+use EventFlow\Application\Export\ExportDownloadGrant;
+use EventFlow\Application\Export\ExportException;
 use EventFlow\Application\Export\ExportRecord;
 use EventFlow\Application\Export\ExportType;
 use EventFlow\Application\Persistence\EventScope;
@@ -52,9 +54,23 @@ final class WordPressProtectedExportStorageTest extends TestCase
         self::assertStringContainsString("id,name\n", $contents);
         self::assertFileExists($this->directory . DIRECTORY_SEPARATOR . '.htaccess');
         self::assertFileDoesNotExist($path . '.tmp');
+        $grant = new ExportDownloadGrant(7, $artifact->locator, $artifact->mimeType, 'eventflow-attendees-7.csv', $artifact->sha256, $artifact->sizeBytes);
+        self::assertSame($contents, $storage->read($grant));
 
         $storage->delete($artifact->locator);
         self::assertFileDoesNotExist($path);
+    }
+
+    public function testReadRejectsArtifactChangedAfterPublication(): void
+    {
+        $storage = new WordPressProtectedExportStorage(new ExportStorageRandom(), $this->directory);
+        $artifact = $storage->publish($this->record(), [['id'=>1]]);
+        $path = $this->directory.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $artifact->locator);
+        file_put_contents($path, 'tampered');
+        $grant = new ExportDownloadGrant(7, $artifact->locator, $artifact->mimeType, 'eventflow-attendees-7.csv', $artifact->sha256, $artifact->sizeBytes);
+
+        $this->expectException(ExportException::class);
+        $storage->read($grant);
     }
 
     private function record(): ExportRecord

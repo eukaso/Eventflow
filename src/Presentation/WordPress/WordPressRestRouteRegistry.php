@@ -4,7 +4,7 @@ namespace EventFlow\Presentation\WordPress;
 
 use EventFlow\Application\Error\RequestIdFactory;
 use EventFlow\Application\Observability\ObservabilityService;
-use EventFlow\Presentation\Api\{ApiErrorTranslator, ApiResponse, RequestInputException, RestRouteRegistry};
+use EventFlow\Presentation\Api\{ApiErrorTranslator, ApiResponse, BinaryApiResponse, RequestInputException, RestRouteRegistry};
 use RuntimeException;
 use Throwable;
 
@@ -16,6 +16,18 @@ final readonly class WordPressRestRouteRegistry implements RestRouteRegistry
         private ApiErrorTranslator $errors,
         private ObservabilityService $observability,
     ) {
+    }
+
+    public function registerBinaryServing(): void
+    {
+        if (!function_exists('add_filter')) return;
+        add_filter('rest_pre_serve_request', static function (mixed $served, mixed $result): bool {
+            if ($served === true || !is_object($result) || !method_exists($result, 'get_data')) return $served === true;
+            $data = $result->get_data();
+            if (!$data instanceof BinaryApiResponse) return false;
+            echo $data->content();
+            return true;
+        }, 10, 2);
     }
 
     public function registerPublicGet(string $namespace, string $route, callable $handler): void
@@ -77,7 +89,8 @@ final readonly class WordPressRestRouteRegistry implements RestRouteRegistry
                     $details = $failure instanceof RequestInputException ? $failure->details : null;
                     $response = $this->errors->translate($failure, $requestId, $details);
                 }
-                return new \WP_REST_Response($response->body(), $response->status(), $response->headers());
+                $data = $response instanceof BinaryApiResponse ? $response : $response->body();
+                return new \WP_REST_Response($data, $response->status(), $response->headers());
             },
         ]);
     }

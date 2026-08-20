@@ -10,6 +10,7 @@ use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeQ
 use EventFlow\Presentation\Api\{EventConfigurationController, EventConfigurationPresenter, EventConfigurationRequestMapper, EventConfigurationRouteRegistrar, VenueController, VenuePresenter, VenueRequestMapper, VenueRouteRegistrar};
 use EventFlow\Presentation\Api\{MessageAccessController, MessageAccessPresenter, MessageAccessRequestMapper, MessageAccessRouteRegistrar};
 use EventFlow\Presentation\Api\{ImportAdministrationController, ImportAdministrationPresenter, ImportAdministrationRequestMapper, ImportAdministrationRouteRegistrar, ImportUploadController};
+use EventFlow\Presentation\Api\{ExportController, ExportPresenter, ExportRequestMapper, ExportRouteRegistrar};
 use EventFlow\Infrastructure\Import\HardenedImportUploadGuard;
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
@@ -133,6 +134,7 @@ final class ApplicationBootstrap
             $container->services->apiErrors,
             $container->services->observability,
         );
+        $wordpressRoutes->registerBinaryServing();
         (new WordPressRestRouteHooks(new SystemRouteRegistrar($controller), $wordpressRoutes))->register();
         if ($bootstrap->ready && $container->database !== null) {
             $events = new EventController(
@@ -331,6 +333,15 @@ final class ApplicationBootstrap
                 $importPresenter,
             );
             (new WordPressRestRouteHooks(new ImportAdministrationRouteRegistrar($importAdministration, $importUploads), $wordpressRoutes))->register();
+            $exports = new ExportController(
+                $container->database->exports,
+                $container->database->exportAccess,
+                $container->database->exportArtifacts,
+                $container->delivery->authenticatedRequests,
+                new ExportRequestMapper(),
+                new ExportPresenter(),
+            );
+            (new WordPressRestRouteHooks(new ExportRouteRegistrar($exports), $wordpressRoutes))->register();
         }
     }
 

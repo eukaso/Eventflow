@@ -40,7 +40,7 @@ final class Sprint10ExportAccessContractTest extends TestCase
         $readme = $this->source('README-IMP-071.md');
         self::assertStringContainsString('mixed collections require `export_pii`', $readme);
         self::assertStringContainsString('IMP-072', $readme);
-        self::assertFileDoesNotExist(dirname(__DIR__, 2).'/src/Presentation/Api/ExportRouteRegistrar.php');
+        self::assertFileExists(dirname(__DIR__, 2).'/src/Presentation/Api/ExportRouteRegistrar.php');
     }
 
     private function source(string $relative): string

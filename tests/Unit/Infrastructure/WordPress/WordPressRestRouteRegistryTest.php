@@ -24,6 +24,14 @@ namespace {
             return 'https://eventflow.test' . $path;
         }
     }
+
+    if (!function_exists('add_filter')) {
+        function add_filter(string $hook, callable $callback, int $priority = 10, int $acceptedArgs = 1): bool
+        {
+            $GLOBALS['eventflow_test_filter'] = compact('hook', 'callback', 'priority', 'acceptedArgs');
+            return true;
+        }
+    }
 }
 
 namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
@@ -31,7 +39,7 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
     use EventFlow\Infrastructure\Config\Config;
     use EventFlow\Presentation\WordPress\WordPressRestRouteRegistry;
     use EventFlow\Presentation\WordPress\WordPressRestRequestMapper;
-    use EventFlow\Presentation\Api\{RestRequest, SystemStatusResponse};
+    use EventFlow\Presentation\Api\{BinaryApiResponse, RestRequest, SystemStatusResponse};
     use PHPUnit\Framework\TestCase;
 
     final class WordPressRestRouteRegistryTest extends TestCase
@@ -39,6 +47,7 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
         protected function tearDown(): void
         {
             unset($GLOBALS['eventflow_test_rest_route']);
+            unset($GLOBALS['eventflow_test_filter']);
         }
 
         public function testPublicGetRouteConvertsWordPressRequestAndResponseAtBoundary(): void
@@ -145,6 +154,21 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
             $registered = $GLOBALS['eventflow_test_rest_route'];
             self::assertSame('PUT', $registered['options']['methods']);
             self::assertSame('__return_true', $registered['options']['permission_callback']);
+        }
+
+        public function testBinaryServingFilterBypassesJsonSerialization(): void
+        {
+            $this->registry()->registerBinaryServing();
+            $filter = $GLOBALS['eventflow_test_filter'];
+            self::assertSame('rest_pre_serve_request', $filter['hook']);
+            $result = new class {
+                public function get_data(): BinaryApiResponse { return new BinaryApiResponse('raw-bytes', ['Content-Type'=>'text/csv']); }
+            };
+            ob_start();
+            $served = $filter['callback'](false, $result);
+            $output = ob_get_clean();
+            self::assertTrue($served);
+            self::assertSame('raw-bytes', $output);
         }
 
         private function registry(): WordPressRestRouteRegistry

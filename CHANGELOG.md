@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-072: exposed Export create/list/detail and integrity-verified protected download routes with raw WordPress delivery.
 - IMP-071: added authorized Export list/detail access with bounded cursors and explicit PII collection filtering.
 - IMP-070: delivered hardened multipart Import staging and complete administration, mapping, review, apply, and cancellation routes.
 - IMP-069: added Import administration queries plus revision-guarded apply-job and cancellation orchestration.

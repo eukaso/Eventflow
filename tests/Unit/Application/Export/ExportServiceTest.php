@@ -50,6 +50,8 @@ final class ExportServiceTest extends TestCase
 
         $grant = $fixture->service->authorizeDownload($fixture->principal, $fixture->scope, $ready->exportId);
         self::assertSame('private/export.csv', $grant->locator);
+        self::assertSame(0, $fixture->repository->downloads);
+        $fixture->service->recordDownload($fixture->principal, $fixture->scope, $ready->exportId);
         self::assertSame(1, $fixture->repository->downloads);
         self::assertGreaterThanOrEqual(3, count($fixture->audit->records));
     }

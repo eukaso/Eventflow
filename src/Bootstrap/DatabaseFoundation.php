@@ -20,6 +20,7 @@ use EventFlow\Application\Event\EventLifecycleService;
 use EventFlow\Application\EventConfiguration\EventConfigurationService;
 use EventFlow\Application\Export\ExportService;
 use EventFlow\Application\Export\ExportAccessService;
+use EventFlow\Application\Export\ExportArtifactReader;
 use EventFlow\Application\Health\ReadinessCheck;
 use EventFlow\Application\Health\PrivacyReconciliationReadinessCheck;
 use EventFlow\Application\GuestAccess\GuestAccessService;
@@ -124,6 +125,7 @@ final readonly class DatabaseFoundation
         public MessageAccessService $messageAccess,
         public ExportService $exports,
         public ExportAccessService $exportAccess,
+        public ExportArtifactReader $exportArtifacts,
         public PrivacyService $privacy,
         public ProviderService $providers,
         public JobRepository $jobs,
@@ -386,6 +388,7 @@ final readonly class DatabaseFoundation
                 $transactions,
             ),
             exportAccess: new ExportAccessService($exportRepository, $authorization),
+            exportArtifacts: $exportStorage,
             privacy: $privacy,
             providers: new ProviderService(
                 new WpdbProviderRepository($database, $tableNames),
