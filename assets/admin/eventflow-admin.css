@@ -223,6 +223,60 @@
   padding-top: 24px;
 }
 
+.eventflow-seating {
+  border-top: 1px solid var(--ef-border);
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.eventflow-seating__readiness {
+  background: #f7f8fb;
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  margin-bottom: 24px;
+  padding: 16px;
+}
+
+.eventflow-seating__readiness h4,
+.eventflow-seating__columns h4,
+.eventflow-seating__planner h4,
+.eventflow-seating__recommendation h4 {
+  margin: 0 0 12px;
+}
+
+.eventflow-seating__readiness ul,
+.eventflow-seat-list,
+.eventflow-recommendation-list {
+  margin-bottom: 0;
+}
+
+.eventflow-seating__columns {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.eventflow-inline-form--seating {
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
+}
+
+.eventflow-seating__planner,
+.eventflow-seating__recommendation {
+  border-top: 1px solid var(--ef-border);
+  margin-top: 28px;
+  padding-top: 20px;
+}
+
+#eventflow-recommendation-result {
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+#eventflow-recommendation-result:empty {
+  display: none;
+}
+
 .eventflow-people__tabs {
   border-bottom: 1px solid var(--ef-border);
   display: flex;
@@ -342,6 +396,11 @@
 
   .eventflow-inline-form,
   .eventflow-inline-form--wide {
+    grid-template-columns: 1fr;
+  }
+
+  .eventflow-seating__columns,
+  .eventflow-inline-form--seating {
     grid-template-columns: 1fr;
   }
 }

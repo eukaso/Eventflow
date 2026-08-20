@@ -180,6 +180,70 @@ final readonly class AdminShellView
           <div class="eventflow-record-list" id="eventflow-attendee-list"></div>
         </section>
       </section>
+      <section class="eventflow-seating" id="eventflow-seating" aria-labelledby="eventflow-seating-title" hidden>
+        <div class="eventflow-setup__heading">
+          <div>
+            <p class="eventflow-admin__eyebrow">Seating</p>
+            <h3 id="eventflow-seating-title">Seating workspace</h3>
+          </div>
+          <button class="button-link" id="eventflow-seating-close" type="button">Close seating workspace</button>
+        </div>
+        <p class="eventflow-setup__notice" id="eventflow-seating-notice" role="status"></p>
+        <div class="eventflow-seating__readiness" id="eventflow-seating-readiness"></div>
+        <div class="eventflow-seating__columns">
+          <section aria-labelledby="eventflow-tables-title">
+            <h4 id="eventflow-tables-title">Tables and seats</h4>
+            <form class="eventflow-inline-form eventflow-inline-form--seating" id="eventflow-table-form">
+              <label for="eventflow-table-name">Table name</label>
+              <input id="eventflow-table-name" maxlength="190" name="name" required type="text">
+              <label for="eventflow-table-capacity">Capacity</label>
+              <input id="eventflow-table-capacity" max="65535" min="1" name="capacity" required type="number" value="8">
+              <label for="eventflow-table-seat-labels">Seat labels</label>
+              <input id="eventflow-table-seat-labels" name="seat_labels" placeholder="Optional: 1, 2, 3" type="text">
+              <button class="button button-secondary" type="submit">Add table</button>
+            </form>
+            <div class="eventflow-record-list" id="eventflow-table-list"></div>
+          </section>
+          <section aria-labelledby="eventflow-groups-title">
+            <h4 id="eventflow-groups-title">Seating groups</h4>
+            <form class="eventflow-inline-form eventflow-inline-form--seating" id="eventflow-group-form">
+              <label for="eventflow-group-name">Group name</label>
+              <input id="eventflow-group-name" maxlength="190" name="name" required type="text">
+              <label for="eventflow-group-category">Category</label>
+              <input id="eventflow-group-category" maxlength="190" name="category" required type="text">
+              <label for="eventflow-group-constraint">Constraint</label>
+              <select id="eventflow-group-constraint" name="constraint_level"><option value="preferred">Preferred</option><option value="required">Required</option><option value="informational">Informational</option></select>
+              <label for="eventflow-group-priority">Priority</label>
+              <input id="eventflow-group-priority" max="65535" min="0" name="priority" type="number" value="100">
+              <label for="eventflow-group-attendees">Attendee IDs</label>
+              <input id="eventflow-group-attendees" name="attendee_ids" placeholder="12, 14, 18" required type="text">
+              <button class="button button-secondary" type="submit">Add group</button>
+            </form>
+            <div class="eventflow-record-list" id="eventflow-group-list"></div>
+          </section>
+        </div>
+        <section class="eventflow-seating__planner" aria-labelledby="eventflow-planner-title">
+          <h4 id="eventflow-planner-title">Manual placement</h4>
+          <form class="eventflow-inline-form" id="eventflow-placement-form">
+            <label for="eventflow-placement-attendee">Attendee</label>
+            <select id="eventflow-placement-attendee" name="attendee_id" required></select>
+            <label for="eventflow-placement-table">Table</label>
+            <select id="eventflow-placement-table" name="table_id" required></select>
+            <label for="eventflow-placement-seat">Seat</label>
+            <select id="eventflow-placement-seat" name="seat_id"><option value="">Table assignment only</option></select>
+            <button class="button button-primary" type="submit">Place attendee</button>
+          </form>
+        </section>
+        <section class="eventflow-seating__recommendation" aria-labelledby="eventflow-recommendation-title">
+          <h4 id="eventflow-recommendation-title">Assisted seating</h4>
+          <form class="eventflow-inline-form" id="eventflow-recommendation-form">
+            <label for="eventflow-recommendation-seed">Plan seed</label>
+            <input id="eventflow-recommendation-seed" maxlength="190" name="seed" required type="text" value="organizer-review">
+            <button class="button button-secondary" type="submit">Generate recommendation</button>
+          </form>
+          <div id="eventflow-recommendation-result"></div>
+        </section>
+      </section>
     </section>
   </main>
 </div>

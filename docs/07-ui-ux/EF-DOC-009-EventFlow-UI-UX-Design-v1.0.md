@@ -83,3 +83,11 @@ Package boundaries may be split further, but they may not bypass the API or weak
 - Event names and API values are inserted using DOM text nodes, not HTML parsing.
 - Loading, empty, error, and successful list states are exposed accessibly.
 - PHP syntax, unit tests, integration tests, and existing Sprint 7–10 invariants pass.
+
+## 9. IMP-086 seating decisions
+
+- Manual attendee placement is always available as the keyboard and touch alternative to visual plan manipulation.
+- Table, group, attendee, and readiness reads fail independently so a denied domain does not disclose or disable unrelated data.
+- Readiness controls whether the browser offers recommendation generation; the server remains authoritative.
+- Generated recommendations are review artifacts and require a separate, confirmed apply command.
+- Seating mutations use cryptographic idempotency keys, while accepted APIs retain all capacity, constraint, scope, transaction, and audit enforcement.

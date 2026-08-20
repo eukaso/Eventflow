@@ -40,6 +40,20 @@
   const credentialCopy = document.getElementById('eventflow-credential-copy');
   const credentialClear = document.getElementById('eventflow-credential-clear');
   const peopleTabs = ['memberships', 'invitations', 'attendees'];
+  const seating = document.getElementById('eventflow-seating');
+  const seatingClose = document.getElementById('eventflow-seating-close');
+  const seatingNotice = document.getElementById('eventflow-seating-notice');
+  const seatingReadiness = document.getElementById('eventflow-seating-readiness');
+  const tableForm = document.getElementById('eventflow-table-form');
+  const groupForm = document.getElementById('eventflow-group-form');
+  const placementForm = document.getElementById('eventflow-placement-form');
+  const recommendationForm = document.getElementById('eventflow-recommendation-form');
+  const tableList = document.getElementById('eventflow-table-list');
+  const groupList = document.getElementById('eventflow-group-list');
+  const placementAttendee = document.getElementById('eventflow-placement-attendee');
+  const placementTable = document.getElementById('eventflow-placement-table');
+  const placementSeat = document.getElementById('eventflow-placement-seat');
+  const recommendationResult = document.getElementById('eventflow-recommendation-result');
   const refresh = document.getElementById('eventflow-refresh');
   const bootstrapNotice = document.getElementById('eventflow-bootstrap-notice');
   let activeEvent = null;
@@ -48,6 +62,8 @@
   let credentialClearTimer = null;
   let editingInvitationId = null;
   let editingInvitationEtag = null;
+  let seatingTables = [];
+  let seatingRecommendation = null;
 
   const setStatus = (message, busy = false) => {
     status.textContent = message;
@@ -122,6 +138,7 @@
     overview.hidden = false;
     setup.hidden = true;
     people.hidden = true;
+    seating.hidden = true;
     overviewFacts.hidden = false;
     overviewTitle.textContent = String(event.name || 'Untitled event');
     overviewStatus.textContent = String(event.status || 'unknown');
@@ -146,6 +163,13 @@
     peopleButton.textContent = 'Manage people';
     peopleButton.addEventListener('click', openPeople);
     overviewActions.appendChild(peopleButton);
+
+    const seatingButton = document.createElement('button');
+    seatingButton.className = 'button button-secondary';
+    seatingButton.type = 'button';
+    seatingButton.textContent = 'Plan seating';
+    seatingButton.addEventListener('click', openSeating);
+    overviewActions.appendChild(seatingButton);
 
     (lifecycleActions[event.status] || []).forEach((action) => {
       const button = document.createElement('button');
@@ -251,6 +275,8 @@
   const openSetup = async () => {
     if (!activeEvent) return;
     overviewFacts.hidden = true;
+    people.hidden = true;
+    seating.hidden = true;
     setup.hidden = false;
     setupNotice.textContent = 'Loading current setup…';
     fillEventForm(activeEvent);
@@ -630,6 +656,7 @@
     if (!activeEvent) return;
     resetInvitationEditor();
     setup.hidden = true;
+    seating.hidden = true;
     overviewFacts.hidden = true;
     people.hidden = false;
     selectPeopleTab('memberships');
@@ -719,6 +746,244 @@
     await loadPeopleData(false);
   };
 
+  const seatingPath = () => `events/${encodeURIComponent(String(activeEvent.id))}`;
+
+  const runSeatingMutation = async (path, body, etag = null) => {
+    seatingNotice.textContent = 'Saving seating change…';
+    try {
+      const result = await requestJson(path, {
+        method: 'POST',
+        headers: mutationHeaders(etag),
+        body: JSON.stringify(body),
+      });
+      seatingNotice.textContent = 'Change accepted. Refreshing the authoritative seating plan…';
+      return result;
+    } catch (error) {
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      seatingNotice.textContent = `The seating change could not be confirmed. Refresh before retrying.${reference}`;
+      return null;
+    }
+  };
+
+  const option = (value, label) => {
+    const element = document.createElement('option');
+    element.value = String(value);
+    element.textContent = String(label);
+    return element;
+  };
+
+  const populatePlacementSeats = () => {
+    placementSeat.replaceChildren(option('', 'Table assignment only'));
+    const table = seatingTables.find((candidate) => String(candidate.id) === placementTable.value);
+    (table?.seats || []).forEach((seat) => {
+      placementSeat.appendChild(option(seat.id, `${seat.label}${seat.accessible ? ' — accessible' : ''}`));
+    });
+  };
+
+  const renderSeatingTables = (tables) => {
+    seatingTables = tables;
+    tableList.replaceChildren();
+    placementTable.replaceChildren();
+    if (!tables.length) appendText(tableList, 'p', 'eventflow-admin__status', 'No tables configured.');
+    tables.forEach((table) => {
+      const { card } = recordCard(
+        String(table.name || 'Unnamed table'),
+        `${(table.seats || []).length} seat${(table.seats || []).length === 1 ? '' : 's'}`,
+        [`Capacity ${table.capacity}`, `Revision ${table.revision}`],
+      );
+      const seatList = document.createElement('ul');
+      seatList.className = 'eventflow-seat-list';
+      (table.seats || []).forEach((seat) => {
+        const item = document.createElement('li');
+        item.textContent = `${seat.label}${seat.accessible ? ' — accessible seat' : ''}`;
+        seatList.appendChild(item);
+      });
+      if (seatList.childElementCount) card.insertBefore(seatList, card.lastElementChild);
+      tableList.appendChild(card);
+      placementTable.appendChild(option(table.id, table.name));
+    });
+    populatePlacementSeats();
+  };
+
+  const renderSeatingGroups = (groups) => {
+    groupList.replaceChildren();
+    if (!groups.length) appendText(groupList, 'p', 'eventflow-admin__status', 'No seating groups configured.');
+    groups.forEach((group) => {
+      const { card } = recordCard(
+        String(group.name || 'Unnamed group'),
+        String(group.constraint_level || 'unknown'),
+        [String(group.category || ''), `Priority ${group.priority}`, `Attendees ${(group.attendee_ids || []).join(', ')}`],
+      );
+      groupList.appendChild(card);
+    });
+  };
+
+  const renderReadiness = (readiness) => {
+    seatingReadiness.replaceChildren();
+    const heading = document.createElement('h4');
+    heading.textContent = readiness.ready ? 'Ready for assisted seating' : 'Seating setup needs attention';
+    seatingReadiness.appendChild(heading);
+    const messages = [...(readiness.errors || []), ...(readiness.warnings || [])];
+    if (!messages.length) {
+      appendText(seatingReadiness, 'p', 'eventflow-admin__status', 'Tables, attendees, and constraints passed the current readiness check.');
+      return;
+    }
+    const listElement = document.createElement('ul');
+    messages.forEach((message) => {
+      const item = document.createElement('li');
+      item.textContent = String(message);
+      listElement.appendChild(item);
+    });
+    seatingReadiness.appendChild(listElement);
+  };
+
+  const renderRecommendation = (recommendation) => {
+    seatingRecommendation = recommendation;
+    recommendationResult.replaceChildren();
+    if (!recommendation) return;
+    appendText(recommendationResult, 'p', 'eventflow-event-card__status', String(recommendation.status || 'generated'));
+    appendText(recommendationResult, 'h5', 'eventflow-person-card__title', `Recommendation ${recommendation.id}`);
+    const listElement = document.createElement('ol');
+    listElement.className = 'eventflow-recommendation-list';
+    (recommendation.placements || []).forEach((placement) => {
+      const item = document.createElement('li');
+      item.textContent = `Attendee ${placement.attendee_id} → table ${placement.table_id}${placement.seat_id ? `, seat ${placement.seat_id}` : ''}${placement.reason ? ` — ${placement.reason}` : ''}`;
+      listElement.appendChild(item);
+    });
+    recommendationResult.appendChild(listElement);
+    (recommendation.warnings || []).forEach((warning) => appendText(recommendationResult, 'p', 'description', `Warning: ${warning}`));
+    if (recommendation.status !== 'applied') {
+      recommendationResult.appendChild(actionButton('Apply reviewed recommendation', applyRecommendation));
+    }
+  };
+
+  const loadSeatingData = async () => {
+    if (!activeEvent) return;
+    seatingNotice.textContent = 'Loading tables, groups, attendees, and readiness…';
+    [tableForm, groupForm, placementForm, recommendationForm].forEach((form) => disableForm(form, true));
+    const eventPath = seatingPath();
+    const [tablesResult, groupsResult, attendeesResult, readinessResult] = await Promise.allSettled([
+      requestJson(`${eventPath}/tables`),
+      requestJson(`${eventPath}/seating-groups`),
+      requestJson(`${eventPath}/attendees?limit=100`),
+      requestJson(`${eventPath}/seating/readiness`),
+    ]);
+    const messages = [];
+    if (tablesResult.status === 'fulfilled') {
+      const summaries = Array.isArray(tablesResult.value.payload.data) ? tablesResult.value.payload.data : [];
+      const details = await Promise.allSettled(summaries.map((table) => requestJson(`${eventPath}/tables/${encodeURIComponent(String(table.id))}`)));
+      renderSeatingTables(details.filter((detail) => detail.status === 'fulfilled').map((detail) => detail.value.payload.data));
+      disableForm(tableForm, false);
+    } else {
+      tableList.replaceChildren();
+      messages.push('Tables unavailable.');
+    }
+    if (groupsResult.status === 'fulfilled') {
+      renderSeatingGroups(Array.isArray(groupsResult.value.payload.data) ? groupsResult.value.payload.data : []);
+      disableForm(groupForm, false);
+    } else {
+      groupList.replaceChildren();
+      messages.push('Groups unavailable.');
+    }
+    placementAttendee.replaceChildren();
+    if (attendeesResult.status === 'fulfilled') {
+      (attendeesResult.value.payload.data || []).filter((attendee) => attendee.status !== 'cancelled').forEach((attendee) => {
+        placementAttendee.appendChild(option(attendee.id, attendee.display_name));
+      });
+    } else messages.push('Attendees unavailable.');
+    if (readinessResult.status === 'fulfilled') {
+      renderReadiness(readinessResult.value.payload.data || {});
+      if (readinessResult.value.payload.data?.ready) disableForm(recommendationForm, false);
+    } else {
+      seatingReadiness.replaceChildren();
+      messages.push('Readiness unavailable.');
+    }
+    if (placementAttendee.options.length && placementTable.options.length) disableForm(placementForm, false);
+    seatingNotice.textContent = messages.join(' ') || 'Current seating plan loaded.';
+  };
+
+  const openSeating = async () => {
+    if (!activeEvent) return;
+    clearCredential();
+    setup.hidden = true;
+    people.hidden = true;
+    overviewFacts.hidden = true;
+    seating.hidden = false;
+    renderRecommendation(null);
+    await loadSeatingData();
+  };
+
+  const submitTable = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    const labels = String(field(tableForm, 'seat_labels').value || '').split(',').map((label) => label.trim()).filter(Boolean);
+    const result = await runSeatingMutation(`${seatingPath()}/tables`, {
+      name: String(field(tableForm, 'name').value).trim(),
+      capacity: Number(field(tableForm, 'capacity').value),
+      seats: labels.map((label) => ({ label, accessible: false })),
+    });
+    if (result) {
+      tableForm.reset();
+      setField(tableForm, 'capacity', 8);
+      await loadSeatingData();
+    }
+  };
+
+  const submitGroup = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    const attendeeIds = String(field(groupForm, 'attendee_ids').value || '').split(',').map((id) => Number(id.trim())).filter((id) => Number.isInteger(id) && id > 0);
+    if (!attendeeIds.length) {
+      seatingNotice.textContent = 'Enter at least one valid attendee ID.';
+      return;
+    }
+    const result = await runSeatingMutation(`${seatingPath()}/seating-groups`, {
+      name: String(field(groupForm, 'name').value).trim(),
+      category: String(field(groupForm, 'category').value).trim(),
+      constraint_level: String(field(groupForm, 'constraint_level').value),
+      priority: Number(field(groupForm, 'priority').value),
+      attendee_ids: attendeeIds,
+    });
+    if (result) {
+      groupForm.reset();
+      setField(groupForm, 'priority', 100);
+      await loadSeatingData();
+    }
+  };
+
+  const submitPlacement = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    const attendeeId = Number(field(placementForm, 'attendee_id').value);
+    const seatValue = String(field(placementForm, 'seat_id').value || '');
+    const result = await runSeatingMutation(`${seatingPath()}/attendees/${encodeURIComponent(String(attendeeId))}/seating/move`, {
+      table_id: Number(field(placementForm, 'table_id').value),
+      seat_id: seatValue ? Number(seatValue) : null,
+      expected_assignment_id: null,
+      override_required_group: false,
+      override_reason: null,
+    });
+    if (result) seatingNotice.textContent = `Attendee ${attendeeId} was placed by the authoritative seating service.`;
+  };
+
+  const submitRecommendation = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    const result = await runSeatingMutation(`${seatingPath()}/seating/recommendations`, {
+      seed: String(field(recommendationForm, 'seed').value).trim(),
+    });
+    if (result) {
+      renderRecommendation(result.payload.data || null);
+      seatingNotice.textContent = 'Recommendation generated for review. It has not been applied.';
+    }
+  };
+
+  const applyRecommendation = async () => {
+    if (!seatingRecommendation || !window.confirm('Apply this reviewed recommendation to the Event seating plan?')) return;
+    const result = await runSeatingMutation(`${seatingPath()}/seating/recommendations/${encodeURIComponent(String(seatingRecommendation.id))}/apply`, {});
+    if (result) {
+      renderRecommendation(result.payload.data || null);
+      await loadSeatingData();
+      seatingNotice.textContent = 'The reviewed seating recommendation was applied.';
+    }
+  };
+
   const renderEvents = (events) => {
     list.replaceChildren();
     if (!events.length) {
@@ -761,6 +1026,7 @@
       activeEventEtag = null;
       activeConfigurationEtag = null;
       overview.hidden = true;
+      seating.hidden = true;
       eventsView.hidden = false;
       renderEvents(Array.isArray(payload.data) ? payload.data : []);
     } catch (error) {
@@ -789,6 +1055,11 @@
     overviewFacts.hidden = false;
     overviewMessage.textContent = 'People workspace closed.';
   });
+  seatingClose.addEventListener('click', () => {
+    seating.hidden = true;
+    overviewFacts.hidden = false;
+    overviewMessage.textContent = 'Seating workspace closed.';
+  });
   peopleTabs.forEach((name) => {
     document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectPeopleTab(name));
   });
@@ -799,6 +1070,11 @@
     peopleNotice.textContent = 'Invitation edit cancelled.';
   });
   attendeeForm.addEventListener('submit', submitAttendee);
+  tableForm.addEventListener('submit', submitTable);
+  groupForm.addEventListener('submit', submitGroup);
+  placementForm.addEventListener('submit', submitPlacement);
+  placementTable.addEventListener('change', populatePlacementSeats);
+  recommendationForm.addEventListener('submit', submitRecommendation);
   credentialClear.addEventListener('click', clearCredential);
   credentialCopy.addEventListener('click', async () => {
     try {

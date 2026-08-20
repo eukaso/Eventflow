@@ -29,6 +29,12 @@ final class AdminShellViewTest extends TestCase
         self::assertStringContainsString('id="eventflow-attendee-form"', $html);
         self::assertStringContainsString('copy now; it cannot be shown again', $html);
         self::assertStringContainsString('role="tablist"', $html);
+        self::assertStringContainsString('id="eventflow-seating"', $html);
+        self::assertStringContainsString('id="eventflow-table-form"', $html);
+        self::assertStringContainsString('id="eventflow-group-form"', $html);
+        self::assertStringContainsString('id="eventflow-placement-form"', $html);
+        self::assertStringContainsString('id="eventflow-recommendation-form"', $html);
+        self::assertStringContainsString('id="eventflow-seating-notice" role="status"', $html);
     }
 
     public function testNonReadyShellContainsNoBusinessDataOrExecutableMarkup(): void
