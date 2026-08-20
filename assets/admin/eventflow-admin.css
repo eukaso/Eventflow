@@ -217,6 +217,102 @@
   margin: 0;
 }
 
+.eventflow-people {
+  border-top: 1px solid var(--ef-border);
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.eventflow-people__tabs {
+  border-bottom: 1px solid var(--ef-border);
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+}
+
+.eventflow-people__tabs [aria-selected='true'] {
+  background: var(--ef-accent);
+  border-color: var(--ef-accent);
+  color: #fff;
+}
+
+.eventflow-inline-form {
+  align-items: end;
+  background: #f7f8fb;
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px 12px;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  margin-bottom: 20px;
+  padding: 16px;
+}
+
+.eventflow-inline-form--wide {
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+}
+
+.eventflow-inline-form label {
+  font-weight: 600;
+}
+
+.eventflow-inline-form input,
+.eventflow-inline-form select {
+  box-sizing: border-box;
+  min-height: 34px;
+  width: 100%;
+}
+
+.eventflow-record-list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.eventflow-person-card {
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.eventflow-person-card__title {
+  font-size: 1rem;
+  margin: 6px 0;
+}
+
+.eventflow-person-card__facts {
+  color: var(--ef-muted);
+  margin: 0 0 14px;
+}
+
+.eventflow-person-card__actions,
+.eventflow-credential__row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eventflow-credential {
+  background: #fff8e5;
+  border: 1px solid #dba617;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 14px;
+}
+
+.eventflow-credential label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.eventflow-credential input {
+  flex: 1 1 360px;
+  font-family: monospace;
+}
+
 @media (max-width: 600px) {
   .eventflow-admin__header {
     align-items: stretch;
@@ -241,6 +337,11 @@
   }
 
   .eventflow-form--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .eventflow-inline-form,
+  .eventflow-inline-form--wide {
     grid-template-columns: 1fr;
   }
 }

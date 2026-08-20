@@ -106,6 +106,80 @@ final readonly class AdminShellView
           </form>
         </details>
       </section>
+      <section class="eventflow-people" id="eventflow-people" aria-labelledby="eventflow-people-title" hidden>
+        <div class="eventflow-setup__heading">
+          <div>
+            <p class="eventflow-admin__eyebrow">People</p>
+            <h3 id="eventflow-people-title">Memberships, invitations, and attendees</h3>
+          </div>
+          <button class="button-link" id="eventflow-people-close" type="button">Close people workspace</button>
+        </div>
+        <p class="eventflow-setup__notice" id="eventflow-people-notice" role="status"></p>
+        <div class="eventflow-credential" id="eventflow-credential" hidden>
+          <label for="eventflow-credential-token">Invitation credential — copy now; it cannot be shown again</label>
+          <div class="eventflow-credential__row">
+            <input autocomplete="off" id="eventflow-credential-token" readonly spellcheck="false" type="text">
+            <button class="button button-secondary" id="eventflow-credential-copy" type="button">Copy credential</button>
+            <button class="button-link-delete" id="eventflow-credential-clear" type="button">Clear credential</button>
+          </div>
+        </div>
+        <div class="eventflow-people__tabs" role="tablist" aria-label="People administration">
+          <button aria-controls="eventflow-memberships-panel" aria-selected="true" class="button" id="eventflow-memberships-tab" role="tab" type="button">Team</button>
+          <button aria-controls="eventflow-invitations-panel" aria-selected="false" class="button" id="eventflow-invitations-tab" role="tab" type="button">Invitations</button>
+          <button aria-controls="eventflow-attendees-panel" aria-selected="false" class="button" id="eventflow-attendees-tab" role="tab" type="button">Attendees</button>
+        </div>
+        <section id="eventflow-memberships-panel" role="tabpanel" aria-labelledby="eventflow-memberships-tab">
+          <form class="eventflow-inline-form" id="eventflow-membership-form">
+            <label for="eventflow-member-user">WordPress user ID</label>
+            <input id="eventflow-member-user" min="1" name="user_id" required type="number">
+            <label for="eventflow-member-role">Role</label>
+            <select id="eventflow-member-role" name="role"><option value="organizer">Organizer</option><option value="coordinator">Coordinator</option><option value="reception">Reception</option><option value="reporting">Reporting</option><option value="owner">Owner</option></select>
+            <label for="eventflow-member-expires">Expires at</label>
+            <input id="eventflow-member-expires" name="expires_at" placeholder="Optional ISO 8601 timestamp" type="text">
+            <button class="button button-secondary" type="submit">Grant membership</button>
+          </form>
+          <div class="eventflow-record-list" id="eventflow-membership-list"></div>
+        </section>
+        <section id="eventflow-invitations-panel" role="tabpanel" aria-labelledby="eventflow-invitations-tab" hidden>
+          <form class="eventflow-inline-form eventflow-inline-form--wide" id="eventflow-invitation-form">
+            <label for="eventflow-invitation-name">Primary guest</label>
+            <input id="eventflow-invitation-name" maxlength="190" name="primary_name" required type="text">
+            <label for="eventflow-invitation-email">Email</label>
+            <input id="eventflow-invitation-email" name="primary_email" type="email">
+            <label for="eventflow-invitation-phone">Phone</label>
+            <input id="eventflow-invitation-phone" name="primary_phone" type="tel">
+            <label for="eventflow-invitation-capacity">Capacity</label>
+            <input id="eventflow-invitation-capacity" max="65535" min="1" name="capacity" required type="number" value="1">
+            <label for="eventflow-invitation-expiry">Credential expires</label>
+            <input id="eventflow-invitation-expiry" name="token_expires_at" placeholder="Optional ISO 8601 timestamp" type="text">
+            <label for="eventflow-invitation-notes">Organizer notes</label>
+            <input id="eventflow-invitation-notes" name="organizer_notes" type="text">
+            <button class="button button-secondary" id="eventflow-invitation-submit" type="submit">Create invitation</button>
+            <button class="button-link" id="eventflow-invitation-edit-cancel" type="button" hidden>Cancel edit</button>
+          </form>
+          <div class="eventflow-record-list" id="eventflow-invitation-list"></div>
+        </section>
+        <section id="eventflow-attendees-panel" role="tabpanel" aria-labelledby="eventflow-attendees-tab" hidden>
+          <form class="eventflow-inline-form eventflow-inline-form--wide" id="eventflow-attendee-form">
+            <label for="eventflow-attendee-invitation">Invitation</label>
+            <select id="eventflow-attendee-invitation" name="invitation_id" required></select>
+            <label for="eventflow-attendee-name">Display name</label>
+            <input id="eventflow-attendee-name" maxlength="190" name="display_name" required type="text">
+            <label for="eventflow-attendee-role">Role</label>
+            <select id="eventflow-attendee-role" name="role"><option value="companion">Companion</option><option value="primary">Primary</option></select>
+            <label for="eventflow-attendee-email">Email</label>
+            <input id="eventflow-attendee-email" name="email" type="email">
+            <label for="eventflow-attendee-phone">Phone</label>
+            <input id="eventflow-attendee-phone" name="phone" type="tel">
+            <label for="eventflow-attendee-dietary">Dietary requirements</label>
+            <input id="eventflow-attendee-dietary" name="dietary_requirements" type="text">
+            <label for="eventflow-attendee-accessibility">Accessibility requirements</label>
+            <input id="eventflow-attendee-accessibility" name="accessibility_requirements" type="text">
+            <button class="button button-secondary" type="submit">Add attendee</button>
+          </form>
+          <div class="eventflow-record-list" id="eventflow-attendee-list"></div>
+        </section>
+      </section>
     </section>
   </main>
 </div>

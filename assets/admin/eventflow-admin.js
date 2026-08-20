@@ -23,11 +23,31 @@
   const configurationForm = document.getElementById('eventflow-configuration-form');
   const venueForm = document.getElementById('eventflow-venue-form');
   const venueSelect = document.getElementById('eventflow-event-venue');
+  const people = document.getElementById('eventflow-people');
+  const peopleClose = document.getElementById('eventflow-people-close');
+  const peopleNotice = document.getElementById('eventflow-people-notice');
+  const membershipForm = document.getElementById('eventflow-membership-form');
+  const invitationForm = document.getElementById('eventflow-invitation-form');
+  const invitationSubmit = document.getElementById('eventflow-invitation-submit');
+  const invitationEditCancel = document.getElementById('eventflow-invitation-edit-cancel');
+  const attendeeForm = document.getElementById('eventflow-attendee-form');
+  const membershipList = document.getElementById('eventflow-membership-list');
+  const invitationList = document.getElementById('eventflow-invitation-list');
+  const attendeeList = document.getElementById('eventflow-attendee-list');
+  const attendeeInvitation = document.getElementById('eventflow-attendee-invitation');
+  const credential = document.getElementById('eventflow-credential');
+  const credentialToken = document.getElementById('eventflow-credential-token');
+  const credentialCopy = document.getElementById('eventflow-credential-copy');
+  const credentialClear = document.getElementById('eventflow-credential-clear');
+  const peopleTabs = ['memberships', 'invitations', 'attendees'];
   const refresh = document.getElementById('eventflow-refresh');
   const bootstrapNotice = document.getElementById('eventflow-bootstrap-notice');
   let activeEvent = null;
   let activeEventEtag = null;
   let activeConfigurationEtag = null;
+  let credentialClearTimer = null;
+  let editingInvitationId = null;
+  let editingInvitationEtag = null;
 
   const setStatus = (message, busy = false) => {
     status.textContent = message;
@@ -94,12 +114,14 @@
   };
 
   const showOverview = (event, etag = null) => {
+    clearCredential();
     activeEvent = event;
     activeEventEtag = etag;
     activeConfigurationEtag = null;
     eventsView.hidden = true;
     overview.hidden = false;
     setup.hidden = true;
+    people.hidden = true;
     overviewFacts.hidden = false;
     overviewTitle.textContent = String(event.name || 'Untitled event');
     overviewStatus.textContent = String(event.status || 'unknown');
@@ -117,6 +139,13 @@
     setupButton.textContent = 'Edit setup';
     setupButton.addEventListener('click', openSetup);
     overviewActions.appendChild(setupButton);
+
+    const peopleButton = document.createElement('button');
+    peopleButton.className = 'button button-secondary';
+    peopleButton.type = 'button';
+    peopleButton.textContent = 'Manage people';
+    peopleButton.addEventListener('click', openPeople);
+    overviewActions.appendChild(peopleButton);
 
     (lifecycleActions[event.status] || []).forEach((action) => {
       const button = document.createElement('button');
@@ -343,6 +372,353 @@
     }
   };
 
+  const clearCredential = () => {
+    if (credentialClearTimer !== null) window.clearTimeout(credentialClearTimer);
+    credentialClearTimer = null;
+    credentialToken.value = '';
+    credential.hidden = true;
+  };
+
+  const showCredential = (token) => {
+    clearCredential();
+    if (typeof token !== 'string' || token === '') return;
+    credentialToken.value = token;
+    credential.hidden = false;
+    credentialToken.focus();
+    credentialToken.select();
+    credentialClearTimer = window.setTimeout(clearCredential, 300000);
+  };
+
+  const presentReturnedCredential = (result) => {
+    const token = result?.payload?.data?.credential?.token;
+    if (typeof token === 'string' && token !== '') {
+      showCredential(token);
+      peopleNotice.textContent = 'Credential returned once. Copy it securely, then clear this field.';
+      return;
+    }
+    clearCredential();
+    peopleNotice.textContent = 'The operation completed without returning a credential. Rotate the credential if a new delivery value is required.';
+  };
+
+  const selectPeopleTab = (name) => {
+    peopleTabs.forEach((candidate) => {
+      const tab = document.getElementById(`eventflow-${candidate}-tab`);
+      const panel = document.getElementById(`eventflow-${candidate}-panel`);
+      const selected = candidate === name;
+      tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+      panel.hidden = !selected;
+    });
+  };
+
+  const actionButton = (label, handler, destructive = false) => {
+    const button = document.createElement('button');
+    button.className = destructive ? 'button button-link-delete' : 'button button-small';
+    button.type = 'button';
+    button.textContent = label;
+    button.addEventListener('click', handler);
+    return button;
+  };
+
+  const recordCard = (title, statusValue, facts) => {
+    const card = document.createElement('article');
+    card.className = 'eventflow-person-card';
+    appendText(card, 'p', 'eventflow-event-card__status', statusValue);
+    appendText(card, 'h4', 'eventflow-person-card__title', title);
+    const description = document.createElement('p');
+    description.className = 'eventflow-person-card__facts';
+    description.textContent = facts.filter(Boolean).join(' • ');
+    card.appendChild(description);
+    const actions = document.createElement('div');
+    actions.className = 'eventflow-person-card__actions';
+    card.appendChild(actions);
+    return { card, actions };
+  };
+
+  const runPeopleMutation = async (path, options = {}, confirmation = null) => {
+    if (confirmation && !window.confirm(confirmation)) return null;
+    peopleNotice.textContent = 'Saving change…';
+    try {
+      const result = await requestJson(path, {
+        method: 'POST',
+        ...options,
+        headers: mutationHeaders(),
+      });
+      peopleNotice.textContent = 'Change accepted. Refreshing authoritative records…';
+      return result;
+    } catch (error) {
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      peopleNotice.textContent = `The latest state could not be confirmed. Refresh before retrying.${reference}`;
+      return null;
+    }
+  };
+
+  const renderMemberships = (memberships) => {
+    membershipList.replaceChildren();
+    if (!memberships.length) appendText(membershipList, 'p', 'eventflow-admin__status', 'No memberships found.');
+    memberships.forEach((membership) => {
+      const { card, actions } = recordCard(
+        `WordPress user ${membership.user_id}`,
+        String(membership.status || 'unknown'),
+        [String(membership.role || ''), membership.is_primary_owner ? 'Primary owner' : '', membership.expires_at ? `Expires ${membership.expires_at}` : ''],
+      );
+      const eventId = encodeURIComponent(String(activeEvent.id));
+      const membershipId = encodeURIComponent(String(membership.id));
+      const transition = async (action, destructive = false) => {
+        const result = await runPeopleMutation(
+          `events/${eventId}/memberships/${membershipId}/${action}`,
+          {},
+          destructive ? `${action} this membership?` : null,
+        );
+        if (result) await loadPeopleData(false);
+      };
+      if (membership.status === 'active' && !membership.is_primary_owner) actions.appendChild(actionButton('Suspend', () => transition('suspend')));
+      if (membership.status === 'suspended') actions.appendChild(actionButton('Reactivate', () => transition('reactivate')));
+      if (!membership.is_primary_owner && membership.status !== 'revoked') actions.appendChild(actionButton('Revoke', () => transition('revoke', true), true));
+      membershipList.appendChild(card);
+    });
+  };
+
+  const populateInvitationOptions = (invitations) => {
+    attendeeInvitation.replaceChildren();
+    invitations.filter((invitation) => invitation.archived_at === null).forEach((invitation) => {
+      const option = document.createElement('option');
+      option.value = String(invitation.id);
+      option.textContent = `${invitation.primary_name} (${invitation.code})`;
+      attendeeInvitation.appendChild(option);
+    });
+  };
+
+  const resetInvitationEditor = () => {
+    editingInvitationId = null;
+    editingInvitationEtag = null;
+    invitationForm.reset();
+    setField(invitationForm, 'capacity', 1);
+    field(invitationForm, 'token_expires_at').disabled = false;
+    invitationSubmit.textContent = 'Create invitation';
+    invitationEditCancel.hidden = true;
+  };
+
+  const startInvitationEdit = async (invitationId) => {
+    if (!activeEvent) return;
+    peopleNotice.textContent = 'Loading current Invitation profile…';
+    try {
+      const eventId = encodeURIComponent(String(activeEvent.id));
+      const result = await requestJson(`events/${eventId}/invitations/${encodeURIComponent(String(invitationId))}`);
+      const invitation = result.payload.data || {};
+      editingInvitationId = invitation.id;
+      editingInvitationEtag = result.etag;
+      ['primary_name', 'primary_email', 'primary_phone', 'capacity', 'organizer_notes']
+        .forEach((name) => setField(invitationForm, name, invitation[name]));
+      setField(invitationForm, 'token_expires_at', null);
+      field(invitationForm, 'token_expires_at').disabled = true;
+      invitationSubmit.textContent = 'Save invitation profile';
+      invitationEditCancel.hidden = false;
+      selectPeopleTab('invitations');
+      field(invitationForm, 'primary_name').focus();
+      peopleNotice.textContent = 'Editing the current revision. Credential expiry is changed only during credential rotation.';
+    } catch (error) {
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      peopleNotice.textContent = `Invitation profile unavailable.${reference}`;
+    }
+  };
+
+  const renderInvitations = (invitations) => {
+    invitationList.replaceChildren();
+    populateInvitationOptions(invitations);
+    if (!invitations.length) appendText(invitationList, 'p', 'eventflow-admin__status', 'No invitations found.');
+    invitations.forEach((invitation) => {
+      const state = invitation.archived_at ? 'archived' : String(invitation.status || 'unknown');
+      const { card, actions } = recordCard(
+        String(invitation.primary_name || 'Unnamed invitation'),
+        state,
+        [String(invitation.code || ''), invitation.primary_email || '', `Capacity ${invitation.capacity}`, `RSVP ${invitation.response_status}`],
+      );
+      const eventId = encodeURIComponent(String(activeEvent.id));
+      const invitationId = encodeURIComponent(String(invitation.id));
+      const invitationPath = `events/${eventId}/invitations/${invitationId}`;
+      actions.appendChild(actionButton('Edit profile', () => startInvitationEdit(invitation.id)));
+      const invitationAction = async (action, returnsCredential = false, destructive = false) => {
+        if (returnsCredential) clearCredential();
+        const result = await runPeopleMutation(
+          `${invitationPath}/${action}`,
+          {},
+          destructive ? `${action} this invitation?` : null,
+        );
+        if (!result) return;
+        await loadPeopleData(false);
+        if (returnsCredential) presentReturnedCredential(result);
+      };
+      if (invitation.archived_at) {
+        actions.appendChild(actionButton('Restore', () => invitationAction('restore')));
+      } else {
+        actions.appendChild(actionButton('Archive', () => invitationAction('archive', false, true), true));
+        if (invitation.status === 'active') {
+          actions.appendChild(actionButton('Rotate credential', () => invitationAction('rotate-token', true, true)));
+          actions.appendChild(actionButton('Revoke credential', () => invitationAction('revoke', false, true), true));
+        } else if (invitation.status === 'revoked') {
+          actions.appendChild(actionButton('Activate credential', () => invitationAction('activate', true)));
+        }
+      }
+      invitationList.appendChild(card);
+    });
+  };
+
+  const renderAttendees = (attendees) => {
+    attendeeList.replaceChildren();
+    if (!attendees.length) appendText(attendeeList, 'p', 'eventflow-admin__status', 'No attendees found.');
+    attendees.forEach((attendee) => {
+      const { card, actions } = recordCard(
+        String(attendee.display_name || 'Unnamed attendee'),
+        String(attendee.status || 'unknown'),
+        [String(attendee.role || ''), `Invitation ${attendee.invitation_id}`, attendee.email || '', attendee.dietary_requirements ? 'Dietary needs recorded' : '', attendee.accessibility_requirements ? 'Accessibility needs recorded' : ''],
+      );
+      const eventId = encodeURIComponent(String(activeEvent.id));
+      const attendeeId = encodeURIComponent(String(attendee.id));
+      const attendeeAction = async (action, destructive = false) => {
+        const result = await runPeopleMutation(
+          `events/${eventId}/attendees/${attendeeId}/${action}`,
+          { body: JSON.stringify({ invitation_id: Number(attendee.invitation_id) }) },
+          destructive ? `${action} this attendee?` : null,
+        );
+        if (result) await loadPeopleData(false);
+      };
+      if (attendee.status === 'cancelled') actions.appendChild(actionButton('Restore', () => attendeeAction('restore')));
+      else actions.appendChild(actionButton('Cancel', () => attendeeAction('cancel', true), true));
+      attendeeList.appendChild(card);
+    });
+  };
+
+  const loadPeopleData = async (clearReturnedCredential = true) => {
+    if (!activeEvent) return;
+    if (clearReturnedCredential) clearCredential();
+    peopleNotice.textContent = 'Loading current people records…';
+    [membershipForm, invitationForm, attendeeForm].forEach((form) => disableForm(form, true));
+    const eventPath = `events/${encodeURIComponent(String(activeEvent.id))}`;
+    const [memberships, invitations, attendees] = await Promise.allSettled([
+      requestJson(`${eventPath}/memberships?limit=100`),
+      requestJson(`${eventPath}/invitations?limit=100`),
+      requestJson(`${eventPath}/attendees?limit=100`),
+    ]);
+    const messages = [];
+    if (memberships.status === 'fulfilled') {
+      renderMemberships(Array.isArray(memberships.value.payload.data) ? memberships.value.payload.data : []);
+      disableForm(membershipForm, false);
+    } else {
+      membershipList.replaceChildren();
+      messages.push('Team access unavailable.');
+    }
+    if (invitations.status === 'fulfilled') {
+      renderInvitations(Array.isArray(invitations.value.payload.data) ? invitations.value.payload.data : []);
+      disableForm(invitationForm, false);
+      field(invitationForm, 'token_expires_at').disabled = editingInvitationId !== null;
+    } else {
+      invitationList.replaceChildren();
+      attendeeInvitation.replaceChildren();
+      messages.push('Invitation access unavailable.');
+    }
+    if (attendees.status === 'fulfilled') {
+      renderAttendees(Array.isArray(attendees.value.payload.data) ? attendees.value.payload.data : []);
+      if (invitations.status === 'fulfilled' && attendeeInvitation.options.length > 0) disableForm(attendeeForm, false);
+    } else {
+      attendeeList.replaceChildren();
+      messages.push('Attendee access unavailable.');
+    }
+    peopleNotice.textContent = messages.join(' ') || 'People records loaded.';
+  };
+
+  const openPeople = async () => {
+    if (!activeEvent) return;
+    resetInvitationEditor();
+    setup.hidden = true;
+    overviewFacts.hidden = true;
+    people.hidden = false;
+    selectPeopleTab('memberships');
+    await loadPeopleData();
+  };
+
+  const submitMembership = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    if (!activeEvent) return;
+    disableForm(membershipForm, true);
+    const eventId = encodeURIComponent(String(activeEvent.id));
+    const result = await runPeopleMutation(`events/${eventId}/memberships`, {
+      body: JSON.stringify({
+        user_id: Number(field(membershipForm, 'user_id').value),
+        role: String(field(membershipForm, 'role').value),
+        expires_at: nullableText(membershipForm, 'expires_at'),
+      }),
+    });
+    if (!result) {
+      disableForm(membershipForm, false);
+      return;
+    }
+    membershipForm.reset();
+    await loadPeopleData(false);
+  };
+
+  const submitInvitation = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    if (!activeEvent) return;
+    if (editingInvitationId === null) clearCredential();
+    disableForm(invitationForm, true);
+    const eventId = encodeURIComponent(String(activeEvent.id));
+    const profile = {
+      primary_name: String(field(invitationForm, 'primary_name').value).trim(),
+      primary_email: nullableText(invitationForm, 'primary_email'),
+      primary_phone: nullableText(invitationForm, 'primary_phone'),
+      capacity: Number(field(invitationForm, 'capacity').value),
+    };
+    let result;
+    if (editingInvitationId !== null && editingInvitationEtag !== null) {
+      result = await requestJson(`events/${eventId}/invitations/${encodeURIComponent(String(editingInvitationId))}`, {
+        method: 'PATCH',
+        headers: mutationHeaders(editingInvitationEtag),
+        body: JSON.stringify({ ...profile, organizer_notes: nullableText(invitationForm, 'organizer_notes') }),
+      }).catch((error) => {
+        const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+        peopleNotice.textContent = `Invitation profile was not saved. Refresh before retrying.${reference}`;
+        return null;
+      });
+    } else {
+      result = await runPeopleMutation(`events/${eventId}/invitations`, {
+        body: JSON.stringify({ ...profile, token_expires_at: nullableText(invitationForm, 'token_expires_at') }),
+      });
+    }
+    if (!result) {
+      disableForm(invitationForm, false);
+      field(invitationForm, 'token_expires_at').disabled = editingInvitationId !== null;
+      return;
+    }
+    const credentialResult = editingInvitationId === null ? result : null;
+    resetInvitationEditor();
+    await loadPeopleData(false);
+    if (credentialResult) presentReturnedCredential(credentialResult);
+  };
+
+  const submitAttendee = async (submissionEvent) => {
+    submissionEvent.preventDefault();
+    if (!activeEvent) return;
+    disableForm(attendeeForm, true);
+    const eventId = encodeURIComponent(String(activeEvent.id));
+    const result = await runPeopleMutation(`events/${eventId}/attendees`, {
+      body: JSON.stringify({
+        invitation_id: Number(field(attendeeForm, 'invitation_id').value),
+        display_name: String(field(attendeeForm, 'display_name').value).trim(),
+        role: String(field(attendeeForm, 'role').value),
+        email: nullableText(attendeeForm, 'email'),
+        phone: nullableText(attendeeForm, 'phone'),
+        dietary_requirements: nullableText(attendeeForm, 'dietary_requirements'),
+        accessibility_requirements: nullableText(attendeeForm, 'accessibility_requirements'),
+      }),
+    });
+    if (!result) {
+      disableForm(attendeeForm, false);
+      return;
+    }
+    attendeeForm.reset();
+    await loadPeopleData(false);
+  };
+
   const renderEvents = (events) => {
     list.replaceChildren();
     if (!events.length) {
@@ -380,6 +756,7 @@
     setStatus('Loading accessible events…', true);
     try {
       const { payload } = await requestJson('events?limit=20');
+      clearCredential();
       activeEvent = null;
       activeEventEtag = null;
       activeConfigurationEtag = null;
@@ -405,5 +782,33 @@
   eventForm.addEventListener('submit', submitEventSetup);
   configurationForm.addEventListener('submit', submitConfiguration);
   venueForm.addEventListener('submit', submitVenue);
+  peopleClose.addEventListener('click', () => {
+    clearCredential();
+    resetInvitationEditor();
+    people.hidden = true;
+    overviewFacts.hidden = false;
+    overviewMessage.textContent = 'People workspace closed.';
+  });
+  peopleTabs.forEach((name) => {
+    document.getElementById(`eventflow-${name}-tab`).addEventListener('click', () => selectPeopleTab(name));
+  });
+  membershipForm.addEventListener('submit', submitMembership);
+  invitationForm.addEventListener('submit', submitInvitation);
+  invitationEditCancel.addEventListener('click', () => {
+    resetInvitationEditor();
+    peopleNotice.textContent = 'Invitation edit cancelled.';
+  });
+  attendeeForm.addEventListener('submit', submitAttendee);
+  credentialClear.addEventListener('click', clearCredential);
+  credentialCopy.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(credentialToken.value);
+      peopleNotice.textContent = 'Credential copied. Clear it after secure delivery.';
+    } catch (error) {
+      credentialToken.focus();
+      credentialToken.select();
+      peopleNotice.textContent = 'Automatic copy was unavailable. The credential is selected for manual copying.';
+    }
+  });
   loadEvents();
 })();
