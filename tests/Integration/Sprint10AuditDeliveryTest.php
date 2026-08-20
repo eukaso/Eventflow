@@ -11,7 +11,7 @@ final class Sprint10AuditDeliveryTest extends TestCase
         $routes = $this->source('src/Presentation/Api/AuditRouteRegistrar.php');
         self::assertSame(3, substr_count($routes, 'registerAuthenticatedGet'));
         self::assertStringNotContainsString('registerAuthenticatedPost', $routes);
-        foreach (['audit-logs', ".'/integrity'", 'audit_log_id'] as $expected) self::assertStringContainsString($expected, $routes);
+        foreach (["'/events/(?P<event_id>\\d+)/audit'", ".'/integrity'", 'audit_log_id'] as $expected) self::assertStringContainsString($expected, $routes);
         $bootstrap = $this->source('src/Bootstrap/ApplicationBootstrap.php');
         self::assertStringContainsString('$container->database->auditAccess', $bootstrap);
         self::assertStringContainsString('new AuditRouteRegistrar($audit)', $bootstrap);

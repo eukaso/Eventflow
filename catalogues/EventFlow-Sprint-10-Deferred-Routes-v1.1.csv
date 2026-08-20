@@ -1,0 +1,2 @@
+Area,Deferred_endpoints,Reason,Required_contract,Status
+Migration status,"GET /system/migrations; GET /system/migrations/readiness",Migration execution has no sanitized read-only status projection,"Authorized Migration status and readiness query service",DEFERRED

@@ -18,9 +18,9 @@ final class AuditControllerTest extends TestCase
         $routes = new AuditTestRoutes();
         (new AuditRouteRegistrar($this->controller(new AuditTestPort())))->register($routes);
         self::assertSame([
-            'GET eventflow/v1/events/(?P<event_id>\d+)/audit-logs',
-            'GET eventflow/v1/events/(?P<event_id>\d+)/audit-logs/integrity',
-            'GET eventflow/v1/events/(?P<event_id>\d+)/audit-logs/(?P<audit_log_id>\d+)',
+            'GET eventflow/v1/events/(?P<event_id>\d+)/audit',
+            'GET eventflow/v1/events/(?P<event_id>\d+)/audit/integrity',
+            'GET eventflow/v1/events/(?P<event_id>\d+)/audit/(?P<audit_log_id>\d+)',
         ], $routes->registered);
     }
 

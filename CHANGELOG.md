@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-078: added complete Sprint 10 executable evidence, forward-schema validation, catalogue reconciliation, and a single controlled Migration-status deferral.
 - IMP-077: exposed privileged Event-scoped sanitized diagnostics with strict private no-store delivery and no raw-log access.
 - IMP-076: exposed authenticated audit-history list, detail, and chain-integrity REST resources with minimized no-store responses.
 - IMP-075: added privileged Event-scoped audit-history access with minimized collections and pinned-head integrity verification.
