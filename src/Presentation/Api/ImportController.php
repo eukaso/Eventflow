@@ -15,7 +15,7 @@ final readonly class ImportController
 
     public function validate(RestRequest $request): ApiResponse
     {
-        $context = $this->contexts->create($request, MutationPreconditionPolicy::IDEMPOTENCY_KEY);
+        $context = $this->contexts->create($request, MutationPreconditionPolicy::IF_MATCH_AND_IDEMPOTENCY_KEY);
         $input = $this->requests->validation($request);
         $outcome = $this->imports->validate(
             $context->principal,
@@ -23,6 +23,7 @@ final readonly class ImportController
             $input->jobId,
             $input->mapping,
             $context->requiredIdempotencyKey(),
+            $context->requiredExpectedVersion(),
         );
         return $this->presenter->validation($outcome, $input->scope->eventId, $input->jobId, $context->requestId);
     }

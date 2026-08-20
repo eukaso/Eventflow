@@ -37,6 +37,12 @@ final class RequestBoundaryTest extends TestCase
         self::assertSame('id=evt_123&status=delivered', $request->rawBody());
     }
 
+    public function testMultipartFilesAreTypedWithoutTreatingPathsAsJsonInput():void
+    {
+        $request=(new WordPressRestRequestMapper())->map(new BoundaryWordPressRequest('multipart bytes',routes:['event_id'=>9],files:['source'=>['name'=>'guests.csv','tmp_name'=>'C:\\tmp\\php1','size'=>120,'error'=>0]]));
+        self::assertSame([],$request->json());self::assertSame('guests.csv',$request->file('source')?->clientFilename);self::assertSame('C:\\tmp\\php1',$request->file('source')?->temporaryPath);self::assertSame(120,$request->file('source')?->reportedSize);
+    }
+
     public function testMalformedAndNonObjectJsonFailWithControlledCodes(): void
     {
         foreach ([['{bad', 'malformed_json'], ['not-json', 'malformed_json'], ['[1,2]', 'validation_failed']] as [$body, $code]) {
@@ -124,9 +130,10 @@ final readonly class BoundaryRandom implements SecureRandom
 
 final readonly class BoundaryWordPressRequest
 {
-    public function __construct(private string $body, private array $headers = [], private array $routes = [], private array $query = ['q' => 'guest']) {}
+    public function __construct(private string $body, private array $headers = [], private array $routes = [], private array $query = ['q' => 'guest'],private array$files=[]) {}
     public function get_body(): string { return $this->body; }
     public function get_headers(): array { return $this->headers; }
     public function get_url_params(): array { return $this->routes; }
     public function get_query_params(): array { return $this->query; }
+    public function get_file_params():array{return$this->files;}
 }

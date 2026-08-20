@@ -24,7 +24,7 @@ use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Application\Transaction\TransactionManager;
 use InvalidArgumentException;
 
-final readonly class ImportService implements ImportValidation
+final readonly class ImportService implements ImportValidation, ImportStaging
 {
     public function __construct(
         private ImportRepository $imports,
@@ -39,10 +39,17 @@ final readonly class ImportService implements ImportValidation
         private TransactionManager $transactions,
     ) {}
 
-    public function stage(PrincipalContext $principal, EventScope $scope, string $path, string $idempotencyKey): IdempotencyOutcome
+    public function stage(PrincipalContext $principal, EventScope $scope, string $path, string $idempotencyKey, ?string $sourceFilename = null): IdempotencyOutcome
     {
         $this->authorization->requireEventCapability($principal, $scope, Capability::MANAGE_IMPORTS);
         $source = $this->parser->parse($path);
+        if ($sourceFilename !== null) {
+            $sourceFilename = trim($sourceFilename);
+            if ($sourceFilename === '' || strlen($sourceFilename) > 255 || basename(str_replace('\\', '/', $sourceFilename)) !== $sourceFilename) {
+                throw new ImportException('import_source_invalid');
+            }
+            $source = new ParsedImportSource($sourceFilename, $source->fileHash, $source->headers, $source->rows);
+        }
         return $this->idempotency->execute(
             $principal, $scope, 'import.stage', $idempotencyKey,
             ['event_id' => $scope->eventId, 'filename' => $source->filename, 'file_hash' => $source->fileHash],
@@ -53,14 +60,15 @@ final readonly class ImportService implements ImportValidation
         );
     }
 
-    public function validate(PrincipalContext $principal, EventScope $scope, int $jobId, ImportMapping $mapping, string $idempotencyKey): IdempotencyOutcome
+    public function validate(PrincipalContext $principal, EventScope $scope, int $jobId, ImportMapping $mapping, string $idempotencyKey, ?int $expectedRevision = null): IdempotencyOutcome
     {
         return $this->idempotency->execute(
             $principal, $scope, 'import.validate', $idempotencyKey,
-            ['event_id' => $scope->eventId, 'job_id' => $jobId, 'mapping' => $mapping->columns],
-            function () use ($principal, $scope, $jobId, $mapping): IdempotentOperationResult {
+            ['event_id' => $scope->eventId, 'job_id' => $jobId, 'mapping' => $mapping->columns, 'expected_revision' => $expectedRevision],
+            function () use ($principal, $scope, $jobId, $mapping, $expectedRevision): IdempotentOperationResult {
                 $this->authorization->requireEventCapability($principal, $scope, Capability::MANAGE_IMPORTS);
                 $job = $this->requiredJob($scope, $jobId, [ImportStatus::STAGED]);
+                if ($expectedRevision !== null && ($expectedRevision < 1 || $job->revision !== $expectedRevision)) throw new ImportException('resource_modified');
                 $valid = 0; $invalid = 0; $warning = 0;
                 foreach ($this->imports->rowsForValidation($scope, $jobId) as $row) {
                     $result = $this->normalizer->normalize($row->rawData, $mapping);

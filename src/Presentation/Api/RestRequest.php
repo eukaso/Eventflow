@@ -2,6 +2,8 @@
 
 namespace EventFlow\Presentation\Api;
 
+use EventFlow\Application\Import\UploadedFile;
+
 final readonly class RestRequest
 {
     /** @var array<string, string> */
@@ -18,6 +20,8 @@ final readonly class RestRequest
     /** @var array<string, string> */
     private array $queryParameters;
     private string $rawBody;
+    /** @var array<string, UploadedFile> */
+    private array $files;
 
     /** @param array<string, string> $headers @param array<string, mixed> $json @param array<string, string> $routeParameters */
     public function __construct(
@@ -29,6 +33,7 @@ final readonly class RestRequest
         bool $trustedSameOrigin = false,
         array $queryParameters = [],
         string $rawBody = '',
+        array $files = [],
     )
     {
         $normalized = [];
@@ -54,6 +59,7 @@ final readonly class RestRequest
         }
         $this->queryParameters = $normalizedQuery;
         $this->rawBody = $rawBody;
+        $this->files = array_filter($files,static fn(mixed$file):bool=>$file instanceof UploadedFile);
     }
 
     public function header(string $name): ?string
@@ -73,4 +79,5 @@ final readonly class RestRequest
     /** @return array<string, string> */
     public function headers(): array { return $this->headers; }
     public function rawBody(): string { return $this->rawBody; }
+    public function file(string $name): ?UploadedFile { return $this->files[$name] ?? null; }
 }

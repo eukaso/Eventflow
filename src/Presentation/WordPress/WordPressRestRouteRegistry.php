@@ -48,6 +48,11 @@ final readonly class WordPressRestRouteRegistry implements RestRouteRegistry
         $this->register($namespace, $route, 'PATCH', 'is_user_logged_in', $handler);
     }
 
+    public function registerAuthenticatedPut(string $namespace, string $route, callable $handler): void
+    {
+        $this->register($namespace, $route, 'PUT', 'is_user_logged_in', $handler);
+    }
+
     private function register(string $namespace, string $route, string $method, string $permission, callable $handler): void
     {
         if (!function_exists('register_rest_route') || !class_exists('WP_REST_Response')) {

@@ -8,5 +8,5 @@ use EventFlow\Application\Persistence\EventScope;
 
 interface ImportValidation
 {
-    public function validate(PrincipalContext $principal, EventScope $scope, int $jobId, ImportMapping $mapping, string $idempotencyKey): IdempotencyOutcome;
+    public function validate(PrincipalContext $principal, EventScope $scope, int $jobId, ImportMapping $mapping, string $idempotencyKey, ?int $expectedRevision = null): IdempotencyOutcome;
 }

@@ -13,11 +13,12 @@ use PHPUnit\Framework\TestCase;
 
 final class ImportControllerTest extends TestCase
 {
-    public function testRegistrarExposesValidationOnly(): void
+    public function testRegistrarExposesMappingAndValidation(): void
     {
         $routes=new ImportMemoryRoutes();
         (new ImportRouteRegistrar($this->controller(new ImportPort())))->register($routes);
         self::assertSame([
+            'PUT eventflow/v1/events/(?P<event_id>\d+)/imports/(?P<import_job_id>\d+)/mapping',
             'POST eventflow/v1/events/(?P<event_id>\d+)/imports/(?P<import_job_id>\d+)/validate',
         ],$routes->registered);
     }
@@ -26,7 +27,7 @@ final class ImportControllerTest extends TestCase
     {
         $port=new ImportPort();
         $response=$this->controller($port)->validate(new RestRequest(
-            ['Idempotency-Key'=>'import-validate-001'],
+            ['Idempotency-Key'=>'import-validate-001','If-Match'=>'1'],
             ['mapping'=>['primary_name'=>' Guest Name ','primary_email'=>'Email','capacity'=>'Seats']],
             ['event_id'=>'9','import_job_id'=>'71'],
         ));
@@ -45,7 +46,7 @@ final class ImportControllerTest extends TestCase
     {
         $port=new ImportPort();$port->replay=true;
         $response=$this->controller($port)->validate(new RestRequest(
-            ['Idempotency-Key'=>'import-validate-002'],['mapping'=>['primary_name'=>'Name']],['event_id'=>'9','import_job_id'=>'71'],
+            ['Idempotency-Key'=>'import-validate-002','If-Match'=>'1'],['mapping'=>['primary_name'=>'Name']],['event_id'=>'9','import_job_id'=>'71'],
         ));
         self::assertTrue($response->body()['meta']['replayed']);
         self::assertSame(['type'=>'import_job','id'=>71],$response->body()['data']);
@@ -55,11 +56,11 @@ final class ImportControllerTest extends TestCase
     {
         $port=new ImportPort();
         foreach ([
-            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-001'],['mapping'=>[]],['event_id'=>'9','import_job_id'=>'71'])),
-            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-002'],['mapping'=>['primary_name'=>7]],['event_id'=>'9','import_job_id'=>'71'])),
-            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-003'],['mapping'=>['primary_name'=>'Name','admin'=>'yes']],['event_id'=>'9','import_job_id'=>'71'])),
-            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-004'],['mapping'=>['primary_name'=>'Name'],'force'=>true],['event_id'=>'9','import_job_id'=>'71'])),
-            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-005'],['mapping'=>['primary_name'=>'Name']],['event_id'=>'9','import_job_id'=>'../71'])),
+            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-001','If-Match'=>'1'],['mapping'=>[]],['event_id'=>'9','import_job_id'=>'71'])),
+            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-002','If-Match'=>'1'],['mapping'=>['primary_name'=>7]],['event_id'=>'9','import_job_id'=>'71'])),
+            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-003','If-Match'=>'1'],['mapping'=>['primary_name'=>'Name','admin'=>'yes']],['event_id'=>'9','import_job_id'=>'71'])),
+            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-004','If-Match'=>'1'],['mapping'=>['primary_name'=>'Name'],'force'=>true],['event_id'=>'9','import_job_id'=>'71'])),
+            fn()=>$this->controller($port)->validate(new RestRequest(['Idempotency-Key'=>'import-bad-005','If-Match'=>'1'],['mapping'=>['primary_name'=>'Name']],['event_id'=>'9','import_job_id'=>'../71'])),
         ] as $operation){
             try{$operation();self::fail('Expected controlled input failure.');}
             catch(RequestInputException $failure){self::assertContains($failure->safeCode,['validation_failed','resource_not_found']);}
@@ -82,6 +83,7 @@ final class ImportMemoryRoutes implements RestRouteRegistry
     public function registerAuthenticatedGet(string $namespace,string $route,callable $handler):void{}
     public function registerAuthenticatedPost(string $namespace,string $route,callable $handler):void{$this->registered[]='POST '.$namespace.$route;}
     public function registerAuthenticatedPatch(string $namespace,string $route,callable $handler):void{}
+    public function registerAuthenticatedPut(string $namespace,string $route,callable $handler):void{$this->registered[]='PUT '.$namespace.$route;}
 }
 
 final readonly class ImportPrincipalResolver implements AuthenticatedPrincipalResolver
@@ -97,7 +99,7 @@ final readonly class ImportRandom implements SecureRandom
 final class ImportPort implements ImportValidation
 {
     public int $calls=0;public ?EventScope $scope=null;public int $jobId=0;public ?ImportMapping $mapping=null;public string $key='';public bool $replay=false;
-    public function validate(PrincipalContext $principal,EventScope $scope,int $jobId,ImportMapping $mapping,string $idempotencyKey):IdempotencyOutcome
+    public function validate(PrincipalContext $principal,EventScope $scope,int $jobId,ImportMapping $mapping,string $idempotencyKey,?int$expectedRevision=null):IdempotencyOutcome
     {
         $this->calls++;$this->scope=$scope;$this->jobId=$jobId;$this->mapping=$mapping;$this->key=$idempotencyKey;
         return new IdempotencyOutcome($this->replay,new IdempotencyResultReference('import_job',$jobId,200),$this->replay?null:new ImportDryRun(20,17,2,1));

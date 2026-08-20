@@ -2,6 +2,7 @@
 
 namespace EventFlow\Presentation\WordPress;
 
+use EventFlow\Application\Import\UploadedFile;
 use EventFlow\Presentation\Api\{RequestInputException, RestRequest};
 use JsonException;
 
@@ -19,12 +20,13 @@ final readonly class WordPressRestRequestMapper
         $query = $this->routes(method_exists($wordpressRequest, 'get_query_params') ? $wordpressRequest->get_query_params() : []);
         $cookies = $this->cookies(method_exists($wordpressRequest, 'get_cookie_params') ? $wordpressRequest->get_cookie_params() : []);
         $raw = method_exists($wordpressRequest, 'get_body') ? $wordpressRequest->get_body() : '';
-        if (!is_string($raw) || strlen($raw) > self::MAX_JSON_BYTES) {
+        $files = $this->files(method_exists($wordpressRequest,'get_file_params')?$wordpressRequest->get_file_params():[]);
+        if (!is_string($raw) || ($files===[]&&strlen($raw)>self::MAX_JSON_BYTES)) {
             throw new RequestInputException('validation_failed');
         }
         $json = [];
         $providerWebhook = array_key_exists('provider', $routes);
-        if (trim($raw) !== '' && (!$providerWebhook || $this->looksLikeJson($raw, $headers))) {
+        if ($files===[]&&trim($raw) !== '' && (!$providerWebhook || $this->looksLikeJson($raw, $headers))) {
             try {
                 $decoded = json_decode($raw, true, 64, JSON_THROW_ON_ERROR);
             } catch (JsonException) {
@@ -35,8 +37,11 @@ final readonly class WordPressRestRequestMapper
             }
             $json = $decoded;
         }
-        return new RestRequest($headers, $json, $routes, $this->clientAddress(), $cookies, $this->sameOrigin($headers), $query, $raw);
+        return new RestRequest($headers, $json, $routes, $this->clientAddress(), $cookies, $this->sameOrigin($headers), $query, $raw,$files);
     }
+
+    /** @return array<string,UploadedFile> */
+    private function files(mixed$source):array{if(!is_array($source))return[];$files=[];foreach($source as$name=>$file){if(!is_string($name)||!is_array($file))continue;$filename=$file['name']??null;$path=$file['tmp_name']??null;$size=$file['size']??null;$error=$file['error']??null;if(is_string($filename)&&is_string($path)&&is_int($size)&&is_int($error))$files[$name]=new UploadedFile($filename,$path,$size,$error);}return$files;}
 
     /** @return array<string, string> */
     private function headers(mixed $source): array

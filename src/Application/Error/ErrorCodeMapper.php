@@ -61,6 +61,7 @@ final readonly class ErrorCodeMapper
                 'export_not_ready', 'export_not_downloadable',
                 'privacy_action_invalid', 'privacy_request_invalid', 'privacy_job_invalid',
                 'import_query_invalid', 'import_result_invalid', 'import_apply_request_invalid',
+                'import_upload_invalid', 'import_upload_staging_failed',
                 'privacy_checkpoint_invalid', 'retention_hold_invalid', 'retention_hold_not_active',
                 'membership_expiry_invalid', 'membership_already_exists', 'membership_revoked',
                 'primary_owner_continuity_required', 'membership_expired', 'membership_transition_invalid',
