@@ -8,6 +8,7 @@ use EventFlow\Infrastructure\Config\ConfigLoader;
 use EventFlow\Infrastructure\Health\BootstrapReadinessCheck;
 use EventFlow\Presentation\Api\{AttendeeController, AttendeePresenter, AttendeeQueryController, AttendeeQueryRequestMapper, AttendeeQueryRouteRegistrar, AttendeeRequestMapper, AttendeeRouteRegistrar, CampaignAccessController, CampaignAccessPresenter, CampaignAccessRequestMapper, CampaignAccessRouteRegistrar, CampaignController, CampaignPresenter, CampaignRequestMapper, CampaignRouteRegistrar, CheckInController, CheckInPresenter, CheckInRequestMapper, CheckInRouteRegistrar, EventController, EventPresenter, EventRequestMapper, EventRouteRegistrar, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestRequestContextFactory, GuestSessionAccessController, GuestSessionAccessPresenter, GuestSessionAccessRequestMapper, GuestSessionAccessRouteRegistrar, GuestSessionPresenter, ImportController, ImportPresenter, ImportRequestMapper, ImportRouteRegistrar, InvitationAccessController, InvitationAccessRequestMapper, InvitationAccessRouteRegistrar, InvitationController, InvitationPresenter, InvitationRequestMapper, InvitationRouteRegistrar, MembershipController, MembershipPresenter, MembershipQueryController, MembershipQueryRequestMapper, MembershipQueryRouteRegistrar, MembershipRequestMapper, MembershipRouteRegistrar, ProviderWebhookController, ProviderWebhookPresenter, ProviderWebhookRequestMapper, ProviderWebhookRouteRegistrar, RsvpController, RsvpPresenter, RsvpRequestMapper, RsvpRouteRegistrar, SeatingGroupMoveController, SeatingGroupMovePresenter, SeatingGroupMoveRequestMapper, SeatingGroupMoveRouteRegistrar, SeatingPlanningController, SeatingPlanningPresenter, SeatingPlanningRequestMapper, SeatingPlanningRouteRegistrar, SeatingPreparationController, SeatingPreparationPresenter, SeatingPreparationRequestMapper, SeatingPreparationRouteRegistrar, SeatingRecommendationController, SeatingRecommendationPresenter, SeatingRecommendationRequestMapper, SeatingRecommendationRouteRegistrar, SeatingResourceController, SeatingResourcePresenter, SeatingResourceRequestMapper, SeatingResourceRouteRegistrar, SystemRouteRegistrar, SystemStatusController, SystemStatusPresenter, TemplateAccessController, TemplateAccessPresenter, TemplateAccessRequestMapper, TemplateAccessRouteRegistrar, TemplateController, TemplatePresenter, TemplateRequestMapper, TemplateRouteRegistrar};
 use EventFlow\Presentation\Api\{EventConfigurationController, EventConfigurationPresenter, EventConfigurationRequestMapper, EventConfigurationRouteRegistrar, VenueController, VenuePresenter, VenueRequestMapper, VenueRouteRegistrar};
+use EventFlow\Presentation\Api\{MessageAccessController, MessageAccessPresenter, MessageAccessRequestMapper, MessageAccessRouteRegistrar};
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
@@ -291,6 +292,13 @@ final class ApplicationBootstrap
                 new CampaignAccessPresenter(),
             );
             (new WordPressRestRouteHooks(new CampaignAccessRouteRegistrar($campaignAccess), $wordpressRoutes))->register();
+            $messageAccess = new MessageAccessController(
+                $container->database->messageAccess,
+                $container->delivery->authenticatedRequests,
+                new MessageAccessRequestMapper(),
+                new MessageAccessPresenter(),
+            );
+            (new WordPressRestRouteHooks(new MessageAccessRouteRegistrar($messageAccess), $wordpressRoutes))->register();
             $providerWebhooks = new ProviderWebhookController(
                 $container->database->providers,
                 $container->services->requestIds,

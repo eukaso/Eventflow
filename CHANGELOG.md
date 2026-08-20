@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-068: exposed authenticated Message list/detail/retry routes with strict filters, ETags, idempotency, and bounded collection content.
 - IMP-067: added Message list/detail projections and revision-guarded, idempotent, audited retry job orchestration.
 - IMP-066: exposed campaign list/read/update/audience-preview/schedule/cancel REST routes with revision, idempotency, privacy, and no-store response contracts.
 
