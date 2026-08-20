@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-075: added privileged Event-scoped audit-history access with minimized collections and pinned-head integrity verification.
 - IMP-074: exposed primary-owner Privacy Action and retention-hold REST administration with strict idempotent commands.
 - IMP-073: added primary-owner Privacy Action and retention-hold access contracts with bounded Event-scoped queries.
 - IMP-072: exposed Export create/list/detail and integrity-verified protected download routes with raw WordPress delivery.

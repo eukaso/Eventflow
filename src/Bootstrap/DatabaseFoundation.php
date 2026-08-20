@@ -3,6 +3,8 @@
 namespace EventFlow\Bootstrap;
 
 use EventFlow\Application\Audit\AuditCanonicalizer;
+use EventFlow\Application\Audit\AuditAccessService;
+use EventFlow\Application\Audit\AuditChainVerifier;
 use EventFlow\Application\Audit\AuditPayloadRedactor;
 use EventFlow\Application\Audit\AuditService;
 use EventFlow\Application\Attendee\AttendeeService;
@@ -101,6 +103,7 @@ final readonly class DatabaseFoundation
         public AuthorizationService $authorization,
         public IdempotencyService $idempotency,
         public AuditService $audit,
+        public AuditAccessService $auditAccess,
         public EventLifecycleService $eventLifecycle,
         public EventAccessService $eventAccess,
         public VenueService $venues,
@@ -157,12 +160,14 @@ final readonly class DatabaseFoundation
             $shared->random,
             new CanonicalRequestHasher(),
         );
+        $auditRepository = new WpdbAuditRepository($database, $tableNames);
+        $auditCanonicalizer = new AuditCanonicalizer();
         $audit = new AuditService(
-            new WpdbAuditRepository($database, $tableNames),
+            $auditRepository,
             $transactions,
             $shared->clock,
             new AuditPayloadRedactor(),
-            new AuditCanonicalizer(),
+            $auditCanonicalizer,
         );
         $eventRepository = new WpdbEventLifecycleRepository($database, $tableNames);
         $membershipRepository = new WpdbMembershipRepository($database, $tableNames);
@@ -233,6 +238,11 @@ final readonly class DatabaseFoundation
             authorization: $authorization,
             idempotency: $idempotency,
             audit: $audit,
+            auditAccess: new AuditAccessService(
+                $auditRepository,
+                $authorization,
+                new AuditChainVerifier($auditCanonicalizer),
+            ),
             eventLifecycle: new EventLifecycleService(
                 $eventRepository,
                 new WordPressEventCreationAuthority(),

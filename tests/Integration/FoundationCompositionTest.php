@@ -3,6 +3,7 @@
 namespace EventFlow\Tests\Integration;
 
 use EventFlow\Application\Audit\AuditService;
+use EventFlow\Application\Audit\AuditAccessService;
 use EventFlow\Application\Attendee\AttendeeService;
 use EventFlow\Application\CheckIn\CheckInService;
 use EventFlow\Application\Communication\CommunicationService;
@@ -46,6 +47,7 @@ final class FoundationCompositionTest extends TestCase
         self::assertInstanceOf(AuthorizationService::class, $container->database->authorization);
         self::assertInstanceOf(IdempotencyService::class, $container->database->idempotency);
         self::assertInstanceOf(AuditService::class, $container->database->audit);
+        self::assertInstanceOf(AuditAccessService::class, $container->database->auditAccess);
         self::assertInstanceOf(ObservabilityService::class, $container->services->observability);
         self::assertInstanceOf(AuthenticatedRequestContextFactory::class, $container->delivery->authenticatedRequests);
         self::assertInstanceOf(EventLifecycleService::class, $container->database->eventLifecycle);

@@ -23,7 +23,7 @@ final readonly class ErrorCodeMapper
             }
 
             if (in_array($code, [
-                'database_deadlock', 'database_lock_timeout', 'audit_chain_head_unavailable',
+                'database_deadlock', 'database_lock_timeout', 'audit_chain_head_unavailable', 'audit_chain_too_large',
                 'job_worker_schema_incompatible', 'migration_lock_unavailable',
                 'export_concurrency_limit', 'export_storage_unavailable',
                 'export_write_failed', 'export_publish_failed', 'export_delete_failed',
@@ -57,6 +57,7 @@ final readonly class ErrorCodeMapper
                 'provider_webhook_job_invalid', 'provider_duplicate',
                 'provider_circuit_policy_invalid',
                 'export_purpose_required', 'export_record_invalid', 'export_artifact_invalid', 'export_query_invalid', 'export_download_grant_invalid',
+                'audit_query_invalid',
                 'export_job_invalid', 'export_row_invalid', 'export_locator_invalid',
                 'export_not_ready', 'export_not_downloadable',
                 'privacy_action_invalid', 'privacy_request_invalid', 'privacy_job_invalid', 'privacy_query_invalid',
