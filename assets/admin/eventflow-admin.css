@@ -70,13 +70,79 @@
 }
 
 .eventflow-event-card__meta {
+  margin: 0 0 16px;
+}
+
+.eventflow-overview {
+  background: var(--ef-surface);
+  border: 1px solid var(--ef-border);
+  border-radius: 10px;
+  padding: clamp(20px, 4vw, 36px);
+}
+
+.eventflow-overview__back {
+  margin-bottom: 24px;
+}
+
+.eventflow-overview__heading {
+  align-items: start;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.eventflow-overview__heading h2 {
+  font-size: 1.75rem;
+  margin: 6px 0 20px;
+}
+
+.eventflow-overview__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eventflow-overview__facts {
+  display: grid;
+  grid-template-columns: minmax(100px, 160px) 1fr;
   margin: 0;
+  max-width: 720px;
+}
+
+.eventflow-overview__facts dt,
+.eventflow-overview__facts dd {
+  border-bottom: 1px solid var(--ef-border);
+  margin: 0;
+  padding: 12px 0;
+}
+
+.eventflow-overview__facts dt {
+  color: var(--ef-muted);
+  font-weight: 600;
+}
+
+.eventflow-overview__message {
+  min-height: 1.5em;
+  margin: 20px 0 0;
 }
 
 @media (max-width: 600px) {
   .eventflow-admin__header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .eventflow-overview__heading {
+    flex-direction: column;
+  }
+
+  .eventflow-overview__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .eventflow-overview__facts dt {
+    border-bottom: 0;
+    padding-bottom: 0;
   }
 }
 

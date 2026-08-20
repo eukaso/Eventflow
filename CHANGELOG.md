@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-082: added an accessible organizer Event overview with idempotent, server-authorized lifecycle controls and authoritative state refresh.
 - IMP-081: established the Sprint 11 UI/UX baseline and secure, accessible WordPress admin Event-discovery shell.
 - IMP-080: promoted the CI-validated Sprint 10 candidate to stable EventFlow 1.1.0 release metadata.
 - IMP-079: prepared the EventFlow 1.1.0 Sprint 10 release candidate with local acceptance evidence and an explicit PHP 8.2/8.3 CI promotion gate.
@@ -25,6 +26,7 @@ The project follows Semantic Versioning.
 
 ### Added
 - Sprint 11 UI/UX design baseline, WordPress admin integration, screen-scoped assets, readiness-aware Event discovery, and executable UI security/accessibility checks.
+- Organizer Event detail navigation and status-aware activate, complete, cancel, archive, and restore controls with CSPRNG idempotency and post-mutation reconciliation.
 
 ## [1.1.0] - 2026-08-20
 

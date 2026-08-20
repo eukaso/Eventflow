@@ -26,7 +26,22 @@ final readonly class AdminShellView
   </div>
   <main aria-busy="true" aria-live="polite" id="eventflow-event-region">
     <p class="eventflow-admin__status" id="eventflow-status">Loading accessible events…</p>
-    <div class="eventflow-admin__grid" id="eventflow-event-list"></div>
+    <section id="eventflow-events-view" aria-labelledby="eventflow-events-heading">
+      <h2 class="screen-reader-text" id="eventflow-events-heading">Accessible events</h2>
+      <div class="eventflow-admin__grid" id="eventflow-event-list"></div>
+    </section>
+    <section class="eventflow-overview" id="eventflow-overview" aria-labelledby="eventflow-overview-title" hidden>
+      <button class="button-link eventflow-overview__back" id="eventflow-overview-back" type="button">&larr; All events</button>
+      <div class="eventflow-overview__heading">
+        <div>
+          <p class="eventflow-event-card__status" id="eventflow-overview-status"></p>
+          <h2 id="eventflow-overview-title">Event overview</h2>
+        </div>
+        <div class="eventflow-overview__actions" id="eventflow-overview-actions" aria-label="Event lifecycle actions"></div>
+      </div>
+      <dl class="eventflow-overview__facts" id="eventflow-overview-facts"></dl>
+      <p class="eventflow-overview__message" id="eventflow-overview-message" role="status"></p>
+    </section>
   </main>
 </div>
 HTML;
