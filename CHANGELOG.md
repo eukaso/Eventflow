@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-067: added Message list/detail projections and revision-guarded, idempotent, audited retry job orchestration.
 - IMP-066: exposed campaign list/read/update/audience-preview/schedule/cancel REST routes with revision, idempotency, privacy, and no-store response contracts.
 
 All notable changes to EventFlow will be documented in this file.

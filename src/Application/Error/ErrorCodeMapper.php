@@ -51,7 +51,7 @@ final readonly class ErrorCodeMapper
                 'communication_template_invalid', 'template_merge_field_invalid', 'template_render_failed',
                 'template_immutable', 'template_transition_invalid', 'template_in_use', 'template_actor_invalid',
                 'campaign_invalid', 'campaign_audience_invalid', 'campaign_template_invalid', 'campaign_transition_invalid', 'campaign_schedule_invalid', 'campaign_actor_invalid',
-                'campaign_channel_invalid', 'campaign_recipient_invalid', 'message_invalid',
+                'campaign_channel_invalid', 'campaign_recipient_invalid', 'message_invalid', 'message_query_invalid', 'message_retry_invalid',
                 'campaign_snapshot_audience_required',
                 'provider_dispatch_invalid', 'provider_webhook_invalid', 'provider_webhook_too_large',
                 'provider_webhook_job_invalid', 'provider_duplicate',
@@ -88,7 +88,7 @@ final readonly class ErrorCodeMapper
                 return 'resource_modified';
             }
 
-            if (in_array($code, ['attendee_already_checked_in', 'checkin_already_reversed', 'campaign_already_queued'], true)) {
+            if (in_array($code, ['attendee_already_checked_in', 'checkin_already_reversed', 'campaign_already_queued', 'message_not_retryable'], true)) {
                 return $code;
             }
 
