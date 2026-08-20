@@ -35,7 +35,7 @@ final class Sprint10PrivacyAdministrationContractTest extends TestCase
         $readme=$this->source('README-IMP-073.md');
         self::assertStringContainsString('reserved to the Event primary owner',$readme);
         self::assertStringContainsString('IMP-074',$readme);
-        self::assertFileDoesNotExist(dirname(__DIR__,2).'/src/Presentation/Api/PrivacyRouteRegistrar.php');
+        self::assertFileExists(dirname(__DIR__,2).'/src/Presentation/Api/PrivacyRouteRegistrar.php');
     }
 
     private function source(string$relative):string{$contents=file_get_contents(dirname(__DIR__,2).'/'.$relative);self::assertIsString($contents);return$contents;}

@@ -11,6 +11,7 @@ use EventFlow\Presentation\Api\{EventConfigurationController, EventConfiguration
 use EventFlow\Presentation\Api\{MessageAccessController, MessageAccessPresenter, MessageAccessRequestMapper, MessageAccessRouteRegistrar};
 use EventFlow\Presentation\Api\{ImportAdministrationController, ImportAdministrationPresenter, ImportAdministrationRequestMapper, ImportAdministrationRouteRegistrar, ImportUploadController};
 use EventFlow\Presentation\Api\{ExportController, ExportPresenter, ExportRequestMapper, ExportRouteRegistrar};
+use EventFlow\Presentation\Api\{PrivacyController, PrivacyPresenter, PrivacyRequestMapper, PrivacyRouteRegistrar};
 use EventFlow\Infrastructure\Import\HardenedImportUploadGuard;
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
@@ -342,6 +343,14 @@ final class ApplicationBootstrap
                 new ExportPresenter(),
             );
             (new WordPressRestRouteHooks(new ExportRouteRegistrar($exports), $wordpressRoutes))->register();
+            $privacy = new PrivacyController(
+                $container->database->privacy,
+                $container->database->privacyAccess,
+                $container->delivery->authenticatedRequests,
+                new PrivacyRequestMapper(),
+                new PrivacyPresenter(),
+            );
+            (new WordPressRestRouteHooks(new PrivacyRouteRegistrar($privacy), $wordpressRoutes))->register();
         }
     }
 

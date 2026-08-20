@@ -37,6 +37,7 @@ final readonly class PrivacyService implements PrivacyReconciliationGate, Privac
         string $idempotencyKey,
     ): IdempotencyOutcome {
         $this->validate($invitationId, $policyVersion, $purpose);
+        $this->authorization->requireEventCapability($principal, $scope, Capability::MANAGE_PRIVACY);
         return $this->idempotency->execute(
             $principal,
             $scope,
@@ -104,6 +105,7 @@ final readonly class PrivacyService implements PrivacyReconciliationGate, Privac
         if ($principal->userId === null || ($invitationId !== null && $invitationId < 1) || !preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/', $policyVersion) || trim($reason) === '') {
             throw new PrivacyException('retention_hold_invalid');
         }
+        $this->authorization->requireEventCapability($principal, $scope, Capability::MANAGE_PRIVACY);
         return $this->idempotency->execute($principal, $scope, 'privacy.hold.place', $idempotencyKey, ['invitation_id' => $invitationId, 'policy_version' => $policyVersion, 'reason' => trim($reason)], function () use ($principal, $scope, $invitationId, $policyVersion, $reason): IdempotentOperationResult {
             $this->authorization->requireEventCapability($principal, $scope, Capability::MANAGE_PRIVACY);
             $hold = $this->repository->placeHold($scope, $invitationId, $policyVersion, trim($reason), $principal->userId, $this->clock->now());
@@ -117,6 +119,7 @@ final readonly class PrivacyService implements PrivacyReconciliationGate, Privac
         if ($principal->userId === null || $holdId < 1) {
             throw new PrivacyException('retention_hold_invalid');
         }
+        $this->authorization->requireEventCapability($principal, $scope, Capability::MANAGE_PRIVACY);
         return $this->idempotency->execute($principal, $scope, 'privacy.hold.release', $idempotencyKey, ['retention_hold_id' => $holdId], function () use ($principal, $scope, $holdId): IdempotentOperationResult {
             $this->authorization->requireEventCapability($principal, $scope, Capability::MANAGE_PRIVACY);
             $hold = $this->repository->releaseHold($scope, $holdId, $principal->userId, $this->clock->now());

@@ -76,6 +76,8 @@ final readonly class RestRequest
     public function cookie(string $name): ?string { return $this->cookies[$name] ?? null; }
     public function sameOrigin(): bool { return $this->trustedSameOrigin; }
     public function query(string $name): ?string { return $this->queryParameters[$name] ?? null; }
+    /** @return array<string,string> */
+    public function queries(): array { return $this->queryParameters; }
     /** @return array<string, string> */
     public function headers(): array { return $this->headers; }
     public function rawBody(): string { return $this->rawBody; }
