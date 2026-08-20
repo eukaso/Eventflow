@@ -24,11 +24,11 @@ final class Sprint10ImplementationValidationTest extends TestCase
         }
     }
 
-    public function testForwardSchemaChainAndDevelopmentMetadataAreAccepted(): void
+    public function testForwardSchemaChainAndStableMetadataAreAccepted(): void
     {
         $plugin=$this->source('eventflow.php');
-        self::assertStringContainsString("Version: 1.1.0-dev",$plugin);
-        self::assertStringContainsString("define('EVENTFLOW_VERSION', '1.1.0-dev');",$plugin);
+        self::assertStringContainsString("Version: 1.1.0",$plugin);
+        self::assertStringContainsString("define('EVENTFLOW_VERSION', '1.1.0');",$plugin);
         self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 15);",$plugin);
         foreach(range(7,15)as$version){
             $matches=glob($this->root('database/migrations/'.sprintf('%04d',$version).'-*.sql'))?:[];

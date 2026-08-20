@@ -4,7 +4,7 @@ Date: 2026-08-20
 
 Package: IMP-079
 
-Result: LOCAL PASS — CI PENDING
+Result: PASS
 
 ## Acceptance scope
 
@@ -36,12 +36,12 @@ The executable evidence catalogue contains every ordered implementation package 
 | Evidence references | 32 unique executable methods PASS |
 | Forward migrations | Schema 7–15 PASS |
 | Controlled deferrals | 1 area: Migration status/readiness |
-| GitHub Actions | PHP 8.2 and PHP 8.3 PENDING |
+| GitHub Actions | PHP 8.2 and PHP 8.3 PASS |
 
 Canonical command: `composer test`
 
 ## Promotion decision
 
-The repository-local Sprint 10 implementation is accepted as a release candidate. Stable `1.1.0` metadata, changelog closure, merge to `main`, and the annotated `v1.1.0-api-completion` tag remain blocked until this candidate commit passes the GitHub Actions PHP 8.2/8.3 matrix.
+Sprint 10 is accepted. Candidate commit `6101f2f` passed the GitHub Actions PHP 8.2/8.3 matrix in [run 32360359941](https://github.com/eukaso/Eventflow/actions/runs/32360359941). Stable `1.1.0` plugin metadata and changelog promotion are complete, and the promotion commit is approved for merge to `main` and the annotated `v1.1.0-api-completion` tag.
 
 Live WordPress/MySQL environment acceptance, configured provider certification, deployment secrets, and product UI remain deployment or separately approved work and are not claimed by this repository-local gate.

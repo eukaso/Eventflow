@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-080: promoted the CI-validated Sprint 10 candidate to stable EventFlow 1.1.0 release metadata.
 - IMP-079: prepared the EventFlow 1.1.0 Sprint 10 release candidate with local acceptance evidence and an explicit PHP 8.2/8.3 CI promotion gate.
 - IMP-078: added complete Sprint 10 executable evidence, forward-schema validation, catalogue reconciliation, and a single controlled Migration-status deferral.
 - IMP-077: exposed privileged Event-scoped sanitized diagnostics with strict private no-store delivery and no raw-log access.
@@ -20,6 +21,8 @@ All notable changes to EventFlow will be documented in this file.
 The project follows Semantic Versioning.
 
 ## [Unreleased]
+
+## [1.1.0] - 2026-08-20
 
 ### Added
 - Sprint 10 Event application access contracts with membership-scoped cursor pagination, authorized detail reads, draft-only updates, required audit, and integer revision concurrency.
