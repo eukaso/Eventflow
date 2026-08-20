@@ -8,7 +8,7 @@ use EventFlow\Application\Clock\Clock;
 use EventFlow\Application\Error\RequestId;
 use EventFlow\Application\Persistence\EventScope;
 
-final class DiagnosticService
+final class DiagnosticService implements DiagnosticExport
 {
     /** @var list<DiagnosticSource> */
     private array $sources;

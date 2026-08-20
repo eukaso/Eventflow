@@ -13,6 +13,7 @@ use EventFlow\Presentation\Api\{ImportAdministrationController, ImportAdministra
 use EventFlow\Presentation\Api\{ExportController, ExportPresenter, ExportRequestMapper, ExportRouteRegistrar};
 use EventFlow\Presentation\Api\{PrivacyController, PrivacyPresenter, PrivacyRequestMapper, PrivacyRouteRegistrar};
 use EventFlow\Presentation\Api\{AuditController, AuditPresenter, AuditRequestMapper, AuditRouteRegistrar};
+use EventFlow\Presentation\Api\{DiagnosticController, DiagnosticPresenter, DiagnosticRequestMapper, DiagnosticRouteRegistrar};
 use EventFlow\Infrastructure\Import\HardenedImportUploadGuard;
 use EventFlow\Presentation\WordPress\{WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
@@ -359,6 +360,13 @@ final class ApplicationBootstrap
                 new AuditPresenter(),
             );
             (new WordPressRestRouteHooks(new AuditRouteRegistrar($audit), $wordpressRoutes))->register();
+            $diagnostics = new DiagnosticController(
+                $container->database->diagnostics,
+                $container->delivery->authenticatedRequests,
+                new DiagnosticRequestMapper(),
+                new DiagnosticPresenter(),
+            );
+            (new WordPressRestRouteHooks(new DiagnosticRouteRegistrar($diagnostics), $wordpressRoutes))->register();
         }
     }
 
