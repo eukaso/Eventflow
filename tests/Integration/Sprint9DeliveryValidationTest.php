@@ -77,7 +77,8 @@ final class Sprint9DeliveryValidationTest extends TestCase
             self::assertNotSame('', trim($row['Required_contract']), $row['Area']);
         }
         $api = implode("\n", array_map(static fn (string $file): string => (string) file_get_contents($file), glob($this->root('src/Presentation/Api') . DIRECTORY_SEPARATOR . '*.php') ?: []));
-        foreach (['MessageRouteRegistrar', 'AuditRouteRegistrar', 'MigrationRouteRegistrar'] as $placeholder) {
+        // Audit delivery was intentionally deferred in Sprint 9 and completed by IMP-076.
+        foreach (['MessageRouteRegistrar', 'MigrationRouteRegistrar'] as $placeholder) {
             self::assertStringNotContainsString($placeholder, $api);
         }
     }
