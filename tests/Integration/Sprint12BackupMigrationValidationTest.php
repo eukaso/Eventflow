@@ -36,11 +36,14 @@ final class Sprint12BackupMigrationValidationTest extends TestCase
         }
     }
 
-    public function testLiveEvidenceRemainsBlockedAndLegacyDataIsNotDeleted(): void
+    public function testLiveStagingEvidencePassesAndLegacyDataIsNotDeleted(): void
     {
         $report = $this->source('docs/10-testing/Sprint-12-Backup-Migration-Acceptance-Report.md');
-        self::assertStringContainsString('BLOCKED', $report);
-        self::assertStringNotContainsString('DreamHost backup/restore rehearsal: PASS', $report);
+        self::assertStringContainsString('DreamHost backup/restore rehearsal: **PASS**', $report);
+        self::assertStringContainsString('Live EventFlow staging migration: **PASS**', $report);
+        self::assertStringContainsString('15 ordered migrations', $report);
+        self::assertStringContainsString('35 EventFlow tables', $report);
+        self::assertStringContainsString('Production was not modified', $report);
         $runbook = $this->source('docs/09-developer-guide/Sprint-12-Backup-Migration-and-Rollback.md');
         self::assertStringContainsString('must not be deleted', $runbook);
         self::assertStringContainsString('IMP-095', $this->source('CHANGELOG.md'));

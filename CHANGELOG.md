@@ -1,7 +1,7 @@
 # Changelog
 
-- IMP-095: added backup/restore-evidence verification, fresh-install-only schema execution, full migration-ledger/table validation, and a fail-closed rollback runbook.
-- IMP-094: added a fail-closed live WordPress staging environment/composition probe and an explicitly blocked evidence workflow pending authorized-host execution.
+- IMP-095: completed the authorized staging backup/restore rehearsal and fresh-install schema-15 migration, preserving legacy tables and the rollback window with sanitized acceptance evidence.
+- IMP-094: completed the authorized live WordPress staging environment/composition gate and exact-version public preflight with sanitized acceptance evidence.
 - IMP-093: added a deterministic, production-only plugin archive with internal/external integrity manifests and a reproducibility-enforcing CI gate.
 - IMP-092: established the Sprint 12 production-readiness plan, staging checklist, and secure remote health/readiness preflight.
 - IMP-091: promoted the CI-validated Sprint 11 candidate to stable EventFlow 1.2.0 release metadata.

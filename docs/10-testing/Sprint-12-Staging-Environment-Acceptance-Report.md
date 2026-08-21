@@ -2,21 +2,17 @@
 
 - Package: IMP-094
 - Candidate: `1.3.0-dev`
+- Target: `https://staging.lui60.com`
+- Executed: `2026-08-21` UTC
 - Repository gate: implemented and locally verified
-- Live staging result: **BLOCKED — authorized-host execution has not been recorded**
+- Live staging result: **PASS**
 
-## Repository evidence
+## Sanitized acceptance result
 
-The repository contains a typed, fail-closed environment evaluator, a WordPress runtime probe, a WP-CLI execution surface, unit coverage for passing/failing environments and supported database boundaries, integration invariants, and an operator runbook. Repository tests do not simulate or certify a live WordPress/MySQL host.
+The authorized WordPress-side probe returned `status: pass` for all 18 checks: staging environment, disabled debug mode, exact plugin version, supported PHP/WordPress/database runtimes, utf8mb4, InnoDB, verified HTTPS, plugin activation and files, ready application bootstrap, cron, protected storage outside the web root, external-secret attestation, admin composition, guest composition, and REST composition.
 
-## Required live evidence
+The public HTTPS status endpoints independently passed the exact-version deployment preflight after the staging Apache configuration disabled an inherited two-day expiry policy that otherwise appended a conflicting cache header.
 
-An authorized operator must retain, outside Git:
+## Evidence boundary
 
-- target and operator identity;
-- artifact manifest/SHA-256 and exact version;
-- UTC execution time;
-- sanitized JSON from `staging-environment-acceptance.php` with `status: pass`;
-- confirmation that no production PII or secrets were used.
-
-Until that record exists, the environment gate and downstream production promotion remain blocked. This is an expected external-deployment dependency, not a repository test failure.
+The complete sanitized JSON, target-side configuration record, and operator record remain outside Git. No credential, host filesystem path, production PII, raw response body, or database export is committed. This PASS certifies IMP-094 only; production promotion remains blocked by IMP-096 through IMP-102.

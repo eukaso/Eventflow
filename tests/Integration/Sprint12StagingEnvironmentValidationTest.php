@@ -40,12 +40,13 @@ final class Sprint12StagingEnvironmentValidationTest extends TestCase
         self::assertStringContainsString("defined('ABSPATH')", $tool);
     }
 
-    public function testDocumentationDoesNotFabricateLiveStagingAcceptance(): void
+    public function testDocumentationRecordsSanitizedLiveStagingAcceptance(): void
     {
         $report = $this->source('docs/10-testing/Sprint-12-Staging-Environment-Acceptance-Report.md');
-        self::assertStringContainsString('BLOCKED', $report);
-        self::assertStringContainsString('authorized-host execution has not been recorded', $report);
-        self::assertStringNotContainsString('Live staging result: PASS', $report);
+        self::assertStringContainsString('Live staging result: **PASS**', $report);
+        self::assertStringContainsString('all 18 checks', $report);
+        self::assertStringContainsString('No credential', $report);
+        self::assertStringContainsString('production promotion remains blocked', $report);
         self::assertStringContainsString('IMP-094', $this->source('CHANGELOG.md'));
     }
 
