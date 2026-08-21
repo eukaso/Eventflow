@@ -11,8 +11,8 @@ The legacy model has no decline action. `submitted_at IS NOT NULL` maps to `acce
 ## Required order
 
 1. Keep the verified backup/restore evidence within its 24-hour validity window.
-2. Complete synthetic Event, Invitation, RSVP, Import, and rollback smoke workflows on staging.
-3. Create a dedicated staging Event and confirm the executing WordPress user is its owner with Import and Attendee capabilities.
+2. Run `prepare-lui60-staging-event.php` to complete synthetic Event, Invitation, RSVP, Import, and rollback smoke workflows on staging.
+3. Use the returned dedicated staging Event and confirm the executing WordPress user is its owner with Import and Attendee capabilities.
 4. Export the legacy source to `EVENTFLOW_PROTECTED_EXPORT_DIR` with `export-lui60-reference-data.php`.
 5. Record the sanitized source SHA-256, source fingerprint, and aggregate totals outside Git. The Invitation count must be exactly 137.
 6. Apply the protected CSV with `apply-lui60-reference-data.php`. The command uses EventFlow Import and RSVP application services; it does not issue direct data-changing SQL.
@@ -25,6 +25,10 @@ The legacy model has no decline action. `submitted_at IS NOT NULL` maps to `acce
 The tools are external to the production plugin archive. Run them with `wp eval-file` from an operator-controlled directory. On WP-CLI builds that consume dash-prefixed positional arguments, use a fixed-argument wrapper and `--use-include` as documented for the migration gate.
 
 ```shell
+wp --path=/srv/www/wordpress --user=ADMIN eval-file /secure/tools/prepare-lui60-staging-event.php -- \
+  --expected-version=1.3.0-dev \
+  --confirm-synthetic-workflow
+
 wp --path=/srv/www/wordpress eval-file /secure/tools/export-lui60-reference-data.php -- \
   --expected-version=1.3.0-dev \
   --artifact-sha256=SHA256 \

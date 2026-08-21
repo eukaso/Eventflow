@@ -48,7 +48,7 @@ final readonly class InvitationService implements InvitationCommands, Invitation
                 $rawToken = $this->random->hex(32);
                 $created = $this->invitations->create(
                     $command,
-                    strtoupper($this->random->hex(8)),
+                    strtoupper($this->random->hex(16)),
                     $this->digester->digest($rawToken),
                     $this->actorUserId($principal),
                     $this->clock->now(),
@@ -74,7 +74,7 @@ final readonly class InvitationService implements InvitationCommands, Invitation
                 $rawToken = $this->random->hex(32);
                 $created = $this->invitations->create(
                     $command,
-                    strtoupper($this->random->hex(8)),
+                    strtoupper($this->random->hex(16)),
                     $this->digester->digest($rawToken),
                     $this->actorUserId($principal),
                     $this->clock->now(),

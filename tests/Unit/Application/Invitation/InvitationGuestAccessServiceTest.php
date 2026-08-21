@@ -55,6 +55,7 @@ final class InvitationGuestAccessServiceTest extends TestCase
 
         self::assertFalse($created->replayed);
         self::assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $created->response->rawToken);
+        self::assertMatchesRegularExpression('/^[A-F0-9]{32}$/', $created->response->invitation->code);
         self::assertNotSame($created->response->rawToken, $fixture->invitations->tokenDigest);
         self::assertSame(32, strlen($fixture->invitations->tokenDigest));
 

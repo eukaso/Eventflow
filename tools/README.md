@@ -51,10 +51,11 @@ The command is intentionally fresh-install-only: it rejects any existing EventFl
 
 ## Lui @ 60 reference-data gate
 
-IMP-096 uses three external WP-CLI tools in strict order:
+IMP-096 uses four external WP-CLI tools in strict order:
 
-1. `export-lui60-reference-data.php` writes the allowlisted legacy source to protected storage after re-verifying backup evidence and the artifact hash.
-2. `apply-lui60-reference-data.php` stages, validates, and applies Invitations through EventFlow Import services, then maps legacy confirmations and companions through the audited RSVP service.
-3. `reconcile-lui60-reference-data.php` compares the source, completed Import Job, target Invitations, response states, and Attendees without emitting PII.
+1. `prepare-lui60-staging-event.php` proves synthetic Event, Invitation, RSVP, Import, and lifecycle rollback behavior, then creates the dedicated staging reference Event.
+2. `export-lui60-reference-data.php` writes the allowlisted legacy source to protected storage after re-verifying backup evidence and the artifact hash.
+3. `apply-lui60-reference-data.php` stages, validates, and applies Invitations through EventFlow Import services, then maps legacy confirmations and companions through the audited RSVP service.
+4. `reconcile-lui60-reference-data.php` compares the source, completed Import Job, target Invitations, response states, and Attendees without emitting PII.
 
 See [the reference-data runbook](../docs/09-developer-guide/Sprint-12-Reference-Data-Inventory-and-Reconciliation.md) for the command contract and rollback boundary. The gate requires exactly 137 Invitations, zero failed/mismatched/orphaned rows, exact capacity/response/companion totals, and the preserved legacy table.

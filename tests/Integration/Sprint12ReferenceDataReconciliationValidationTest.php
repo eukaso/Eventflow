@@ -16,6 +16,10 @@ final class Sprint12ReferenceDataReconciliationValidationTest extends TestCase
 
     public function testProtectedExportAndApplyAreBackupHashAndConfirmationGated(): void
     {
+        $prepare = $this->source('tools/prepare-lui60-staging-event.php');
+        foreach (['--confirm-synthetic-workflow', 'eventLifecycle->create', 'invitations->createImported', 'attendees->submitRsvp', 'imports->stage', 'eventLifecycle->cancel'] as $expected) self::assertStringContainsString($expected, $prepare);
+        self::assertStringNotContainsString('INSERT INTO', $prepare);
+        self::assertStringNotContainsString('UPDATE ', $prepare);
         $export = $this->source('tools/export-lui60-reference-data.php');
         foreach (['--confirm-protected-export', 'LocalBackupEvidenceVerifier', 'EVENTFLOW_PROTECTED_EXPORT_DIR', '--expected-invitations=137'] as $expected) self::assertStringContainsString($expected, $export);
         $apply = $this->source('tools/apply-lui60-reference-data.php');
