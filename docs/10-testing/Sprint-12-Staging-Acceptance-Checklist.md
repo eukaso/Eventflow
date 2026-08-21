@@ -25,8 +25,8 @@ Operator/date: authorized site owner with Codex / `2026-08-21` UTC
 
 ## Data and operations
 
-- [ ] Synthetic staging workflows pass before any approved reference-data rehearsal.
-- [ ] Reference inventory and reconciliation totals are recorded outside Git; the 137 Invitations reconcile exactly when the authorized source is used.
+- [x] Synthetic staging workflows pass before any approved reference-data rehearsal.
+- [x] Reference inventory and reconciliation totals are recorded outside Git; the 137 Invitations reconcile exactly when the authorized source is used.
 - [ ] Worker/cron leases, retry/backoff, and restart behavior pass.
 - [ ] Protected Import/Export storage and authenticated download pass.
 - [ ] Audit integrity, privacy reconciliation, and sanitized diagnostics pass.
@@ -39,6 +39,6 @@ Operator/date: authorized site owner with Codex / `2026-08-21` UTC
 - [ ] Supported browsers, keyboard, 320 CSS pixels, 200% zoom, and assistive-technology checks pass.
 - [ ] Duplicate, stale revision, intermittent network, provider outage, and worker restart scenarios pass.
 - [x] Restore rehearsal and rollback decision window are recorded.
-- [ ] No production PII, credentials, raw logs, or database exports were committed.
+- [x] No production PII, credentials, raw logs, or database exports were committed.
 
 Result: BLOCKED until all required live checks have signed evidence.

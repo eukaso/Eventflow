@@ -17,7 +17,7 @@ use EventFlow\Presentation\Api\{DiagnosticController, DiagnosticPresenter, Diagn
 use EventFlow\Infrastructure\Import\HardenedImportUploadGuard;
 use EventFlow\Presentation\Admin\AdminShellView;
 use EventFlow\Presentation\Guest\GuestShellView;
-use EventFlow\Presentation\WordPress\{WordPressAdminHooks, WordPressGuestHooks, WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
+use EventFlow\Presentation\WordPress\{WordPressAdminHooks, WordPressGuestHooks, WordPressJobWorkerHooks, WordPressPublicBootstrapRateLimiter, WordPressRestRequestMapper, WordPressRestRouteHooks, WordPressRestRouteRegistry};
 use Throwable;
 
 final class ApplicationBootstrap
@@ -71,6 +71,9 @@ final class ApplicationBootstrap
             self::$result = $result;
             self::registerRoutes($container, $result);
             self::registerAdminUi($result);
+            if ($result->ready && $container->database !== null) {
+                (new WordPressJobWorkerHooks($container->database->jobWorker))->register();
+            }
             return $result;
         } catch (ConfigException $e) {
             return self::$result = new BootstrapResult(

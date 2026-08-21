@@ -34,7 +34,8 @@ final class Sprint12ReferenceDataReconciliationValidationTest extends TestCase
         foreach (['source_totals', 'target_totals', 'row_reconciliation', 'source_fingerprint'] as $expected) self::assertStringContainsString($expected, $report);
         foreach (['primary_name', 'primary_email', 'primary_phone', 'companion_names'] as $forbidden) self::assertStringNotContainsString($forbidden, $report);
         $acceptance = $this->source('docs/10-testing/Sprint-12-Reference-Data-Acceptance-Report.md');
-        self::assertStringContainsString('BLOCKED', $acceptance);
+        self::assertStringContainsString('PASS', $acceptance);
+        self::assertStringContainsString('137 matched rows', $acceptance);
         self::assertStringContainsString('137 Invitations', $acceptance);
         self::assertStringContainsString('IMP-096', $this->source('CHANGELOG.md'));
     }

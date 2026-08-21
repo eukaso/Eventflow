@@ -59,3 +59,13 @@ IMP-096 uses four external WP-CLI tools in strict order:
 4. `reconcile-lui60-reference-data.php` compares the source, completed Import Job, target Invitations, response states, and Attendees without emitting PII.
 
 See [the reference-data runbook](../docs/09-developer-guide/Sprint-12-Reference-Data-Inventory-and-Reconciliation.md) for the command contract and rollback boundary. The gate requires exactly 137 Invitations, zero failed/mismatched/orphaned rows, exact capacity/response/companion totals, and the preserved legacy table.
+
+## Staging operations certification
+
+After installing the exact candidate artifact and verifying its fresh backup evidence, execute the IMP-097 certification against the dedicated staging Event:
+
+```shell
+wp --path=/srv/www/wordpress eval-file /secure/release-tools/certify-staging-operations.php -- --expected-version=1.3.0-dev --artifact-sha256=SHA256 --backup-evidence=/secure/evidence.json --event-id=ID --confirm-operations-certification
+```
+
+The command creates only bounded, PII-free probe jobs. It proves the one-minute cron registration, worker heartbeat, retry/backoff, expired-lease recovery, protected-storage round trip, anonymous Export denial, Event audit-chain integrity, Privacy reconciliation readiness, and sanitized diagnostic output. Evidence contains only safe check codes and bounded counts; retain it outside Git.

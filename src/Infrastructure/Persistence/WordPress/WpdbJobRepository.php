@@ -123,13 +123,19 @@ final class WpdbJobRepository extends AbstractWpdbRepository implements JobRepos
 
     public function heartbeat(int $jobId, string $leaseToken, DateTimeImmutable $now, DateTimeImmutable $leaseExpiresAt): void
     {
-        $this->leaseUpdate(
-            'heartbeat_at = %s, lease_expires_at = %s, updated_at = %s',
-            [$this->date($now), $this->date($leaseExpiresAt), $this->date($now)],
-            $jobId,
-            $leaseToken,
-            'job_lease_lost',
+        $table = $this->table(TableName::JOBS);
+        $affected = $this->database->execute(
+            "UPDATE {$table} SET heartbeat_at = %s, lease_expires_at = %s, updated_at = %s " .
+            'WHERE job_id = %d AND job_status = %s AND lease_token = %s',
+            [$this->date($now), $this->date($leaseExpiresAt), $this->date($now), $jobId, JobStatus::RUNNING->value, $leaseToken],
         );
+        if ($affected === 1) return;
+        $stillOwned = (int) $this->database->fetchValue(
+            "SELECT EXISTS(SELECT 1 FROM {$table} WHERE job_id = %d AND job_status = %s " .
+            'AND lease_token = %s AND lease_expires_at > %s)',
+            [$jobId, JobStatus::RUNNING->value, $leaseToken, $this->date($now)],
+        );
+        if ($stillOwned !== 1) throw new PersistenceException('job_lease_lost');
     }
 
     public function complete(int $jobId, string $leaseToken, DateTimeImmutable $completedAt): void

@@ -33,6 +33,8 @@ use EventFlow\Application\Import\ImportNormalizer;
 use EventFlow\Application\Import\ImportService;
 use EventFlow\Application\Import\ImportAdministrationService;
 use EventFlow\Application\Job\JobRepository;
+use EventFlow\Application\Job\JobHandlerRegistry;
+use EventFlow\Application\Job\JobWorker;
 use EventFlow\Application\Job\WorkerSchemaGate;
 use EventFlow\Application\Invitation\InvitationService;
 use EventFlow\Application\Invitation\InvitationAccessService;
@@ -54,6 +56,10 @@ use EventFlow\Infrastructure\Health\WpdbConnectionReadinessCheck;
 use EventFlow\Infrastructure\Export\WordPressProtectedExportStorage;
 use EventFlow\Infrastructure\Export\WpdbExportDataSource;
 use EventFlow\Infrastructure\Job\MigrationWorkerSchemaGate;
+use EventFlow\Infrastructure\Job\ExportGenerateJobHandler;
+use EventFlow\Infrastructure\Job\ImportApplyJobHandler;
+use EventFlow\Infrastructure\Job\OperationsProbeJobHandler;
+use EventFlow\Infrastructure\Job\PrivacyExecuteJobHandler;
 use EventFlow\Infrastructure\Import\NativeTabularSourceParser;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAttendeeRepository;
@@ -135,6 +141,7 @@ final readonly class DatabaseFoundation
         public ProviderService $providers,
         public JobRepository $jobs,
         public WorkerSchemaGate $workerSchema,
+        public JobWorker $jobWorker,
         public DiagnosticService $diagnostics,
         public array $readinessChecks,
     ) {
@@ -229,6 +236,47 @@ final readonly class DatabaseFoundation
             $shared->clock,
             $transactions,
         );
+        $imports = new ImportService(
+            $importRepository,
+            new NativeTabularSourceParser(),
+            new ImportNormalizer(),
+            $invitationService,
+            $authorization,
+            $idempotency,
+            $audit,
+            $shared->clock,
+            $shared->random,
+            $transactions,
+        );
+        $exports = new ExportService(
+            $exportRepository,
+            new WpdbExportDataSource($database, $tableNames),
+            $exportStorage,
+            $jobRepository,
+            $authorization,
+            $idempotency,
+            $audit,
+            $shared->clock,
+            $transactions,
+        );
+        $workerSchema = new MigrationWorkerSchemaGate(
+            $migrations,
+            $shared->schemaCompatibility,
+            $config->expectedSchemaVersion,
+        );
+        $jobWorker = new JobWorker(
+            $jobRepository,
+            new JobHandlerRegistry([
+                new ImportApplyJobHandler($imports),
+                new ExportGenerateJobHandler($exports),
+                new PrivacyExecuteJobHandler($privacy),
+                new OperationsProbeJobHandler(),
+            ]),
+            $transactions,
+            $shared->clock,
+            $shared->random,
+            $workerSchema,
+        );
 
         return new self(
             database: $database,
@@ -319,18 +367,7 @@ final readonly class DatabaseFoundation
                 new WpdbAttendeeQueryRepository($database, $tableNames),
                 $authorization,
             ),
-            imports: new ImportService(
-                $importRepository,
-                new NativeTabularSourceParser(),
-                new ImportNormalizer(),
-                $invitationService,
-                $authorization,
-                $idempotency,
-                $audit,
-                $shared->clock,
-                $shared->random,
-                $transactions,
-            ),
+            imports: $imports,
             importAdministration: new ImportAdministrationService(
                 $importRepository,
                 $jobRepository,
@@ -389,17 +426,7 @@ final readonly class DatabaseFoundation
             ),
             campaignAccess: new CampaignAccessService($communicationRepository,$authorization,$idempotency,$audit,$shared->clock),
             messageAccess: new MessageAccessService($communicationRepository,$jobRepository,$authorization,$idempotency,$audit,$shared->clock),
-            exports: new ExportService(
-                $exportRepository,
-                new WpdbExportDataSource($database, $tableNames),
-                $exportStorage,
-                $jobRepository,
-                $authorization,
-                $idempotency,
-                $audit,
-                $shared->clock,
-                $transactions,
-            ),
+            exports: $exports,
             exportAccess: new ExportAccessService($exportRepository, $authorization),
             exportArtifacts: $exportStorage,
             privacy: $privacy,
@@ -412,11 +439,8 @@ final readonly class DatabaseFoundation
                 new WordPressTransientProviderCircuitBreaker(),
             ),
             jobs: $jobRepository,
-            workerSchema: new MigrationWorkerSchemaGate(
-                $migrations,
-                $shared->schemaCompatibility,
-                $config->expectedSchemaVersion,
-            ),
+            workerSchema: $workerSchema,
+            jobWorker: $jobWorker,
             diagnostics: $diagnostics,
             readinessChecks: $readinessChecks,
         );

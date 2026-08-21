@@ -88,6 +88,17 @@ final class WpdbJobRepositoryTest extends TestCase
         self::assertStringContainsString("lease_token = '{$token}'", $wpdb->queries[1]);
     }
 
+    public function testHeartbeatAcceptsSameSecondNoOpWhenLeaseRemainsOwned(): void
+    {
+        $wpdb = new JobFakeWpdb();
+        $wpdb->queryResults = [0];
+        $wpdb->value = '1';
+        $this->repository($wpdb)->heartbeat(71, str_repeat('b', 32), $this->now, $this->now->modify('+60 seconds'));
+        self::assertCount(2, $wpdb->queries);
+        self::assertStringContainsString('SELECT EXISTS', $wpdb->queries[1]);
+        self::assertStringContainsString('lease_expires_at >', $wpdb->queries[1]);
+    }
+
     public function testReconciliationDeadLettersExhaustedAndRecoversExpiredLeases(): void
     {
         $wpdb = new JobFakeWpdb();

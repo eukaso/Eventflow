@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-097: added bounded one-minute WordPress worker composition, strict Import/Export/Privacy handlers, same-second heartbeat recovery, and a backup-bound staging operations certification gate.
 - IMP-096: added backup-gated protected Lui @ 60 export, audited Import/RSVP application, exact PII-safe row and aggregate reconciliation, and a legacy-preserving rollback runbook.
 - IMP-095: completed the authorized staging backup/restore rehearsal and fresh-install schema-15 migration, preserving legacy tables and the rollback window with sanitized acceptance evidence.
 - IMP-094: completed the authorized live WordPress staging environment/composition gate and exact-version public preflight with sanitized acceptance evidence.
@@ -39,6 +40,7 @@ The project follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- Durable WordPress cron workers for Import, Export, and Privacy jobs plus staging certification of cadence, heartbeat, retry/backoff, expired-lease recovery, protected storage, authenticated export denial, audit integrity, privacy readiness, and sanitized diagnostics.
 - Backup-gated deployment migrations with 24-hour evidence freshness, database/files SHA-256 binding, restore-rehearsal proof, serialized forward-only execution, and complete schema version 15 verification.
 - Live staging environment acceptance for PHP, WordPress, MySQL/MariaDB, HTTPS, filesystem, bootstrap, cron, protected storage, external-secret attestation, and complete WordPress route/admin/guest composition.
 - Deterministic production plugin packaging with an explicit runtime allowlist, dependency review boundary, SHA-256 manifests, independent verification, and byte-for-byte CI reproducibility enforcement.
