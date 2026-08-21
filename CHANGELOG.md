@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-092: established the Sprint 12 production-readiness plan, staging checklist, and secure remote health/readiness preflight.
 - IMP-091: promoted the CI-validated Sprint 11 candidate to stable EventFlow 1.2.0 release metadata.
 - IMP-090: completed cross-experience accessibility, responsive, WordPress integration, and Sprint 11 release-candidate validation.
 - IMP-089: delivered isolated Import, Export, Privacy, Audit, and sanitized diagnostic administration in the WordPress UI.
@@ -32,6 +33,9 @@ All notable changes to EventFlow will be documented in this file.
 The project follows Semantic Versioning.
 
 ## [Unreleased]
+
+### Added
+- Sprint 12 production-readiness baseline with ordered deployment gates, a fail-closed staging checklist, and a bounded credential-free remote preflight for exact-version health/readiness validation.
 
 ## [1.2.0] - 2026-08-20
 
