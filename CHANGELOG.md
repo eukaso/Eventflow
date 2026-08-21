@@ -1,6 +1,6 @@
 # Changelog
 
-- IMP-097: added bounded one-minute WordPress worker composition, strict Import/Export/Privacy handlers, same-second heartbeat recovery, and a backup-bound staging operations certification gate.
+- IMP-097: added bounded one-minute WordPress worker composition, strict Import/Export/Privacy handlers, same-second heartbeat recovery, and completed the backup-bound live staging operations certification gate.
 - IMP-096: added backup-gated protected Lui @ 60 export, audited Import/RSVP application, exact PII-safe row and aggregate reconciliation, and a legacy-preserving rollback runbook.
 - IMP-095: completed the authorized staging backup/restore rehearsal and fresh-install schema-15 migration, preserving legacy tables and the rollback window with sanitized acceptance evidence.
 - IMP-094: completed the authorized live WordPress staging environment/composition gate and exact-version public preflight with sanitized acceptance evidence.

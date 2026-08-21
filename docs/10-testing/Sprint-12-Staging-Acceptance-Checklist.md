@@ -2,7 +2,7 @@
 
 Target: `https://staging.lui60.com`
 
-Commit/artifact: `6f5d7bc` / `eaf395a79e9abfa39012299ced5e0139e425241bf19ccf26d1d74e5ca781d50f`
+Commit/artifact: `1311b1f` / `26790609059226ec4557fa4600d92d70ecb126fd1c6351305bb20a324f2b01b7`
 
 Operator/date: authorized site owner with Codex / `2026-08-21` UTC
 
@@ -27,9 +27,9 @@ Operator/date: authorized site owner with Codex / `2026-08-21` UTC
 
 - [x] Synthetic staging workflows pass before any approved reference-data rehearsal.
 - [x] Reference inventory and reconciliation totals are recorded outside Git; the 137 Invitations reconcile exactly when the authorized source is used.
-- [ ] Worker/cron leases, retry/backoff, and restart behavior pass.
-- [ ] Protected Import/Export storage and authenticated download pass.
-- [ ] Audit integrity, privacy reconciliation, and sanitized diagnostics pass.
+- [x] Worker/cron leases, retry/backoff, and restart behavior pass.
+- [x] Protected Import/Export storage and authenticated download pass.
+- [x] Audit integrity, privacy reconciliation, and sanitized diagnostics pass.
 - [ ] Provider sandbox send, webhook authentication, dedupe, correlation, and outage isolation pass before bulk communication is enabled.
 
 ## Experience and launch rehearsal
@@ -41,4 +41,4 @@ Operator/date: authorized site owner with Codex / `2026-08-21` UTC
 - [x] Restore rehearsal and rollback decision window are recorded.
 - [x] No production PII, credentials, raw logs, or database exports were committed.
 
-Result: BLOCKED until all required live checks have signed evidence.
+Result: IMP-097 operations gate PASS; overall staging acceptance remains BLOCKED pending provider and experience/launch evidence.
