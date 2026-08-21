@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-093: added a deterministic, production-only plugin archive with internal/external integrity manifests and a reproducibility-enforcing CI gate.
 - IMP-092: established the Sprint 12 production-readiness plan, staging checklist, and secure remote health/readiness preflight.
 - IMP-091: promoted the CI-validated Sprint 11 candidate to stable EventFlow 1.2.0 release metadata.
 - IMP-090: completed cross-experience accessibility, responsive, WordPress integration, and Sprint 11 release-candidate validation.
@@ -35,6 +36,7 @@ The project follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- Deterministic production plugin packaging with an explicit runtime allowlist, dependency review boundary, SHA-256 manifests, independent verification, and byte-for-byte CI reproducibility enforcement.
 - Sprint 12 production-readiness baseline with ordered deployment gates, a fail-closed staging checklist, and a bounded credential-free remote preflight for exact-version health/readiness validation.
 
 ## [1.2.0] - 2026-08-20

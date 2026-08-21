@@ -38,3 +38,9 @@ jobs:
 
       - name: Run automated test gate
         run: composer test
+
+      - name: Build reproducible plugin artifact
+        run: php tools/build-plugin-artifact.php --output=build/artifacts --verify-reproducible
+
+      - name: Verify plugin artifact
+        run: php tools/verify-plugin-artifact.php --directory=build/artifacts
