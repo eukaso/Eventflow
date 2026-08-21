@@ -19,7 +19,7 @@ $options = [];
 foreach ($arguments as $argument) {
     if ($argument === '--confirm-fresh-install') {
         $options['fresh'] = true;
-    } elseif (is_string($argument) && preg_match('/^--([a-z-]+)=(.*)$/', $argument, $matches) === 1) {
+    } elseif (is_string($argument) && preg_match('/^--([a-z0-9-]+)=(.*)$/', $argument, $matches) === 1) {
         $options[$matches[1]] = $matches[2];
     }
 }

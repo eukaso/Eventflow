@@ -23,6 +23,7 @@ final class Sprint12BackupMigrationValidationTest extends TestCase
         foreach (['--confirm-fresh-install', '--backup-evidence=', '--artifact-sha256=', "run(\$definitions, 'deployment')", 'assertFreshInstall', 'EVENTFLOW_SCHEMA_VERSION'] as $expected) {
             self::assertStringContainsString($expected, $tool);
         }
+        self::assertStringContainsString("preg_match('/^--([a-z0-9-]+)=(.*)\$/'", $tool);
         self::assertStringNotContainsString('register_activation_hook', $tool);
         self::assertStringNotContainsString('DROP TABLE', $tool);
     }
