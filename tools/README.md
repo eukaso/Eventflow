@@ -32,3 +32,19 @@ wp --path=/srv/www/wordpress eval-file /secure/release-tools/staging-environment
 ```
 
 The command emits only bounded check identifiers/codes—never paths, URLs, credentials, or database connection details—and exits nonzero unless every environment and WordPress composition prerequisite passes. The acceptance tool remains external to the production plugin archive by design.
+
+## Backup-gated fresh schema deployment
+
+Verify a deployment-managed evidence file against the exact artifact before touching the database:
+
+```shell
+php tools/verify-deployment-backup.php --evidence=/secure/eventflow/backup-evidence.json --artifact-sha256=SHA256
+```
+
+After a full database/files restore rehearsal passes, run the forward-only catalogue inside WordPress:
+
+```shell
+wp --path=/srv/www/wordpress eval-file /secure/release-tools/run-deployment-migrations.php -- --expected-version=1.3.0-dev --artifact-sha256=SHA256 --backup-evidence=/secure/eventflow/backup-evidence.json --confirm-fresh-install
+```
+
+The command is intentionally fresh-install-only: it rejects any existing EventFlow table, verifies the backup and restore evidence again, serializes execution with the database migration lock, applies the 15-entry catalogue, and then verifies every ledger checksum plus every InnoDB/utf8mb4 table. It never deletes legacy plugin tables or performs automatic reverse migrations.

@@ -16,6 +16,7 @@ node_modules/
 *.tar.gz
 build/
 dist/
+deployment-evidence/
 
 # Secrets
 .env
