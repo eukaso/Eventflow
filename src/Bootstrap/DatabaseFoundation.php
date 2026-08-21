@@ -42,7 +42,6 @@ use EventFlow\Application\Membership\MembershipService;
 use EventFlow\Application\Membership\MembershipQueryService;
 use EventFlow\Application\Migration\MigrationRepository;
 use EventFlow\Application\Observability\DiagnosticService;
-use EventFlow\Application\Provider\ProviderRegistry;
 use EventFlow\Application\Provider\ProviderService;
 use EventFlow\Application\Privacy\PrivacyService;
 use EventFlow\Application\Privacy\PrivacyAccessService;
@@ -60,6 +59,8 @@ use EventFlow\Infrastructure\Job\ExportGenerateJobHandler;
 use EventFlow\Infrastructure\Job\ImportApplyJobHandler;
 use EventFlow\Infrastructure\Job\OperationsProbeJobHandler;
 use EventFlow\Infrastructure\Job\PrivacyExecuteJobHandler;
+use EventFlow\Infrastructure\Job\MessageDeliveryJobHandler;
+use EventFlow\Infrastructure\Job\ProviderWebhookJobHandler;
 use EventFlow\Infrastructure\Import\NativeTabularSourceParser;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAttendeeRepository;
@@ -84,6 +85,9 @@ use EventFlow\Infrastructure\Persistence\WordPress\WpdbMembershipRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbProviderRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbPrivacyRepository;
 use EventFlow\Infrastructure\Provider\WordPressTransientProviderCircuitBreaker;
+use EventFlow\Infrastructure\Provider\ProviderAdapterFactory;
+use EventFlow\Infrastructure\Provider\WordPressProviderHttpClient;
+use EventFlow\Infrastructure\Health\ProviderReadinessCheck;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSchemaMetadataRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRepository;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbSeatingRecommendationRepository;
@@ -186,6 +190,15 @@ final readonly class DatabaseFoundation
         $jobRepository = new WpdbJobRepository($database, $tableNames);
         $seatingRepository = new WpdbSeatingRepository($database, $tableNames);
         $communicationRepository = new WpdbCommunicationRepository($database, $tableNames);
+        $providerConfiguration = (new ProviderAdapterFactory(new WordPressProviderHttpClient()))->fromConstants();
+        $providerService = new ProviderService(
+            new WpdbProviderRepository($database, $tableNames),
+            $providerConfiguration->registry(),
+            $jobRepository,
+            $shared->clock,
+            new WordPressTransientProviderCircuitBreaker(),
+            $providerConfiguration,
+        );
         $templateRenderer = new TemplateRenderer();
         $exportStorage = new WordPressProtectedExportStorage($shared->random);
         $exportRepository = new WpdbExportRepository($database, $tableNames);
@@ -217,6 +230,7 @@ final readonly class DatabaseFoundation
                 $config->expectedSchemaVersion,
             ),
             new PrivacyReconciliationReadinessCheck($privacy),
+            new ProviderReadinessCheck($providerConfiguration),
         ];
         $diagnostics = new DiagnosticService(
             $authorization,
@@ -271,6 +285,9 @@ final readonly class DatabaseFoundation
                 new ExportGenerateJobHandler($exports),
                 new PrivacyExecuteJobHandler($privacy),
                 new OperationsProbeJobHandler(),
+                new MessageDeliveryJobHandler($providerService),
+                new MessageDeliveryJobHandler($providerService, 'message.delivery.retry'),
+                new ProviderWebhookJobHandler($providerService),
             ]),
             $transactions,
             $shared->clock,
@@ -415,6 +432,8 @@ final readonly class DatabaseFoundation
                 $audit,
                 $shared->clock,
                 $templateRenderer,
+                $jobRepository,
+                $providerConfiguration,
             ),
             templateAccess: new TemplateAccessService(
                 $communicationRepository,
@@ -425,19 +444,13 @@ final readonly class DatabaseFoundation
                 $templateRenderer,
             ),
             campaignAccess: new CampaignAccessService($communicationRepository,$authorization,$idempotency,$audit,$shared->clock),
-            messageAccess: new MessageAccessService($communicationRepository,$jobRepository,$authorization,$idempotency,$audit,$shared->clock),
+            messageAccess: new MessageAccessService($communicationRepository,$jobRepository,$authorization,$idempotency,$audit,$shared->clock,$providerConfiguration),
             exports: $exports,
             exportAccess: new ExportAccessService($exportRepository, $authorization),
             exportArtifacts: $exportStorage,
             privacy: $privacy,
             privacyAccess: new PrivacyAccessService($privacyRepository, $authorization),
-            providers: new ProviderService(
-                new WpdbProviderRepository($database, $tableNames),
-                new ProviderRegistry(),
-                $jobRepository,
-                $shared->clock,
-                new WordPressTransientProviderCircuitBreaker(),
-            ),
+            providers: $providerService,
             jobs: $jobRepository,
             workerSchema: $workerSchema,
             jobWorker: $jobWorker,

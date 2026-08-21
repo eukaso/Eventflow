@@ -84,7 +84,7 @@ final class ProviderWebhookPort implements ProviderWebhookIngress
     public string $provider='';
     public array $headers=[];
     public string $rawBody='';
-    public function ingest(string $provider,array $headers,string $rawBody):int
+    public function ingest(string $provider,array $headers,string $rawBody,array $context=[]):int
     {
         $this->calls++;$this->provider=$provider;$this->headers=$headers;$this->rawBody=$rawBody;return 301;
     }

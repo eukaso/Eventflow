@@ -18,7 +18,7 @@ final readonly class ProviderWebhookController
     {
         $requestId = $this->requestIds->fromUntrusted($request->header('X-Request-ID'));
         $input = $this->requests->ingress($request);
-        $jobId = $this->webhooks->ingest($input['provider'], $input['headers'], $input['raw_body']);
+        $jobId = $this->webhooks->ingest($input['provider'], $input['headers'], $input['raw_body'], $input['context']);
         return $this->presenter->accepted($jobId, $requestId);
     }
 }
