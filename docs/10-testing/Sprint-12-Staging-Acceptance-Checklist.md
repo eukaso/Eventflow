@@ -15,6 +15,7 @@ Operator/date: ____________________
 ## Install and migration
 
 - [ ] Plugin installs and activates without debug output.
+- [ ] `staging-environment-acceptance.php` exits successfully for the exact candidate version; retain its sanitized JSON outside Git.
 - [ ] Controlled migration execution completes through schema version 15.
 - [ ] Migration keys/checksums and execution source are recorded.
 - [ ] Public health and readiness pass the exact-version preflight.

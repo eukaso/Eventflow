@@ -22,3 +22,13 @@ php tools/verify-plugin-artifact.php --directory=build/artifacts
 ```
 
 The archive contains only the explicitly allowlisted runtime surface, a dependency-free production autoloader, and an internal payload manifest. The adjacent external manifest records the source commit, deterministic timestamp, archive size, file count, and SHA-256 digest. The build fails closed if Composer gains a production dependency, the source tree is dirty, an input is missing, a symlink is encountered, or reproducibility fails.
+
+## Staging environment acceptance
+
+After installing and activating the approved artifact, run the repository-side probe inside the target WordPress process:
+
+```shell
+wp --path=/srv/www/wordpress eval-file /secure/release-tools/staging-environment-acceptance.php -- --expected-version=1.3.0-dev --json
+```
+
+The command emits only bounded check identifiers/codes—never paths, URLs, credentials, or database connection details—and exits nonzero unless every environment and WordPress composition prerequisite passes. The acceptance tool remains external to the production plugin archive by design.

@@ -1,5 +1,6 @@
 # Changelog
 
+- IMP-094: added a fail-closed live WordPress staging environment/composition probe and an explicitly blocked evidence workflow pending authorized-host execution.
 - IMP-093: added a deterministic, production-only plugin archive with internal/external integrity manifests and a reproducibility-enforcing CI gate.
 - IMP-092: established the Sprint 12 production-readiness plan, staging checklist, and secure remote health/readiness preflight.
 - IMP-091: promoted the CI-validated Sprint 11 candidate to stable EventFlow 1.2.0 release metadata.
@@ -36,6 +37,7 @@ The project follows Semantic Versioning.
 ## [Unreleased]
 
 ### Added
+- Live staging environment acceptance for PHP, WordPress, MySQL/MariaDB, HTTPS, filesystem, bootstrap, cron, protected storage, external-secret attestation, and complete WordPress route/admin/guest composition.
 - Deterministic production plugin packaging with an explicit runtime allowlist, dependency review boundary, SHA-256 manifests, independent verification, and byte-for-byte CI reproducibility enforcement.
 - Sprint 12 production-readiness baseline with ordered deployment gates, a fail-closed staging checklist, and a bounded credential-free remote preflight for exact-version health/readiness validation.
 
