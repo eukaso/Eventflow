@@ -68,7 +68,11 @@ final class WpdbImportRepository extends AbstractWpdbRepository implements Impor
 
     public function heartbeat(ImportJobRecord $job, string $token, DateTimeImmutable $now, DateTimeImmutable $expiresAt): void
     {
-        $table = $this->table(TableName::IMPORT_JOBS); if ($this->database->execute("UPDATE {$table} SET worker_heartbeat_at = %s, worker_lease_expires_at = %s, updated_at = %s WHERE event_id = %d AND import_job_id = %d AND import_status = %s AND worker_lease_token = %s", [$this->time($now), $this->time($expiresAt), $this->time($now), $job->eventScope->eventId, $job->jobId, ImportStatus::APPLYING->value, $token]) !== 1) throw new PersistenceException('import_worker_lease_lost');
+        $table = $this->table(TableName::IMPORT_JOBS);
+        $affected = $this->database->execute("UPDATE {$table} SET worker_heartbeat_at = %s, worker_lease_expires_at = %s, updated_at = %s WHERE event_id = %d AND import_job_id = %d AND import_status = %s AND worker_lease_token = %s", [$this->time($now), $this->time($expiresAt), $this->time($now), $job->eventScope->eventId, $job->jobId, ImportStatus::APPLYING->value, $token]);
+        if ($affected === 1) return;
+        $stillOwned = (int) $this->database->fetchValue("SELECT EXISTS(SELECT 1 FROM {$table} WHERE event_id = %d AND import_job_id = %d AND import_status = %s AND worker_lease_token = %s AND worker_lease_expires_at > %s)", [$job->eventScope->eventId, $job->jobId, ImportStatus::APPLYING->value, $token, $this->time($now)]);
+        if ($stillOwned !== 1) throw new PersistenceException('import_worker_lease_lost');
     }
 
     public function readyBatch(ImportJobRecord $job, string $token, DateTimeImmutable $now, int $limit): array

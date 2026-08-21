@@ -6,6 +6,8 @@ use DateTimeImmutable;
 use DateTimeZone;
 use EventFlow\Application\Import\ImportRowRecord;
 use EventFlow\Application\Import\ImportRowStatus;
+use EventFlow\Application\Import\ImportJobRecord;
+use EventFlow\Application\Import\ImportStatus;
 use EventFlow\Application\Import\ParsedImportSource;
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Infrastructure\Persistence\WordPress\WpdbAdapter;
@@ -36,14 +38,30 @@ final class WpdbImportRepositoryTest extends TestCase
         self::assertStringContainsString('normalized_data = NULL', $wpdb->queries[0]); self::assertStringContainsString('validation_warnings = NULL', $wpdb->queries[0]);
     }
 
+    public function testHeartbeatAcceptsSameSecondNoOpWhenLeaseIsStillOwned(): void
+    {
+        $wpdb = new ImportRepositoryWpdb();
+        $wpdb->affected = [0];
+        $wpdb->values = [1];
+        $scope = new EventScope(100);
+        $job = new ImportJobRecord(5, $scope, ImportStatus::APPLYING, 'g.csv', str_repeat('a', 64), 2, 2, 0, 0, 0);
+
+        $this->repository($wpdb)->heartbeat($job, str_repeat('b', 32), $this->now(), $this->now()->modify('+60 seconds'));
+
+        self::assertCount(2, $wpdb->queries);
+        self::assertStringContainsString('SELECT EXISTS', $wpdb->queries[1]);
+        self::assertStringContainsString('worker_lease_expires_at >', $wpdb->queries[1]);
+    }
+
     private function repository(ImportRepositoryWpdb $wpdb): WpdbImportRepository { return new WpdbImportRepository(new WpdbAdapter($wpdb), new WpdbTableNames('wp_')); }
     private function now(): DateTimeImmutable { return new DateTimeImmutable('2026-08-16 18:00:00', new DateTimeZone('UTC')); }
 }
 
 final class ImportRepositoryWpdb
 {
-    public string $prefix = 'wp_'; public string $last_error = ''; public int $last_errno = 0; public int $insert_id = 1; /** @var list<string> */ public array $queries = []; /** @var list<array<string,mixed>|null> */ public array $rows = [];
+    public string $prefix = 'wp_'; public string $last_error = ''; public int $last_errno = 0; public int $insert_id = 1; /** @var list<string> */ public array $queries = []; /** @var list<array<string,mixed>|null> */ public array $rows = []; /** @var list<int> */ public array $affected = []; /** @var list<mixed> */ public array $values = [];
     public function prepare(string $q, mixed ...$v): string { foreach ($v as $x) { $r = is_int($x) ? (string) $x : "'" . str_replace("'", "''", (string) $x) . "'"; $q = (string) preg_replace('/%[dfs]/', $r, $q, 1); } return $q; }
-    public function query(string $q): int { $this->queries[] = $q; return 1; }
+    public function query(string $q): int { $this->queries[] = $q; return $this->affected === [] ? 1 : array_shift($this->affected); }
     /** @return array<string,mixed>|null */ public function get_row(string $q, string $f): ?array { $this->queries[] = $q; return array_shift($this->rows); }
+    public function get_var(string $q): mixed { $this->queries[] = $q; return array_shift($this->values); }
 }
