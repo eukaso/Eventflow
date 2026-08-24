@@ -21,6 +21,18 @@ final class ProviderAdaptersTest extends TestCase
         $event=$adapter->authenticateAndNormalize(['x-twilio-signature'=>$signature],$body,$context);self::assertSame(9,$event->eventScope->eventId);self::assertSame('delivered',$event->normalizedType);self::assertSame('SM1',$event->providerMessageId);
         $this->expectException(ProviderException::class);$adapter->authenticateAndNormalize(['x-twilio-signature'=>'invalid'],$body,$context);
     }
+    public function testTwilioUsesMessagingServiceSenderForProduction():void
+    {
+        $http=new AdapterMemoryHttp(new ProviderHttpResponse(201,'{"sid":"SM1"}'));$adapter=new TwilioSmsProviderAdapter($http,'AC1','auth-token','MG1','https://example.test/hook');
+        $adapter->send(new ProviderDispatchMessage(new EventScope(9),42,'sms','+15875550100','', 'Reminder',1,str_repeat('d',64)));
+        parse_str($http->body,$body);self::assertSame('MG1',$body['MessagingServiceSid']);self::assertArrayNotHasKey('From',$body);
+    }
+    public function testTwilioUsesE164SenderForTrialCertification():void
+    {
+        $http=new AdapterMemoryHttp(new ProviderHttpResponse(201,'{"sid":"SM2"}'));$adapter=new TwilioSmsProviderAdapter($http,'AC1','auth-token','+17375550100','https://example.test/hook');
+        $adapter->send(new ProviderDispatchMessage(new EventScope(9),43,'sms','+15875550100','', 'Reminder',1,str_repeat('e',64)));
+        parse_str($http->body,$body);self::assertSame('+17375550100',$body['From']);self::assertArrayNotHasKey('MessagingServiceSid',$body);
+    }
 }
 final class AdapterMemoryHttp implements ProviderHttpClient
 {

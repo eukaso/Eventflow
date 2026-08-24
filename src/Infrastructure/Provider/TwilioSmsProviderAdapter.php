@@ -3,12 +3,13 @@ namespace EventFlow\Infrastructure\Provider;
 use DateTimeImmutable;use EventFlow\Application\Persistence\EventScope;use EventFlow\Application\Provider\{NormalizedProviderWebhook,ProviderAdapter,ProviderCapabilities,ProviderDispatchMessage,ProviderException,ProviderOutcome,ProviderSendResult};
 final readonly class TwilioSmsProviderAdapter implements ProviderAdapter
 {
-    public function __construct(private ProviderHttpClient $http,private string $accountSid,private string $authToken,private string $messagingServiceSid,private string $webhookUrl){}
+    public function __construct(private ProviderHttpClient $http,private string $accountSid,private string $authToken,private string $sender,private string $webhookUrl){}
     public function name():string{return'twilio';}public function capabilities():ProviderCapabilities{return new ProviderCapabilities(false,false,true);}
     public function send(ProviderDispatchMessage $m):ProviderSendResult
     {
         if($m->channel!=='sms')throw new ProviderException('provider_channel_invalid');$callback=$this->webhookUrl.'?eventflow_event_id='.$m->eventScope->eventId.'&eventflow_request_id='.$m->requestKey;
-        $body=http_build_query(['To'=>$m->address,'MessagingServiceSid'=>$this->messagingServiceSid,'Body'=>$m->content,'StatusCallback'=>$callback],'','&',PHP_QUERY_RFC3986);
+        $senderField=str_starts_with($this->sender,'MG')?'MessagingServiceSid':'From';
+        $body=http_build_query(['To'=>$m->address,$senderField=>$this->sender,'Body'=>$m->content,'StatusCallback'=>$callback],'','&',PHP_QUERY_RFC3986);
         $r=$this->http->post('https://api.twilio.com/2010-04-01/Accounts/'.rawurlencode($this->accountSid).'/Messages.json',['authorization'=>'Basic '.base64_encode($this->accountSid.':'.$this->authToken),'content-type'=>'application/x-www-form-urlencoded'],$body);$p=json_decode($r->body,true);$sid=is_array($p)&&is_string($p['sid']??null)?$p['sid']:null;
         if($r->statusCode>=200&&$r->statusCode<300&&$sid!==null)return new ProviderSendResult(ProviderOutcome::ACCEPTED,$sid,$m->requestKey,(string)$r->statusCode);
         return new ProviderSendResult($r->statusCode>=400&&$r->statusCode<500?ProviderOutcome::DEFINITIVE_FAILURE:ProviderOutcome::AMBIGUOUS,providerRequestId:$m->requestKey,responseCode:(string)$r->statusCode,errorCode:'provider_send_rejected');
