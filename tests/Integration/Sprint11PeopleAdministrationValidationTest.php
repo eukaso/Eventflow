@@ -9,9 +9,12 @@ final class Sprint11PeopleAdministrationValidationTest extends TestCase
     public function testPeopleCollectionsAreBoundedAndEventScoped(): void
     {
         $script = $this->script();
-        foreach (['memberships?limit=100', 'invitations?limit=100', 'attendees?limit=100'] as $route) {
+        foreach (['requestAllPages(`${eventPath}/memberships`', 'requestAllPages(`${eventPath}/invitations`', 'requestAllPages(`${eventPath}/attendees`'] as $route) {
             self::assertStringContainsString($route, $script);
         }
+        self::assertStringContainsString('for (let page = 0; page < 100; page += 1)', $script);
+        self::assertStringContainsString('const query = `limit=100', $script);
+        self::assertStringContainsString("throw new Error('pagination_limit_exceeded')", $script);
         self::assertStringContainsString("const eventPath = `events/\${encodeURIComponent(String(activeEvent.id))}`", $script);
         self::assertStringContainsString('Promise.allSettled', $script);
         foreach (['Team access unavailable.', 'Invitation access unavailable.', 'Attendee access unavailable.'] as $message) {
