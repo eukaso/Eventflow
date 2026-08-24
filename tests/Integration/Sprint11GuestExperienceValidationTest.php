@@ -65,7 +65,7 @@ final class Sprint11GuestExperienceValidationTest extends TestCase
             self::assertStringNotContainsString($forbidden, $script);
         }
         $view = $this->source('src/Presentation/Guest/GuestShellView.php');
-        foreach (['aria-busy="true"', 'role="status"', 'Will you attend?', 'Your party'] as $expected) {
+        foreach (['aria-busy="true"', 'role="status"', 'Will you attend?', 'Tell us who is coming'] as $expected) {
             self::assertStringContainsString($expected, $view);
         }
     }

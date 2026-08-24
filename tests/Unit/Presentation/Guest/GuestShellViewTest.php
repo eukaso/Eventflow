@@ -19,6 +19,9 @@ final class GuestShellViewTest extends TestCase
         self::assertStringContainsString('role="status"', $html);
         self::assertStringContainsString('type="radio" value="accepted"', $html);
         self::assertStringContainsString('type="radio" value="declined"', $html);
+        self::assertStringContainsString('Tell us who is coming', $html);
+        self::assertStringContainsString('Add companion', $html);
+        self::assertStringContainsString('Confirm my RSVP', $html);
         self::assertStringNotContainsString('<script', $html);
         self::assertStringNotContainsString('credential', strtolower($html));
         self::assertStringNotContainsString('csrf', strtolower($html));

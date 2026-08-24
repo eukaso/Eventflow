@@ -11,14 +11,14 @@ final class WpdbCommunicationRecipientResolutionTest extends TestCase
 {
     public function testSmsCampaignUsesNormalizedPhoneAndExcludesMissingPhones():void
     {
-        $wpdb=new CommunicationRecipientWpdb([['invitation_id'=>'7','attendee_id'=>null,'display_name'=>'Test Recipient','address'=>'+15878910335']]);$repository=$this->repository($wpdb);$campaign=$this->campaign(CommunicationChannel::SMS,'active_invitations');
+        $wpdb=new CommunicationRecipientWpdb([['invitation_id'=>'7','attendee_id'=>null,'display_name'=>'Test Recipient','address'=>'+15878910335','event_name'=>'Celebration']]);$repository=$this->repository($wpdb);$campaign=$this->campaign(CommunicationChannel::SMS,'active_invitations');
         $recipients=$repository->resolveRecipients(new EventScope(3),$campaign);
-        self::assertSame('+15878910335',$recipients[0]->address);self::assertStringContainsString('i.primary_phone_normalized address',$wpdb->query);self::assertStringContainsString('i.primary_phone_normalized IS NOT NULL',$wpdb->query);self::assertStringNotContainsString('primary_email',$wpdb->query);
+        self::assertSame('+15878910335',$recipients[0]->address);self::assertSame('Celebration',$recipients[0]->mergeFields['event_name']);self::assertStringContainsString('i.primary_phone_normalized address',$wpdb->query);self::assertStringContainsString('i.primary_phone_normalized IS NOT NULL',$wpdb->query);self::assertStringNotContainsString('primary_email',$wpdb->query);
     }
 
     public function testEmailCampaignUsesNormalizedEmailForConfirmedAttendees():void
     {
-        $wpdb=new CommunicationRecipientWpdb([['invitation_id'=>'7','attendee_id'=>'8','display_name'=>'Test Recipient','address'=>'guest@example.test']]);$repository=$this->repository($wpdb);$campaign=$this->campaign(CommunicationChannel::EMAIL,'confirmed_attendees');
+        $wpdb=new CommunicationRecipientWpdb([['invitation_id'=>'7','attendee_id'=>'8','display_name'=>'Test Recipient','address'=>'guest@example.test','event_name'=>'Celebration']]);$repository=$this->repository($wpdb);$campaign=$this->campaign(CommunicationChannel::EMAIL,'confirmed_attendees');
         $recipients=$repository->resolveRecipients(new EventScope(3),$campaign);
         self::assertSame('guest@example.test',$recipients[0]->address);self::assertStringContainsString('COALESCE(a.email_normalized,i.primary_email_normalized) address',$wpdb->query);self::assertStringContainsString('COALESCE(a.email_normalized,i.primary_email_normalized) IS NOT NULL',$wpdb->query);self::assertStringNotContainsString('phone_normalized',$wpdb->query);
     }

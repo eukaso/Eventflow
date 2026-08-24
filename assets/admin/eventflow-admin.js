@@ -76,6 +76,8 @@
   const campaignList = document.getElementById('eventflow-campaign-list');
   const messageList = document.getElementById('eventflow-message-list');
   const campaignTemplate = document.getElementById('eventflow-campaign-template');
+  const quickEmail = document.getElementById('eventflow-quick-email');
+  const quickSms = document.getElementById('eventflow-quick-sms');
   const templatePreview = document.getElementById('eventflow-template-preview');
   const templatePreviewSubject = document.getElementById('eventflow-template-preview-subject');
   const templatePreviewBody = document.getElementById('eventflow-template-preview-body');
@@ -1348,6 +1350,24 @@
     });
   };
 
+  const startInvitationTemplate = (channel) => {
+    selectCommunicationTab('templates');
+    const suffix = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+    field(templateForm, 'key').value = `invitation.${channel}.${suffix}`;
+    field(templateForm, 'name').value = channel === 'email' ? 'Official invitation email' : 'Official invitation SMS';
+    field(templateForm, 'channel').value = channel;
+    field(templateForm, 'type').value = 'invitation';
+    field(templateForm, 'allowed_fields').value = 'recipient_name, event_name, guest_link';
+    field(templateForm, 'subject').value = channel === 'email' ? "You're invited to {{event_name}}" : '';
+    const message = channel === 'email'
+      ? 'Hello {{recipient_name}},\n\nYou are warmly invited to {{event_name}}. Please open your personalized invitation, confirm your attendance, and add your companions for seating:\n\n{{guest_link}}'
+      : 'Hello {{recipient_name}}, you are invited to {{event_name}}. RSVP and add your companions: {{guest_link}}';
+    field(templateForm, 'body').value = message;
+    field(templateForm, 'plain_text').value = message;
+    communicationsNotice.textContent = `A friendly ${channel.toUpperCase()} invitation draft is ready. Review it, save it, then publish it before creating a bulk campaign.`;
+    field(templateForm, 'name').focus();
+  };
+
   const communicationMutation = async (path, body, etag = null, method = 'POST') => {
     communicationsNotice.textContent = 'Saving communication change…';
     try {
@@ -1464,7 +1484,8 @@
         scheduleButton.disabled = true;
         scheduleButton.type = 'submit';
         scheduleButton.textContent = 'Schedule';
-        const sendButton = actionButton('Queue now', () => campaignCommand(campaign, 'queue', {}, 'Queue this reviewed audience now?'));
+        let reviewedRecipientCount = 0;
+        const sendButton = actionButton(`Send bulk ${String(campaign.channel || 'message').toUpperCase()} now`, () => campaignCommand(campaign, 'queue', {}, `Send this personalized ${String(campaign.channel || 'message').toUpperCase()} to ${reviewedRecipientCount} reviewed recipients now?`));
         sendButton.disabled = true;
         scheduleForm.append(scheduleLabel, scheduleInput, scheduleButton);
         scheduleForm.addEventListener('submit', (submissionEvent) => {
@@ -1479,9 +1500,10 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({}),
             });
-            previewStatus.textContent = `${payload.data?.recipient_count || 0} recipients in the reviewed audience. Scheduling and queueing are now enabled for this view.`;
+            reviewedRecipientCount = Number(payload.data?.recipient_count || 0);
+            previewStatus.textContent = `${reviewedRecipientCount} recipients in the reviewed audience. Scheduling and sending are now enabled for this view.`;
             scheduleButton.disabled = false;
-            sendButton.disabled = false;
+            sendButton.disabled = reviewedRecipientCount < 1;
             communicationsNotice.textContent = 'Audience preview complete. Review the recipient count before continuing.';
           } catch (error) {
             previewStatus.textContent = 'Audience preview unavailable. Scheduling and queueing remain disabled.';
@@ -2031,6 +2053,8 @@
     checkInAttendees(attendeeIds);
   });
   configureTabs(communicationTabs, selectCommunicationTab);
+  quickEmail.addEventListener('click', () => startInvitationTemplate('email'));
+  quickSms.addEventListener('click', () => startInvitationTemplate('sms'));
   templateForm.addEventListener('submit', submitTemplate);
   campaignForm.addEventListener('submit', submitCampaign);
   messageFilterForm.addEventListener('submit', async (submissionEvent) => {

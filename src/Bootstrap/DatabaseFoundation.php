@@ -15,6 +15,7 @@ use EventFlow\Application\Communication\CampaignAccessService;
 use EventFlow\Application\Communication\MessageAccessService;
 use EventFlow\Application\Communication\TemplateAccessService;
 use EventFlow\Application\Communication\TemplateRenderer;
+use EventFlow\Application\Communication\GuestAccessMessageLinkIssuer;
 use EventFlow\Application\Authorization\AuthorizationService;
 use EventFlow\Application\Authorization\RoleCapabilityPolicy;
 use EventFlow\Application\Event\EventAccessService;
@@ -222,6 +223,21 @@ final readonly class DatabaseFoundation
             $shared->random,
             $credentialDigester,
         );
+        $guestAccessService = new GuestAccessService(
+            $guestAccessRepository,
+            $invitationRepository,
+            $authorization,
+            $idempotency,
+            $audit,
+            $shared->clock,
+            $shared->random,
+            $credentialDigester,
+            $transactions,
+        );
+        $guestPageUrl = defined('EVENTFLOW_GUEST_PAGE_URL') ? trim((string) constant('EVENTFLOW_GUEST_PAGE_URL')) : '';
+        $guestLinkIssuer = $guestPageUrl !== '' && filter_var($guestPageUrl, FILTER_VALIDATE_URL) !== false && str_starts_with(strtolower($guestPageUrl), 'https://')
+            ? new GuestAccessMessageLinkIssuer($guestAccessService, $shared->clock, $guestPageUrl)
+            : null;
         $readinessChecks = [
             new WpdbConnectionReadinessCheck($database),
             new SchemaReadinessCheck(
@@ -357,17 +373,7 @@ final readonly class DatabaseFoundation
                 $audit,
                 $shared->clock,
             ),
-            guestAccess: new GuestAccessService(
-                $guestAccessRepository,
-                $invitationRepository,
-                $authorization,
-                $idempotency,
-                $audit,
-                $shared->clock,
-                $shared->random,
-                $credentialDigester,
-                $transactions,
-            ),
+            guestAccess: $guestAccessService,
             guestSessionAccess: new GuestSessionAccessService(
                 new WpdbGuestSessionAccessRepository($database, $tableNames),
                 $authorization,
@@ -434,6 +440,7 @@ final readonly class DatabaseFoundation
                 $templateRenderer,
                 $jobRepository,
                 $providerConfiguration,
+                $guestLinkIssuer,
             ),
             templateAccess: new TemplateAccessService(
                 $communicationRepository,

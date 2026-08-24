@@ -9,6 +9,7 @@
   const title = document.getElementById('eventflow-guest-title');
   const status = document.getElementById('eventflow-guest-status');
   const contextRegion = document.getElementById('eventflow-guest-context');
+  const salutation = document.getElementById('eventflow-guest-salutation');
   const welcome = document.getElementById('eventflow-guest-welcome');
   const facts = document.getElementById('eventflow-guest-facts');
   const notice = document.getElementById('eventflow-guest-notice');
@@ -16,6 +17,7 @@
   const attendeeRegion = document.getElementById('eventflow-guest-attendees');
   const attendeeList = document.getElementById('eventflow-guest-attendee-list');
   const addGuest = document.getElementById('eventflow-add-guest');
+  const partyCapacity = document.getElementById('eventflow-party-capacity');
   const confirmation = document.getElementById('eventflow-guest-confirmation');
   const logout = document.getElementById('eventflow-guest-logout');
   let csrfToken = null;
@@ -125,7 +127,8 @@
     row.dataset.attendeeId = attendee?.id ? String(attendee.id) : '';
     row.dataset.role = role;
     const legend = document.createElement('legend');
-    legend.textContent = role === 'primary' ? 'Primary guest' : 'Additional guest';
+    const companionNumber = role === 'primary' ? 0 : attendeeList.querySelectorAll('[data-role="companion"]').length + 1;
+    legend.textContent = role === 'primary' ? 'You' : `Companion ${companionNumber}`;
     row.appendChild(legend);
     const name = input('Name', 'text', attendee?.display_name || '');
     name.control.required = true;
@@ -144,7 +147,7 @@
       const remove = document.createElement('button');
       remove.className = 'eventflow-guest__link';
       remove.type = 'button';
-      remove.textContent = 'Remove guest';
+      remove.textContent = 'Remove companion';
       remove.addEventListener('click', () => {
         row.remove();
         updateAddGuestState();
@@ -158,8 +161,18 @@
 
   const updateAddGuestState = () => {
     const accepting = selectedResponse() === 'accepted';
+    const capacity = Number(invitationContext?.capacity || 1);
+    const used = attendeeList.children.length;
+    const remaining = Math.max(0, capacity - used);
+    attendeeList.querySelectorAll('[data-role="companion"] legend').forEach((legend, index) => {
+      legend.textContent = `Companion ${index + 1}`;
+    });
     attendeeRegion.hidden = !accepting;
-    addGuest.disabled = !rsvpEditable || !accepting || attendeeList.children.length >= Number(invitationContext?.capacity || 1);
+    partyCapacity.textContent = capacity > 1
+      ? `${used} of ${capacity} places named. ${remaining ? `${remaining} remaining.` : 'Your party is complete.'}`
+      : 'This invitation is reserved for you.';
+    addGuest.hidden = capacity <= 1;
+    addGuest.disabled = !rsvpEditable || !accepting || used >= capacity;
   };
 
   const formAllowed = (context) => {
@@ -174,7 +187,8 @@
   const render = (context, response) => {
     invitationContext = context;
     title.textContent = context.event_name || 'Your invitation';
-    welcome.textContent = context.welcome_message || `Hello ${context.primary_name}, please let us know if you can join us.`;
+    salutation.textContent = context.primary_name ? `Dear ${context.primary_name},` : 'Welcome,';
+    welcome.textContent = context.welcome_message || 'You are warmly invited to celebrate with us. Please confirm your attendance and add the names of any companions joining you.';
     facts.replaceChildren();
     addFact('Starts', formatDate(context.starts_at));
     addFact('Ends', formatDate(context.ends_at));

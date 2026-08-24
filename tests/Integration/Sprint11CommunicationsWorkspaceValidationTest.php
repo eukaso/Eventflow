@@ -29,7 +29,7 @@ final class Sprint11CommunicationsWorkspaceValidationTest extends TestCase
     public function testCampaignDeliveryIsDisabledUntilAudiencePreviewAndRequiresConfirmation(): void
     {
         $script = $this->source('assets/admin/eventflow-admin.js');
-        foreach (['scheduleButton.disabled = true', 'sendButton.disabled = true', 'scheduleButton.disabled = false', 'sendButton.disabled = false', 'Review the current audience', 'window.confirm(confirmation)'] as $expected) {
+        foreach (['scheduleButton.disabled = true', 'sendButton.disabled = true', 'scheduleButton.disabled = false', 'sendButton.disabled = reviewedRecipientCount < 1', 'Review the current audience', 'window.confirm(confirmation)'] as $expected) {
             self::assertStringContainsString($expected, $script);
         }
         self::assertStringContainsString('No messages were scheduled or sent.', $script);
@@ -61,7 +61,7 @@ final class Sprint11CommunicationsWorkspaceValidationTest extends TestCase
     public function testShellProvidesPersistentLabelsTabsStatusAndResponsiveLayout(): void
     {
         $view = $this->source('src/Presentation/Admin/AdminShellView.php');
-        foreach (['role="tablist"', 'role="tabpanel"', 'role="status"', 'Allowed fields', 'Audience filter', 'Filter messages'] as $expected) {
+        foreach (['role="tablist"', 'role="tabpanel"', 'role="status"', 'Personalization fields', 'Recipient group', 'Filter messages'] as $expected) {
             self::assertStringContainsString($expected, $view);
         }
         $styles = $this->source('assets/admin/eventflow-admin.css');

@@ -17,5 +17,6 @@ interface CommunicationRepository
     /** @return list<CampaignRecipient> */
     public function resolveRecipients(EventScope $scope, CampaignRecord $campaign): array;
     public function createOrFindMessage(EventScope $scope, CampaignRecord $campaign, CampaignRecipient $recipient, string $logicalKey, ?string $subject, string $body, ?string $plainText, DateTimeImmutable $now): MessageRecord;
+    public function finalizeMessageContent(EventScope $scope, int $messageId, ?string $subject, string $body, ?string $plainText, DateTimeImmutable $now): MessageRecord;
     public function freezeQueued(EventScope $scope, CampaignRecord $campaign, int $recipientCount, DateTimeImmutable $now): void;
 }

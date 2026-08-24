@@ -580,6 +580,54 @@
   width: 100%;
 }
 
+.eventflow-communication-start {
+  background: #f0f6fc;
+  border: 1px solid #b6d6f2;
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: 16px 0 20px;
+  padding: 18px;
+}
+
+.eventflow-communication-start h4,
+.eventflow-communication-start p {
+  margin-bottom: 6px;
+  margin-top: 0;
+}
+
+.eventflow-communication-start ol,
+.eventflow-communication-start > .description {
+  grid-column: 1 / -1;
+}
+
+.eventflow-communication-start ol {
+  display: grid;
+  gap: 8px 24px;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  padding-left: 22px;
+}
+
+.eventflow-communication-start__actions {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 782px) {
+  .eventflow-communication-start,
+  .eventflow-communication-start ol {
+    grid-template-columns: 1fr;
+  }
+
+  .eventflow-communication-start__actions {
+    grid-column: 1;
+  }
+}
+
 .eventflow-list-filter {
   align-items: end;
   display: grid;

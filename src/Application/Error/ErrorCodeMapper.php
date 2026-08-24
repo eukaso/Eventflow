@@ -29,6 +29,7 @@ final readonly class ErrorCodeMapper
                 'export_write_failed', 'export_publish_failed', 'export_delete_failed',
                 'privacy_execution_failed',
                 'provider_circuit_open',
+                'guest_page_url_not_configured',
             ], true)) {
                 return 'temporarily_unavailable';
             }

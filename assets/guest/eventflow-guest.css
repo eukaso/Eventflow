@@ -66,6 +66,62 @@
   line-height: 1.6;
 }
 
+.eventflow-guest .screen-reader-text {
+  border: 0;
+  clip: rect(1px, 1px, 1px, 1px);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.eventflow-guest__salutation {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.35rem, 4vw, 1.8rem);
+  margin: 24px 0 4px;
+}
+
+.eventflow-guest__step-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.eventflow-guest__step-heading > span {
+  align-items: center;
+  background: var(--efg-accent);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 32px;
+  font-weight: 700;
+  height: 32px;
+  justify-content: center;
+}
+
+.eventflow-guest__step-heading h2,
+.eventflow-guest__step-heading p,
+.eventflow-guest__party-actions p {
+  margin: 0;
+}
+
+.eventflow-guest__step-heading p,
+.eventflow-guest__party-actions p {
+  color: var(--efg-muted);
+}
+
+.eventflow-guest__party-actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 16px 0 8px 44px;
+}
+
 .eventflow-guest__facts {
   display: grid;
   grid-template-columns: minmax(90px, 130px) 1fr;
