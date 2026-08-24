@@ -30,6 +30,9 @@
   const invitationForm = document.getElementById('eventflow-invitation-form');
   const invitationSubmit = document.getElementById('eventflow-invitation-submit');
   const invitationEditCancel = document.getElementById('eventflow-invitation-edit-cancel');
+  const invitationFilter = document.getElementById('eventflow-invitation-filter');
+  const invitationStateFilter = document.getElementById('eventflow-invitation-state-filter');
+  const invitationFilterStatus = document.getElementById('eventflow-invitation-filter-status');
   const attendeeForm = document.getElementById('eventflow-attendee-form');
   const membershipList = document.getElementById('eventflow-membership-list');
   const invitationList = document.getElementById('eventflow-invitation-list');
@@ -116,6 +119,7 @@
   let credentialClearTimer = null;
   let editingInvitationId = null;
   let editingInvitationEtag = null;
+  let loadedInvitations = [];
   let seatingTables = [];
   let seatingRecommendation = null;
   let receptionAttendees = [];
@@ -693,16 +697,30 @@
     }
   };
 
-  const renderInvitations = (invitations) => {
+  const invitationMatchesFilter = (invitation) => {
+    const state = String(invitationStateFilter.value || 'all');
+    const archived = invitation.archived_at !== null;
+    if (state === 'active' && archived) return false;
+    if (state === 'archived' && !archived) return false;
+    const query = String(invitationFilter.value || '').trim().toLocaleLowerCase();
+    if (query === '') return true;
+    return [invitation.primary_name, invitation.primary_email, invitation.primary_phone, invitation.code]
+      .some((value) => String(value || '').toLocaleLowerCase().includes(query));
+  };
+
+  const renderInvitations = (invitations = loadedInvitations) => {
+    loadedInvitations = invitations;
     invitationList.replaceChildren();
     populateInvitationOptions(invitations);
-    if (!invitations.length) appendText(invitationList, 'p', 'eventflow-admin__status', 'No invitations found.');
-    invitations.forEach((invitation) => {
+    const visibleInvitations = invitations.filter(invitationMatchesFilter);
+    invitationFilterStatus.textContent = `${visibleInvitations.length} of ${invitations.length} invitations shown.`;
+    if (!visibleInvitations.length) appendText(invitationList, 'p', 'eventflow-admin__status', 'No invitations match the current filter.');
+    visibleInvitations.forEach((invitation) => {
       const state = invitation.archived_at ? 'archived' : String(invitation.status || 'unknown');
       const { card, actions } = recordCard(
         String(invitation.primary_name || 'Unnamed invitation'),
         state,
-        [String(invitation.code || ''), invitation.primary_email || '', `Capacity ${invitation.capacity}`, `RSVP ${invitation.response_status}`],
+        [String(invitation.code || ''), invitation.primary_email || '', invitation.primary_phone || '', `Capacity ${invitation.capacity}`, `RSVP ${invitation.response_status}`],
       );
       const eventId = encodeURIComponent(String(activeEvent.id));
       const invitationId = encodeURIComponent(String(invitation.id));
@@ -1991,6 +2009,8 @@
   configureTabs(peopleTabs, selectPeopleTab);
   membershipForm.addEventListener('submit', submitMembership);
   invitationForm.addEventListener('submit', submitInvitation);
+  invitationFilter.addEventListener('input', () => renderInvitations());
+  invitationStateFilter.addEventListener('change', () => renderInvitations());
   invitationEditCancel.addEventListener('click', () => {
     resetInvitationEditor();
     peopleNotice.textContent = 'Invitation edit cancelled.';

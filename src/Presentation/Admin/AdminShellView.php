@@ -157,6 +157,12 @@ final readonly class AdminShellView
             <button class="button button-secondary" id="eventflow-invitation-submit" type="submit">Create invitation</button>
             <button class="button-link" id="eventflow-invitation-edit-cancel" type="button" hidden>Cancel edit</button>
           </form>
+          <div class="eventflow-list-filter">
+            <div><label for="eventflow-invitation-filter">Filter invitations</label><input autocomplete="off" id="eventflow-invitation-filter" placeholder="Name, email, phone, code, or calling code" type="search"></div>
+            <div><label for="eventflow-invitation-state-filter">Invitation state</label><select id="eventflow-invitation-state-filter"><option value="all">All invitations</option><option value="active">Active only</option><option value="archived">Archived only</option></select></div>
+            <p aria-live="polite" id="eventflow-invitation-filter-status" role="status"></p>
+          </div>
+          <p class="description">To review Nigerian contacts, filter by <code>+234</code>. Archive only the contacts you intend to exclude. <code>+1</code> covers both Canada and the United States, so those contacts require individual verification.</p>
           <div class="eventflow-record-list" id="eventflow-invitation-list"></div>
         </section>
         <section id="eventflow-attendees-panel" role="tabpanel" aria-labelledby="eventflow-attendees-tab" hidden>

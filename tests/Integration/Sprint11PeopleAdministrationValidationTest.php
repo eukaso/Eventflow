@@ -45,6 +45,22 @@ final class Sprint11PeopleAdministrationValidationTest extends TestCase
         }
     }
 
+    public function testInvitationsCanBeFilteredByPhoneAndArchivedWithoutBulkDeletion(): void
+    {
+        $script = $this->script();
+        $view = file_get_contents(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Presentation' . DIRECTORY_SEPARATOR . 'Admin' . DIRECTORY_SEPARATOR . 'AdminShellView.php');
+        self::assertIsString($view);
+        foreach (['eventflow-invitation-filter', 'eventflow-invitation-state-filter', '+234', '+1'] as $expected) {
+            self::assertStringContainsString($expected, $view);
+        }
+        self::assertStringContainsString('invitation.primary_phone', $script);
+        self::assertStringContainsString('invitations.filter(invitationMatchesFilter)', $script);
+        self::assertStringContainsString("invitationFilter.addEventListener('input'", $script);
+        self::assertStringContainsString("invitationStateFilter.addEventListener('change'", $script);
+        self::assertStringContainsString("actionButton('Archive'", $script);
+        self::assertStringNotContainsString('bulk-delete-invitations', $script);
+    }
+
     public function testReturnOnceCredentialIsEphemeralAndNeverPersistedOrLogged(): void
     {
         $script = $this->script();

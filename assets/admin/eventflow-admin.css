@@ -580,6 +580,31 @@
   width: 100%;
 }
 
+.eventflow-list-filter {
+  align-items: end;
+  display: grid;
+  gap: 8px 12px;
+  grid-template-columns: minmax(220px, 2fr) minmax(160px, 1fr) auto;
+  margin: 0 0 10px;
+}
+
+.eventflow-list-filter label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.eventflow-list-filter input,
+.eventflow-list-filter select {
+  box-sizing: border-box;
+  min-height: 34px;
+  width: 100%;
+}
+
+.eventflow-list-filter [role='status'] {
+  margin: 0 0 7px;
+}
+
 .eventflow-record-list {
   display: grid;
   gap: 12px;
