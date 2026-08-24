@@ -7,7 +7,7 @@ IMP-098 composes the Brevo email and Twilio SMS adapters behind EventFlow's dura
 Define secrets in the target WordPress environment, outside the plugin artifact:
 
 - Brevo: `EVENTFLOW_BREVO_API_KEY`, `EVENTFLOW_BREVO_SENDER_EMAIL`, `EVENTFLOW_BREVO_SENDER_NAME`, `EVENTFLOW_BREVO_WEBHOOK_TOKEN`.
-- Twilio: `EVENTFLOW_TWILIO_ACCOUNT_SID`, `EVENTFLOW_TWILIO_AUTH_TOKEN`, `EVENTFLOW_TWILIO_WEBHOOK_URL`, and one sender value. Use `EVENTFLOW_TWILIO_MESSAGING_SERVICE_SID` for production or `EVENTFLOW_TWILIO_FROM_NUMBER` with a verified E.164 sender for trial certification. A Messaging Service SID takes precedence when both are defined.
+- Twilio: `EVENTFLOW_TWILIO_ACCOUNT_SID`, `EVENTFLOW_TWILIO_AUTH_TOKEN`, `EVENTFLOW_TWILIO_WEBHOOK_URL`, and one sender value. Prefer the revocable `EVENTFLOW_TWILIO_API_KEY_SID` plus `EVENTFLOW_TWILIO_API_KEY_SECRET` for outbound API authentication; the account auth token remains required to validate Twilio callback signatures and is also the outbound fallback when an API key is absent. Use `EVENTFLOW_TWILIO_MESSAGING_SERVICE_SID` for production or `EVENTFLOW_TWILIO_FROM_NUMBER` with a verified E.164 sender for trial certification. A Messaging Service SID takes precedence when both senders are defined.
 - Dispatch gate: `EVENTFLOW_PROVIDER_BULK_ENABLED` (boolean; defaults to false).
 
 Brevo must send the configured static secret as `X-EventFlow-Webhook-Token`. Twilio must call the exact configured HTTPS webhook URL; EventFlow verifies `X-Twilio-Signature` against the URL, query context, and form parameters.

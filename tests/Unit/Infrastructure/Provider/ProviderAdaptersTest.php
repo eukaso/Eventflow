@@ -33,6 +33,12 @@ final class ProviderAdaptersTest extends TestCase
         $adapter->send(new ProviderDispatchMessage(new EventScope(9),43,'sms','+15875550100','', 'Reminder',1,str_repeat('e',64)));
         parse_str($http->body,$body);self::assertSame('+17375550100',$body['From']);self::assertArrayNotHasKey('MessagingServiceSid',$body);
     }
+    public function testTwilioCanAuthenticateWithRevocableApiKey():void
+    {
+        $http=new AdapterMemoryHttp(new ProviderHttpResponse(201,'{"sid":"SM3"}'));$adapter=new TwilioSmsProviderAdapter($http,'AC1','key-secret','+17375550100','https://example.test/hook','SK1','auth-token');
+        $adapter->send(new ProviderDispatchMessage(new EventScope(9),44,'sms','+15875550100','', 'Reminder',1,str_repeat('f',64)));
+        self::assertSame('Basic '.base64_encode('SK1:key-secret'),$http->headers['authorization']);self::assertStringContainsString('/Accounts/AC1/Messages.json',$http->url);
+    }
 }
 final class AdapterMemoryHttp implements ProviderHttpClient
 {
