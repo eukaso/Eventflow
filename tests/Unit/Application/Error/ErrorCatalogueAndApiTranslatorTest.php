@@ -20,6 +20,7 @@ use EventFlow\Application\Export\ExportException;
 use EventFlow\Application\GuestAccess\GuestAccessException;
 use EventFlow\Application\Import\ImportException;
 use EventFlow\Application\Privacy\PrivacyException;
+use EventFlow\Application\Provider\ProviderException;
 use EventFlow\Application\Idempotency\IdempotencyException;
 use EventFlow\Application\Invitation\InvitationException;
 use EventFlow\Application\Membership\MembershipException;
@@ -129,6 +130,10 @@ final class ErrorCatalogueAndApiTranslatorTest extends TestCase
         $invalidGuestCredential = $translator->translate(new GuestAccessException('guest_credential_invalid'), $requestId);
         self::assertSame(401, $invalidGuestCredential->status);
         self::assertSame('guest_session_invalid', $invalidGuestCredential->body['code']);
+
+        $invalidProviderSignature = $translator->translate(new ProviderException('provider_webhook_unauthorized'), $requestId);
+        self::assertSame(401, $invalidProviderSignature->status);
+        self::assertSame('authentication_required', $invalidProviderSignature->body['code']);
 
         $staleRsvp = $translator->translate(new AttendeeException('guest_response_modified'), $requestId);
         self::assertSame(409, $staleRsvp->status);

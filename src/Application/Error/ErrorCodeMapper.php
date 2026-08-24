@@ -99,6 +99,10 @@ final readonly class ErrorCodeMapper
                 return 'import_not_ready';
             }
 
+            if ($code === 'provider_webhook_unauthorized') {
+                return 'authentication_required';
+            }
+
             if (in_array($code, ['guest_credential_invalid', 'guest_csrf_invalid'], true)) {
                 return 'guest_session_invalid';
             }
