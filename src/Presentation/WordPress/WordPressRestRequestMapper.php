@@ -51,7 +51,13 @@ final readonly class WordPressRestRequestMapper
         foreach ($source as $name => $value) {
             if (!is_string($name)) continue;
             $candidate = is_array($value) ? reset($value) : $value;
-            if (is_string($candidate)) $headers[$name] = $candidate;
+            if (is_string($candidate)) {
+                // WP_REST_Request canonicalizes HTTP header names by replacing
+                // hyphens with underscores. Restore their wire representation so
+                // RestRequest can enforce Idempotency-Key, If-Match, signatures,
+                // and other security-sensitive headers consistently.
+                $headers[str_replace('_', '-', $name)] = $candidate;
+            }
         }
         return $headers;
     }

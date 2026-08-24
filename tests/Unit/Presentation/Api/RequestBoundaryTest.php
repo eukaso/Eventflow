@@ -28,6 +28,22 @@ final class RequestBoundaryTest extends TestCase
         self::assertSame('W/"7"', $request->headers()['if-match']);
     }
 
+    public function testWordPressCanonicalizedMutationHeadersAreRestored(): void
+    {
+        $request = (new WordPressRestRequestMapper())->map(new BoundaryWordPressRequest(
+            '{"name":"Dinner"}',
+            [
+                'idempotency_key' => ['invitation-create-001'],
+                'if_match' => ['"7"'],
+                'x_twilio_signature' => ['signed-value'],
+            ],
+        ));
+
+        self::assertSame('invitation-create-001', $request->header('Idempotency-Key'));
+        self::assertSame('"7"', $request->header('If-Match'));
+        self::assertSame('signed-value', $request->header('X-Twilio-Signature'));
+    }
+
     public function testOpaqueWebhookBodyIsPreservedWithoutForcedJsonDecoding(): void
     {
         $request = (new WordPressRestRequestMapper())->map(new BoundaryWordPressRequest(
