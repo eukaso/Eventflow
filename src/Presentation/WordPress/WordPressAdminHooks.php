@@ -67,6 +67,7 @@ final readonly class WordPressAdminHooks
         }
 
         $baseUrl = plugin_dir_url($this->pluginFile);
+        $scriptVersion = $this->assetVersion('assets/admin/eventflow-admin.js');
         wp_enqueue_style(
             self::SCRIPT_HANDLE,
             $baseUrl . 'assets/admin/eventflow-admin.css',
@@ -77,7 +78,7 @@ final readonly class WordPressAdminHooks
             self::SCRIPT_HANDLE,
             $baseUrl . 'assets/admin/eventflow-admin.js',
             [],
-            $this->version,
+            $scriptVersion,
             true,
         );
 
@@ -90,5 +91,12 @@ final readonly class WordPressAdminHooks
                 'ready' => $this->bootstrap->ready,
             ]);
         }
+    }
+
+    private function assetVersion(string $relativePath): string
+    {
+        $path = dirname($this->pluginFile) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+        $digest = is_file($path) ? hash_file('sha256', $path) : false;
+        return is_string($digest) ? $this->version . '-' . substr($digest, 0, 12) : $this->version;
     }
 }

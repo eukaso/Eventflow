@@ -20,6 +20,8 @@ final class Sprint11UiFoundationValidationTest extends TestCase
         $hooks = $this->source('src/Presentation/WordPress/WordPressAdminHooks.php');
         self::assertStringContainsString("wp_create_nonce('wp_rest')", $hooks);
         self::assertStringContainsString("'ready' => \$this->bootstrap->ready", $hooks);
+        self::assertStringContainsString("hash_file('sha256', \$path)", $hooks);
+        self::assertStringContainsString("\$this->version . '-' . substr(\$digest, 0, 12)", $hooks);
         self::assertStringNotContainsString('global $wpdb', $hooks);
 
         $script = $this->source('assets/admin/eventflow-admin.js');
