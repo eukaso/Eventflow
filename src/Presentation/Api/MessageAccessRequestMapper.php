@@ -2,6 +2,7 @@
 
 namespace EventFlow\Presentation\Api;
 
+use EventFlow\Application\Communication\CommunicationChannel;
 use EventFlow\Application\Persistence\EventScope;
 
 final readonly class MessageAccessRequestMapper
@@ -23,6 +24,10 @@ final readonly class MessageAccessRequestMapper
     }
 
     public function requireEmptyBody(RestRequest $request):void{if($request->json()!==[])throw new RequestInputException('validation_failed');}
+    /** @return array{channel:CommunicationChannel,recipient_name:string,recipient_address:string,subject:?string,content:string,plain_text:?string} */
+    public function testMessage(RestRequest$request):array{$json=$request->json();if(array_diff(array_keys($json),['channel','recipient_name','recipient_address','subject','content','plain_text'])!==[])throw new RequestInputException('validation_failed');$channel=is_string($json['channel']??null)?CommunicationChannel::tryFrom($json['channel']):null;if($channel===null)throw new RequestInputException('validation_failed');return['channel'=>$channel,'recipient_name'=>$this->requiredString($json['recipient_name']??null),'recipient_address'=>$this->requiredString($json['recipient_address']??null),'subject'=>$this->optionalString($json['subject']??null),'content'=>$this->requiredString($json['content']??null,false),'plain_text'=>$this->optionalString($json['plain_text']??null,false)];}
     private function routeId(RestRequest$request,string$name):int{$candidate=$request->route($name);if($candidate===null||!ctype_digit($candidate))throw new RequestInputException('resource_not_found');$value=filter_var($candidate,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]]);if($value===false)throw new RequestInputException('resource_not_found');return$value;}
     private function queryInt(?string$value,?int$default,int$min,int$max):int{if($value===null)return$default??throw new RequestInputException('validation_failed');if(!preg_match('/^[1-9][0-9]*$/',$value))throw new RequestInputException('validation_failed');$result=filter_var($value,FILTER_VALIDATE_INT,['options'=>['min_range'=>$min,'max_range'=>$max]]);if($result===false)throw new RequestInputException('validation_failed');return$result;}
+    private function requiredString(mixed$value,bool$trim=true):string{if(!is_string($value))throw new RequestInputException('validation_failed');return$trim?trim($value):$value;}
+    private function optionalString(mixed$value,bool$trim=true):?string{return$value===null?null:$this->requiredString($value,$trim);}
 }

@@ -41,6 +41,7 @@ GET/POST,/events/{event_id}/campaigns,List/create Campaigns,CampaignService
 GET/PATCH,/events/{event_id}/campaigns/{campaign_id},Read/update Campaign draft,CampaignService
 POST,/events/{event_id}/campaigns/{campaign_id}/audience-preview|schedule|queue|cancel,Campaign commands,CampaignService
 GET,/events/{event_id}/messages,List Messages,MessageService
+POST,/events/{event_id}/messages/test,Queue isolated organizer test Message,MessageService
 GET,/events/{event_id}/messages/{message_id},Message detail,MessageService
 POST,/events/{event_id}/messages/{message_id}/retry,Retry logical Message,MessageService
 POST,/webhooks/{provider},Provider callback ingress,ProviderEventProcessor

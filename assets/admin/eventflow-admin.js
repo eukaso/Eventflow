@@ -76,8 +76,25 @@
   const campaignList = document.getElementById('eventflow-campaign-list');
   const messageList = document.getElementById('eventflow-message-list');
   const campaignTemplate = document.getElementById('eventflow-campaign-template');
-  const quickEmail = document.getElementById('eventflow-quick-email');
-  const quickSms = document.getElementById('eventflow-quick-sms');
+  const invitationComposer = document.getElementById('eventflow-invitation-composer');
+  const invitationChannel = document.getElementById('eventflow-invitation-channel');
+  const invitationSubject = document.getElementById('eventflow-invitation-subject');
+  const invitationImage = document.getElementById('eventflow-invitation-image');
+  const invitationImageChoose = document.getElementById('eventflow-invitation-image-choose');
+  const invitationMessage = document.getElementById('eventflow-invitation-message');
+  const invitationTestName = document.getElementById('eventflow-invitation-test-name');
+  const invitationTestAddress = document.getElementById('eventflow-invitation-test-address');
+  const invitationTestSend = document.getElementById('eventflow-invitation-test-send');
+  const invitationTestStatus = document.getElementById('eventflow-invitation-test-status');
+  const invitationRecipientSearch = document.getElementById('eventflow-invitation-recipient-search');
+  const invitationPhoneRegion = document.getElementById('eventflow-invitation-phone-region');
+  const invitationSelectVisible = document.getElementById('eventflow-invitation-select-visible');
+  const invitationClearSelection = document.getElementById('eventflow-invitation-clear-selection');
+  const invitationSelectionStatus = document.getElementById('eventflow-invitation-selection-status');
+  const invitationRecipientList = document.getElementById('eventflow-invitation-recipient-list');
+  const invitationReview = document.getElementById('eventflow-invitation-review');
+  const invitationSend = document.getElementById('eventflow-invitation-send');
+  const invitationReviewStatus = document.getElementById('eventflow-invitation-review-status');
   const templatePreview = document.getElementById('eventflow-template-preview');
   const templatePreviewSubject = document.getElementById('eventflow-template-preview-subject');
   const templatePreviewBody = document.getElementById('eventflow-template-preview-body');
@@ -126,6 +143,9 @@
   let seatingRecommendation = null;
   let receptionAttendees = [];
   let communicationTemplates = [];
+  let invitationRecipients = [];
+  let selectedInvitationRecipients = new Set();
+  let preparedInvitationCampaign = null;
 
   const setStatus = (message, busy = false) => {
     status.textContent = message;
@@ -1350,6 +1370,246 @@
     });
   };
 
+  const escapeInvitationHtml = (value) => String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+
+  const validInvitationImageUrl = () => {
+    const value = String(invitationImage.value || '').trim();
+    if (!value) return '';
+    try {
+      const parsed = new URL(value, window.location.origin);
+      return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : '';
+    } catch (error) {
+      return '';
+    }
+  };
+
+  const invitationMergeValues = (test = false) => ({
+    recipient_name: test ? String(invitationTestName.value || 'Test Guest').trim() : '{{recipient_name}}',
+    event_name: test ? String(activeEvent?.name || 'Your event') : '{{event_name}}',
+    guest_link: test ? new URL('/confirm/', window.location.origin).href : '{{guest_link}}',
+  });
+
+  const replaceInvitationFields = (source, values) => Object.entries(values)
+    .reduce((result, [name, value]) => result.replaceAll(`{{${name}}}`, value), String(source || ''));
+
+  const invitationContent = (test = false) => {
+    const channel = String(invitationChannel.value || 'email');
+    const values = invitationMergeValues(test);
+    const plain = replaceInvitationFields(invitationMessage.value, values).trim();
+    if (channel === 'sms') return { content: plain, plainText: plain };
+    let html = escapeInvitationHtml(plain).replaceAll('\r\n', '\n').replaceAll('\n', '<br>');
+    const guestLink = escapeInvitationHtml(values.guest_link);
+    html = html.replaceAll(escapeInvitationHtml(values.guest_link), `<a href="${guestLink}">Open your personalized invitation</a>`);
+    const imageUrl = validInvitationImageUrl();
+    if (imageUrl) html = `<p><a href="${guestLink}"><img alt="Invitation card" src="${escapeInvitationHtml(imageUrl)}" style="display:block;height:auto;max-width:100%;"></a></p>${html}`;
+    return { content: html, plainText: plain };
+  };
+
+  const phoneRegion = (phone) => {
+    const normalized = String(phone || '').replace(/[^0-9+]/g, '');
+    if (normalized.startsWith('+1') || (/^1?[2-9][0-9]{9}$/.test(normalized))) return 'north_america';
+    return normalized ? 'international' : 'unknown';
+  };
+
+  const invitationRecipientAddress = (invitation) => String(invitationChannel.value) === 'email'
+    ? String(invitation.primary_email || '').trim()
+    : String(invitation.primary_phone || '').trim();
+
+  const visibleInvitationRecipients = () => {
+    const query = String(invitationRecipientSearch.value || '').trim().toLocaleLowerCase();
+    const regionFilter = String(invitationPhoneRegion.value || 'all');
+    return invitationRecipients.filter((invitation) => {
+      if (invitation.archived_at !== null || invitation.status !== 'active' || !invitationRecipientAddress(invitation)) return false;
+      if (String(invitationChannel.value) === 'sms' && regionFilter !== 'all' && phoneRegion(invitation.primary_phone) !== regionFilter) return false;
+      if (!query) return true;
+      return [invitation.primary_name, invitation.primary_email, invitation.primary_phone, invitation.code]
+        .some((value) => String(value || '').toLocaleLowerCase().includes(query));
+    });
+  };
+
+  const invalidatePreparedInvitation = () => {
+    preparedInvitationCampaign = null;
+    invitationSend.disabled = true;
+    invitationReviewStatus.textContent = selectedInvitationRecipients.size
+      ? 'Recipients or message changed. Review again before sending.'
+      : 'Review remains disabled until at least one eligible recipient is selected.';
+  };
+
+  const updateInvitationSelection = () => {
+    const eligibleIds = new Set(invitationRecipients.filter((invitation) => invitationRecipientAddress(invitation) && invitation.archived_at === null && invitation.status === 'active').map((invitation) => Number(invitation.id)));
+    selectedInvitationRecipients = new Set(Array.from(selectedInvitationRecipients).filter((id) => eligibleIds.has(id)));
+    const visible = visibleInvitationRecipients();
+    invitationSelectionStatus.textContent = `${selectedInvitationRecipients.size} selected • ${visible.length} eligible contacts shown.`;
+    invitationReview.disabled = selectedInvitationRecipients.size < 1;
+  };
+
+  const renderInvitationRecipients = () => {
+    invitationRecipientList.replaceChildren();
+    const visible = visibleInvitationRecipients();
+    if (!visible.length) appendText(invitationRecipientList, 'p', 'eventflow-admin__status', 'No eligible contacts match these filters.');
+    visible.forEach((invitation) => {
+      const row = document.createElement('label');
+      row.className = 'eventflow-invitation-recipient';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = String(invitation.id);
+      checkbox.checked = selectedInvitationRecipients.has(Number(invitation.id));
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) selectedInvitationRecipients.add(Number(invitation.id));
+        else selectedInvitationRecipients.delete(Number(invitation.id));
+        invalidatePreparedInvitation();
+        updateInvitationSelection();
+      });
+      const name = document.createElement('span');
+      name.className = 'eventflow-invitation-recipient__name';
+      name.textContent = String(invitation.primary_name || 'Unnamed contact');
+      const address = document.createElement('span');
+      address.className = 'eventflow-invitation-recipient__address';
+      address.textContent = invitationRecipientAddress(invitation);
+      row.append(checkbox, name, address);
+      invitationRecipientList.appendChild(row);
+    });
+    updateInvitationSelection();
+  };
+
+  const configureInvitationChannel = () => {
+    const email = String(invitationChannel.value) === 'email';
+    document.querySelectorAll('.eventflow-invitation-email-field').forEach((element) => { element.hidden = !email; });
+    invitationSubject.required = email;
+    invitationTestAddress.type = email ? 'email' : 'tel';
+    invitationTestAddress.placeholder = email ? 'name@example.com' : '+15878910335';
+    invitationTestAddress.previousElementSibling.textContent = email ? 'Your email address' : 'Your mobile number';
+    invitationTestSend.textContent = email ? 'Send test email' : 'Send test SMS';
+    invitationPhoneRegion.disabled = email;
+    invitationMessage.maxLength = email ? 500000 : 1600;
+    selectedInvitationRecipients.clear();
+    invalidatePreparedInvitation();
+    renderInvitationRecipients();
+  };
+
+  const sendInvitationTest = async () => {
+    const channel = String(invitationChannel.value || 'email');
+    const address = String(invitationTestAddress.value || '').trim();
+    if (!address || !String(invitationMessage.value || '').trim() || (channel === 'email' && !String(invitationSubject.value || '').trim())) {
+      invitationTestStatus.textContent = 'Enter your test address and message first.';
+      invitationTestAddress.focus();
+      return;
+    }
+    if (!window.confirm(`Send one test ${channel.toUpperCase()} to ${address}?`)) return;
+    const rendered = invitationContent(true);
+    invitationTestSend.disabled = true;
+    invitationTestStatus.textContent = `Queueing one test ${channel.toUpperCase()}…`;
+    try {
+      const { payload } = await requestJson(`${communicationEventPath()}/messages/test`, {
+        method: 'POST',
+        headers: mutationHeaders(),
+        body: JSON.stringify({
+          channel,
+          recipient_name: String(invitationTestName.value || 'Test Guest').trim(),
+          recipient_address: address,
+          subject: channel === 'email' ? String(invitationSubject.value || '').replaceAll('{{event_name}}', String(activeEvent?.name || 'Your event')).trim() : null,
+          content: rendered.content,
+          plain_text: rendered.plainText,
+        }),
+      });
+      invitationTestStatus.textContent = `Test ${channel.toUpperCase()} queued successfully as message ${payload.data?.id || ''}. Check your inbox or phone.`;
+      await loadMessages();
+    } catch (error) {
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      invitationTestStatus.textContent = `The test could not be queued. No guest-list messages were sent.${reference}`;
+    } finally {
+      invitationTestSend.disabled = false;
+    }
+  };
+
+  const reviewInvitationCampaign = async () => {
+    const ids = Array.from(selectedInvitationRecipients).sort((a, b) => a - b);
+    const channel = String(invitationChannel.value || 'email');
+    if (!ids.length) return;
+    if (!String(invitationMessage.value || '').trim() || (channel === 'email' && !String(invitationSubject.value || '').trim())) {
+      invitationReviewStatus.textContent = 'Complete the invitation message before reviewing recipients.';
+      invitationMessage.focus();
+      return;
+    }
+    if (String(invitationImage.value || '').trim() && !validInvitationImageUrl()) {
+      invitationReviewStatus.textContent = 'Choose a valid public invitation-card image URL before reviewing.';
+      invitationImage.focus();
+      return;
+    }
+    invitationReview.disabled = true;
+    invitationSend.disabled = true;
+    invitationReviewStatus.textContent = 'Preparing a protected invitation campaign and checking the selected audience…';
+    try {
+      const stamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+      const random = idempotencyKey().slice(-8);
+      const rendered = invitationContent(false);
+      const template = await requestJson(`${communicationEventPath()}/communication-templates`, {
+        method: 'POST', headers: mutationHeaders(), body: JSON.stringify({
+          key: `organizer.invitation.${channel}.${stamp}.${random}`,
+          name: `Official invitation ${channel.toUpperCase()} ${stamp}`,
+          channel, type: 'invitation',
+          subject: channel === 'email' ? String(invitationSubject.value || '').trim() : null,
+          body: rendered.content, plain_text: rendered.plainText,
+          allowed_fields: ['recipient_name', 'event_name', 'guest_link'],
+        }),
+      });
+      const templateId = Number(template.payload.data?.id);
+      await requestJson(`${communicationEventPath()}/communication-templates/${encodeURIComponent(String(templateId))}/publish`, { method: 'POST', headers: mutationHeaders(), body: JSON.stringify({}) });
+      const campaign = await requestJson(`${communicationEventPath()}/campaigns`, {
+        method: 'POST', headers: mutationHeaders(), body: JSON.stringify({
+          template_id: templateId,
+          name: `Invitation ${channel.toUpperCase()} ${stamp}`,
+          channel, purpose: 'invitation', audience_mode: 'snapshot',
+          audience: { filter: 'active_invitations', invitation_ids: ids },
+        }),
+      });
+      const campaignId = Number(campaign.payload.data?.id);
+      const preview = await requestJson(`${communicationEventPath()}/campaigns/${encodeURIComponent(String(campaignId))}/audience-preview`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+      const count = Number(preview.payload.data?.recipient_count || 0);
+      preparedInvitationCampaign = { id: campaignId, count };
+      invitationSend.disabled = count < 1;
+      invitationReviewStatus.textContent = count === ids.length
+        ? `${count} recipients verified. Nothing has been sent yet.`
+        : `${count} of ${ids.length} selected contacts are currently deliverable. Nothing has been sent yet.`;
+      await loadCommunicationData();
+    } catch (error) {
+      preparedInvitationCampaign = null;
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      invitationReviewStatus.textContent = `Recipient review failed. Nothing was sent.${reference}`;
+    } finally {
+      invitationReview.disabled = selectedInvitationRecipients.size < 1;
+    }
+  };
+
+  const sendPreparedInvitations = async () => {
+    if (!preparedInvitationCampaign || preparedInvitationCampaign.count < 1) return;
+    const { id, count } = preparedInvitationCampaign;
+    const channel = String(invitationChannel.value || 'email').toUpperCase();
+    if (!window.confirm(`Send this personalized ${channel} invitation to ${count} reviewed recipients now?`)) return;
+    invitationSend.disabled = true;
+    invitationReview.disabled = true;
+    invitationReviewStatus.textContent = `Queueing ${count} personalized ${channel} invitations…`;
+    try {
+      const { payload } = await requestJson(`${communicationEventPath()}/campaigns/${encodeURIComponent(String(id))}/queue`, { method: 'POST', headers: mutationHeaders(), body: JSON.stringify({}) });
+      const queued = Number(payload.data?.recipient_count || count);
+      invitationReviewStatus.textContent = `${queued} personalized ${channel} invitations were queued. Delivery status appears in Advanced communication records.`;
+      selectedInvitationRecipients.clear();
+      preparedInvitationCampaign = null;
+      renderInvitationRecipients();
+      await loadCommunicationData();
+    } catch (error) {
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      invitationReviewStatus.textContent = `Sending could not be confirmed. Refresh message status before retrying.${reference}`;
+    } finally {
+      invitationReview.disabled = selectedInvitationRecipients.size < 1;
+    }
+  };
+
   const startInvitationTemplate = (channel) => {
     selectCommunicationTab('templates');
     const suffix = new Date().toISOString().slice(0, 10).replaceAll('-', '');
@@ -1604,7 +1864,21 @@
     communications.hidden = false;
     governance.hidden = true;
     selectCommunicationTab('templates');
-    await loadCommunicationData();
+    selectedInvitationRecipients.clear();
+    preparedInvitationCampaign = null;
+    invitationRecipientSearch.value = '';
+    invitationPhoneRegion.value = 'all';
+    invitationSend.disabled = true;
+    const invitationRequest = requestAllPages(`${communicationEventPath()}/invitations`, 'next_after_invitation_id');
+    const [, recipients] = await Promise.allSettled([loadCommunicationData(), invitationRequest]);
+    if (recipients.status === 'fulfilled') {
+      invitationRecipients = Array.isArray(recipients.value.payload.data) ? recipients.value.payload.data : [];
+      configureInvitationChannel();
+    } else {
+      invitationRecipients = [];
+      renderInvitationRecipients();
+      communicationsNotice.textContent = `${communicationsNotice.textContent} Guest contacts unavailable.`.trim();
+    }
   };
 
   const submitTemplate = async (submissionEvent) => {
@@ -2053,8 +2327,40 @@
     checkInAttendees(attendeeIds);
   });
   configureTabs(communicationTabs, selectCommunicationTab);
-  quickEmail.addEventListener('click', () => startInvitationTemplate('email'));
-  quickSms.addEventListener('click', () => startInvitationTemplate('sms'));
+  invitationComposer.addEventListener('submit', (submissionEvent) => submissionEvent.preventDefault());
+  invitationChannel.addEventListener('change', configureInvitationChannel);
+  [invitationSubject, invitationImage, invitationMessage].forEach((control) => control.addEventListener('input', invalidatePreparedInvitation));
+  invitationRecipientSearch.addEventListener('input', renderInvitationRecipients);
+  invitationPhoneRegion.addEventListener('change', renderInvitationRecipients);
+  invitationSelectVisible.addEventListener('click', () => {
+    visibleInvitationRecipients().forEach((invitation) => selectedInvitationRecipients.add(Number(invitation.id)));
+    invalidatePreparedInvitation();
+    renderInvitationRecipients();
+  });
+  invitationClearSelection.addEventListener('click', () => {
+    selectedInvitationRecipients.clear();
+    invalidatePreparedInvitation();
+    renderInvitationRecipients();
+  });
+  invitationImageChoose.addEventListener('click', () => {
+    if (!window.wp?.media) {
+      communicationsNotice.textContent = 'The Media Library picker is unavailable. Paste the public image URL into the field instead.';
+      invitationImage.focus();
+      return;
+    }
+    const mediaFrame = window.wp.media({ title: 'Choose invitation card', button: { text: 'Use this invitation card' }, library: { type: 'image' }, multiple: false });
+    mediaFrame.on('select', () => {
+      const attachment = mediaFrame.state().get('selection').first()?.toJSON();
+      if (!attachment?.url) return;
+      invitationImage.value = String(attachment.url);
+      invalidatePreparedInvitation();
+      communicationsNotice.textContent = 'Invitation-card image selected.';
+    });
+    mediaFrame.open();
+  });
+  invitationTestSend.addEventListener('click', sendInvitationTest);
+  invitationReview.addEventListener('click', reviewInvitationCampaign);
+  invitationSend.addEventListener('click', sendPreparedInvitations);
   templateForm.addEventListener('submit', submitTemplate);
   campaignForm.addEventListener('submit', submitCampaign);
   messageFilterForm.addEventListener('submit', async (submissionEvent) => {

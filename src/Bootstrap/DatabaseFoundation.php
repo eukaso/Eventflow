@@ -302,6 +302,7 @@ final readonly class DatabaseFoundation
                 new PrivacyExecuteJobHandler($privacy),
                 new OperationsProbeJobHandler(),
                 new MessageDeliveryJobHandler($providerService),
+                new MessageDeliveryJobHandler($providerService, 'message.delivery.test'),
                 new MessageDeliveryJobHandler($providerService, 'message.delivery.retry'),
                 new ProviderWebhookJobHandler($providerService),
             ]),

@@ -68,6 +68,9 @@ final readonly class WordPressAdminHooks
 
         $baseUrl = plugin_dir_url($this->pluginFile);
         $scriptVersion = $this->assetVersion('assets/admin/eventflow-admin.js');
+        if (function_exists('wp_enqueue_media')) {
+            wp_enqueue_media();
+        }
         wp_enqueue_style(
             self::SCRIPT_HANDLE,
             $baseUrl . 'assets/admin/eventflow-admin.css',

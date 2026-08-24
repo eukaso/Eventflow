@@ -292,12 +292,48 @@ final readonly class AdminShellView
           <button class="button-link" id="eventflow-communications-close" type="button">Close communications workspace</button>
         </div>
         <p class="eventflow-setup__notice" id="eventflow-communications-notice" role="status"></p>
-        <section class="eventflow-communication-start" aria-labelledby="eventflow-communication-start-title">
-          <div><p class="eventflow-admin__eyebrow">Bulk invitations</p><h4 id="eventflow-communication-start-title">Contact many invitees at once</h4><p>Choose a starting message, publish it, then create a campaign. Every recipient receives their own secure RSVP link to enter companion names for seating.</p></div>
-          <div class="eventflow-communication-start__actions"><button class="button button-primary" id="eventflow-quick-email" type="button">Create invitation email</button><button class="button button-secondary" id="eventflow-quick-sms" type="button">Create invitation SMS</button></div>
-          <ol><li>Create and publish the message</li><li>Choose all active invitees or specific invitation IDs</li><li>Preview the recipient count, then send</li></ol>
-          <p class="description">Archive contacts you do not want included before using all active invitees. Provider dispatch remains protected by the configured send gate.</p>
+        <section class="eventflow-invitation-workspace" aria-labelledby="eventflow-communication-start-title">
+          <div class="eventflow-invitation-workspace__intro"><p class="eventflow-admin__eyebrow">Send invitations</p><h4 id="eventflow-communication-start-title">Create, test, and send from one screen</h4><p>Each selected guest receives their own secure RSVP link for attendance and companion names.</p></div>
+          <form id="eventflow-invitation-composer">
+            <fieldset class="eventflow-invitation-composer__message">
+              <legend>1. Create your message</legend>
+              <label for="eventflow-invitation-channel">Send by</label><select id="eventflow-invitation-channel" name="channel"><option value="email">Email</option><option value="sms">SMS</option></select>
+              <label class="eventflow-invitation-email-field" for="eventflow-invitation-subject">Email subject</label><input class="eventflow-invitation-email-field" id="eventflow-invitation-subject" name="subject" required type="text" value="You're invited to {{event_name}}">
+              <label class="eventflow-invitation-email-field" for="eventflow-invitation-image">Invitation-card image</label>
+              <div class="eventflow-invitation-image-control eventflow-invitation-email-field"><input id="eventflow-invitation-image" name="image_url" placeholder="Choose an image or paste its Media Library URL" type="url"><button class="button button-secondary" id="eventflow-invitation-image-choose" type="button">Choose image</button></div>
+              <label for="eventflow-invitation-message">Message</label><textarea id="eventflow-invitation-message" name="message" required rows="7">Hello {{recipient_name}},
+
+You are warmly invited to {{event_name}}. Open your personalized invitation to confirm attendance and add your companions for seating.
+
+{{guest_link}}</textarea>
+              <p class="description">The guest name, event name, and secure RSVP link are added automatically. The invitation card will also open the guest's RSVP page.</p>
+            </fieldset>
+            <fieldset class="eventflow-invitation-composer__test">
+              <legend>2. Send yourself a test</legend>
+              <label for="eventflow-invitation-test-name">Test recipient name</label><input id="eventflow-invitation-test-name" name="test_name" type="text" value="Test Guest">
+              <label for="eventflow-invitation-test-address">Your email address</label><input id="eventflow-invitation-test-address" name="test_address" required type="email">
+              <button class="button button-secondary" id="eventflow-invitation-test-send" type="button">Send test email</button>
+              <p class="description" id="eventflow-invitation-test-status">A test sends only to the address above and never contacts the guest list.</p>
+            </fieldset>
+            <fieldset class="eventflow-invitation-composer__recipients">
+              <legend>3. Choose recipients</legend>
+              <div class="eventflow-invitation-recipient-filters">
+                <div><label for="eventflow-invitation-recipient-search">Search contacts</label><input id="eventflow-invitation-recipient-search" type="search"></div>
+                <div><label for="eventflow-invitation-phone-region">Phone region</label><select id="eventflow-invitation-phone-region"><option value="all">All regions</option><option value="north_america">Canada/US (+1)</option><option value="international">International (not +1)</option></select></div>
+                <div class="eventflow-invitation-recipient-actions"><button class="button button-secondary" id="eventflow-invitation-select-visible" type="button">Select visible</button><button class="button-link" id="eventflow-invitation-clear-selection" type="button">Clear selection</button></div>
+              </div>
+              <p id="eventflow-invitation-selection-status" role="status">No recipients selected.</p>
+              <div class="eventflow-invitation-recipient-list" id="eventflow-invitation-recipient-list"></div>
+            </fieldset>
+            <section class="eventflow-invitation-review" aria-labelledby="eventflow-invitation-review-title">
+              <div><h5 id="eventflow-invitation-review-title">4. Review and send</h5><p id="eventflow-invitation-review-status">Review remains disabled until at least one eligible recipient is selected.</p></div>
+              <div class="eventflow-invitation-review__actions"><button class="button button-secondary" id="eventflow-invitation-review" type="button">Review recipients</button><button class="button button-primary" disabled id="eventflow-invitation-send" type="button">Send invitations</button></div>
+            </section>
+          </form>
         </section>
+        <details class="eventflow-communication-advanced" id="eventflow-communication-advanced">
+          <summary>Advanced communication records and scheduling</summary>
+          <p class="description">Templates, campaigns, scheduling, message status, and retries for administrators.</p>
         <div class="eventflow-people__tabs" role="tablist" aria-label="Communication administration">
           <button aria-controls="eventflow-templates-panel" aria-selected="true" class="button" id="eventflow-templates-tab" role="tab" type="button">Templates</button>
           <button aria-controls="eventflow-campaigns-panel" aria-selected="false" class="button" id="eventflow-campaigns-tab" role="tab" type="button">Campaigns</button>
@@ -340,6 +376,7 @@ final readonly class AdminShellView
           <div class="eventflow-record-list" id="eventflow-message-list"></div>
           <div class="eventflow-communication-preview" id="eventflow-message-detail" hidden><h4 id="eventflow-message-detail-title">Message detail</h4><p id="eventflow-message-detail-recipient"></p><pre id="eventflow-message-detail-content"></pre><button class="button-link" id="eventflow-message-detail-clear" type="button">Clear message detail</button></div>
         </section>
+        </details>
       </section>
       <section class="eventflow-governance" id="eventflow-governance" aria-labelledby="eventflow-governance-title" hidden>
         <div class="eventflow-setup__heading"><div><p class="eventflow-admin__eyebrow">Data and governance</p><h3 id="eventflow-governance-title">Imports, exports, privacy, audit, and diagnostics</h3></div><button class="button-link" id="eventflow-governance-close" type="button">Close data workspace</button></div>

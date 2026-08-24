@@ -617,6 +617,160 @@
   gap: 8px;
 }
 
+.eventflow-invitation-workspace {
+  background: #f7faff;
+  border: 1px solid #b6d6f2;
+  border-radius: 12px;
+  margin: 16px 0 20px;
+  overflow: hidden;
+}
+
+.eventflow-invitation-workspace__intro {
+  background: #f0f6fc;
+  border-bottom: 1px solid #b6d6f2;
+  padding: 20px;
+}
+
+.eventflow-invitation-workspace__intro h4,
+.eventflow-invitation-workspace__intro p {
+  margin: 0 0 6px;
+}
+
+#eventflow-invitation-composer {
+  display: grid;
+  gap: 18px;
+  padding: 20px;
+}
+
+#eventflow-invitation-composer fieldset {
+  background: var(--ef-surface);
+  border: 1px solid var(--ef-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 8px 12px;
+  grid-template-columns: minmax(150px, 220px) minmax(240px, 1fr);
+  margin: 0;
+  padding: 18px;
+}
+
+#eventflow-invitation-composer legend {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 0 8px;
+}
+
+#eventflow-invitation-composer label {
+  font-weight: 600;
+  padding-top: 7px;
+}
+
+#eventflow-invitation-composer input,
+#eventflow-invitation-composer select,
+#eventflow-invitation-composer textarea {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+#eventflow-invitation-composer textarea,
+#eventflow-invitation-composer .description,
+.eventflow-invitation-recipient-filters,
+.eventflow-invitation-recipient-list,
+#eventflow-invitation-selection-status {
+  grid-column: 1 / -1;
+}
+
+.eventflow-invitation-image-control {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr auto;
+}
+
+.eventflow-invitation-image-control .button,
+.eventflow-invitation-composer__test .button {
+  min-height: 40px;
+}
+
+.eventflow-invitation-recipient-filters {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 2fr) minmax(180px, 1fr) auto;
+}
+
+.eventflow-invitation-recipient-filters label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.eventflow-invitation-recipient-actions,
+.eventflow-invitation-review__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.eventflow-invitation-recipient-list {
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.eventflow-invitation-recipient {
+  align-items: center;
+  border-bottom: 1px solid var(--ef-border);
+  display: grid;
+  gap: 4px 12px;
+  grid-template-columns: auto minmax(150px, 1fr) minmax(180px, 1fr);
+  padding: 11px 14px;
+}
+
+.eventflow-invitation-recipient:last-child {
+  border-bottom: 0;
+}
+
+.eventflow-invitation-recipient input {
+  height: 22px;
+  width: 22px !important;
+}
+
+.eventflow-invitation-recipient__name {
+  font-weight: 700;
+}
+
+.eventflow-invitation-recipient__address {
+  overflow-wrap: anywhere;
+}
+
+.eventflow-invitation-review {
+  align-items: center;
+  background: #f0f6fc;
+  border: 1px solid #b6d6f2;
+  border-radius: 10px;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  padding: 18px;
+}
+
+.eventflow-invitation-review h5,
+.eventflow-invitation-review p {
+  margin: 0 0 5px;
+}
+
+.eventflow-communication-advanced {
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  margin-top: 20px;
+  padding: 14px 16px;
+}
+
+.eventflow-communication-advanced > summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
 @media (max-width: 782px) {
   .eventflow-communication-start,
   .eventflow-communication-start ol {
@@ -625,6 +779,15 @@
 
   .eventflow-communication-start__actions {
     grid-column: 1;
+  }
+
+  .eventflow-invitation-recipient-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .eventflow-invitation-review {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 
@@ -703,6 +866,18 @@
 }
 
 @media (max-width: 600px) {
+  #eventflow-invitation-composer fieldset,
+  .eventflow-invitation-recipient {
+    grid-template-columns: 1fr;
+  }
+
+  .eventflow-invitation-recipient input {
+    grid-row: 1;
+  }
+
+  .eventflow-invitation-image-control {
+    grid-template-columns: 1fr;
+  }
   .eventflow-admin__header {
     align-items: stretch;
     flex-direction: column;

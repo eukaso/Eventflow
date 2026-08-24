@@ -55,6 +55,7 @@ enum AuditAction: string
     case CAMPAIGN_SCHEDULED = 'campaign.scheduled';
     case CAMPAIGN_QUEUED = 'campaign.queued';
     case CAMPAIGN_CANCELLED = 'campaign.cancelled';
+    case MESSAGE_TEST_QUEUED = 'message.test_queued';
     case MESSAGE_RETRY_REQUESTED = 'message.retry_requested';
     case IMPORT_APPLIED = 'import.applied';
     case IMPORT_APPLY_REQUESTED = 'import.apply_requested';

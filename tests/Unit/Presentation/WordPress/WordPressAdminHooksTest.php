@@ -30,6 +30,9 @@ namespace {
     if (!function_exists('wp_enqueue_script')) {
         function wp_enqueue_script(mixed ...$arguments): void { $GLOBALS['eventflow_test_admin_script'] = $arguments; }
     }
+    if (!function_exists('wp_enqueue_media')) {
+        function wp_enqueue_media(): void { $GLOBALS['eventflow_test_admin_media'] = true; }
+    }
     if (!function_exists('wp_localize_script')) {
         function wp_localize_script(mixed ...$arguments): bool
         {
@@ -86,6 +89,7 @@ namespace EventFlow\Tests\Unit\Presentation\WordPress {
             $hooks->enqueueAssets(WordPressAdminHooks::HOOK_SUFFIX);
             self::assertSame('https://eventflow.test/plugins/eventflow/assets/admin/eventflow-admin.css', $GLOBALS['eventflow_test_admin_style'][1]);
             self::assertSame('https://eventflow.test/plugins/eventflow/assets/admin/eventflow-admin.js', $GLOBALS['eventflow_test_admin_script'][1]);
+            self::assertTrue($GLOBALS['eventflow_test_admin_media']);
             self::assertTrue($GLOBALS['eventflow_test_admin_script'][4]);
             self::assertSame('EventFlowAdmin', $GLOBALS['eventflow_test_admin_config'][1]);
             self::assertSame([

@@ -32,6 +32,17 @@ final readonly class MessageAccessController
         );
     }
 
+    public function sendTest(RestRequest $request): ApiResponse
+    {
+        $context=$this->contexts->create($request,MutationPreconditionPolicy::IDEMPOTENCY_KEY);
+        $scope=$this->requests->scope($request);$input=$this->requests->testMessage($request);
+        return $this->presenter->outcome(
+            $this->messages->sendTest($context->principal,$scope,$input['channel'],$input['recipient_name'],$input['recipient_address'],$input['subject'],$input['content'],$input['plain_text'],$context->requiredIdempotencyKey()),
+            $scope->eventId,
+            $context->requestId,
+        );
+    }
+
     public function retry(RestRequest $request): ApiResponse
     {
         $context=$this->contexts->create($request,MutationPreconditionPolicy::IF_MATCH_AND_IDEMPOTENCY_KEY);

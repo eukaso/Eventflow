@@ -4,7 +4,7 @@ namespace EventFlow\Presentation\Api;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use EventFlow\Application\Communication\{MessagePage,MessageRecord,MessageRetryResult};
+use EventFlow\Application\Communication\{MessagePage,MessageRecord,MessageRetryResult,MessageTestResult};
 use EventFlow\Application\Error\RequestId;
 use EventFlow\Application\Idempotency\IdempotencyOutcome;
 
@@ -14,8 +14,8 @@ final readonly class MessageAccessPresenter
     public function resource(MessageRecord$message,RequestId$requestId):JsonApiResponse{return new JsonApiResponse(200,['data'=>$this->detail($message),'request_id'=>$requestId->value],$this->headers($requestId,$message->revision));}
     public function outcome(IdempotencyOutcome$outcome,int$eventId,RequestId$requestId):JsonApiResponse
     {
-        $result=$outcome->response instanceof MessageRetryResult?$outcome->response:null;
-        $data=$result===null?['type'=>$outcome->reference->entityType,'id'=>$outcome->reference->entityId]:[...$this->detail($result->message),'retry_job_id'=>$result->jobId];
+        $result=$outcome->response instanceof MessageRetryResult||$outcome->response instanceof MessageTestResult?$outcome->response:null;
+        $data=$result===null?['type'=>$outcome->reference->entityType,'id'=>$outcome->reference->entityId]:[...$this->detail($result->message),$result instanceof MessageTestResult?'test_job_id':'retry_job_id'=>$result->jobId];
         $headers=$this->headers($requestId,$result?->message->revision);$headers['Location']='/wp-json/eventflow/v1/events/'.$eventId.'/messages/'.$outcome->reference->entityId;
         return new JsonApiResponse($outcome->reference->responseStatusCode,['data'=>$data,'meta'=>['replayed'=>$outcome->replayed],'request_id'=>$requestId->value],$headers);
     }
