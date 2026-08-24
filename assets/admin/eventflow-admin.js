@@ -616,8 +616,9 @@
       peopleNotice.textContent = 'Change accepted. Refreshing authoritative records…';
       return result;
     } catch (error) {
+      const failure = error.code ? ` Failure: ${error.code}.` : '';
       const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
-      peopleNotice.textContent = `The latest state could not be confirmed. Refresh before retrying.${reference}`;
+      peopleNotice.textContent = `The latest state could not be confirmed. Refresh before retrying.${failure}${reference}`;
       return null;
     }
   };

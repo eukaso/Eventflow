@@ -31,6 +31,7 @@ final class Sprint11PeopleAdministrationValidationTest extends TestCase
         self::assertStringContainsString("'Idempotency-Key': idempotencyKey()", $script);
         self::assertStringContainsString("method: 'POST'", $script);
         self::assertStringContainsString('invitation_id: Number(', $script);
+        self::assertStringContainsString('Failure: ${error.code}.', $script);
     }
 
     public function testInvitationProfileEditReadsEtagBeforeRevisionGuardedPatch(): void
