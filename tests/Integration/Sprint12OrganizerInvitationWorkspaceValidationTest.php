@@ -73,6 +73,10 @@ final class Sprint12OrganizerInvitationWorkspaceValidationTest extends TestCase
         foreach (['innerHTML', 'insertAdjacentHTML', 'document.write', 'eval('] as $forbidden) {
             self::assertStringNotContainsString($forbidden, $script);
         }
+        self::assertStringContainsString("/confirm/#eventflow-preview=1", $script);
+        self::assertStringContainsString('September 2, 2026', $script);
+        self::assertStringContainsString('font-size:18px;font-weight:700', $script);
+        self::assertStringContainsString('`${html}<p style="margin-top:24px;">', $script);
     }
 
     private function source(string $path): string

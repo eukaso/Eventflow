@@ -64,6 +64,24 @@
     return typeof credential === 'string' && /^[a-f0-9]{64}$/.test(credential) ? credential : null;
   };
 
+  const isInvitationPreviewFragment = () => {
+    const fragment = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
+    return new URLSearchParams(fragment).get('eventflow-preview') === '1';
+  };
+
+  const renderInvitationPreview = () => {
+    title.textContent = 'Invitation link test';
+    salutation.textContent = 'Your test link is working.';
+    welcome.textContent = 'Live guest emails will contain a unique secure link that opens their RSVP and companion form.';
+    facts.replaceChildren();
+    addFact('RSVP deadline', 'September 2, 2026');
+    notice.textContent = 'This safe preview does not save an RSVP or change any guest record.';
+    form.hidden = true;
+    logout.hidden = true;
+    contextRegion.hidden = false;
+    setStatus('Test invitation link verified.');
+  };
+
   const request = async (path, options = {}) => {
     const response = await fetch(`${config.restUrl}${path}`, {
       cache: 'no-store',
@@ -291,9 +309,14 @@
   };
 
   const initialize = async () => {
+    const invitationPreview = isInvitationPreviewFragment();
     const invitationCredential = cleanCredentialFragment();
     if (!config.ready) {
       setStatus('EventFlow is temporarily unavailable. Please try again later.');
+      return;
+    }
+    if (invitationPreview) {
+      renderInvitationPreview();
       return;
     }
     try {

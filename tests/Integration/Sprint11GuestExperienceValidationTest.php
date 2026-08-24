@@ -19,6 +19,9 @@ final class Sprint11GuestExperienceValidationTest extends TestCase
         self::assertIsInt($bootstrap);
         self::assertLessThan($bootstrap, $clean);
         self::assertStringNotContainsString("searchParams.get('eventflow", $script);
+        self::assertStringContainsString("get('eventflow-preview') === '1'", $script);
+        self::assertStringContainsString('Test invitation link verified.', $script);
+        self::assertStringContainsString('This safe preview does not save an RSVP', $script);
     }
 
     public function testGuestSecretsRemainOutOfStorageCookiesAndLocalizedConfiguration(): void

@@ -305,6 +305,8 @@ final readonly class AdminShellView
 
 You are warmly invited to {{event_name}}. Open your personalized invitation to confirm attendance and add your companions for seating.
 
+Important: Please confirm your attendance and submit the names of your guest/companions by September 2, 2026, so we can finalize seating.
+
 {{guest_link}}</textarea>
               <p class="description">The guest name, event name, and secure RSVP link are added automatically. The invitation card will also open the guest's RSVP page.</p>
             </fieldset>

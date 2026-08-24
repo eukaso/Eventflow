@@ -1391,7 +1391,7 @@
   const invitationMergeValues = (test = false) => ({
     recipient_name: test ? String(invitationTestName.value || 'Test Guest').trim() : '{{recipient_name}}',
     event_name: test ? String(activeEvent?.name || 'Your event') : '{{event_name}}',
-    guest_link: test ? new URL('/confirm/', window.location.origin).href : '{{guest_link}}',
+    guest_link: test ? new URL('/confirm/#eventflow-preview=1', window.location.origin).href : '{{guest_link}}',
   });
 
   const replaceInvitationFields = (source, values) => Object.entries(values)
@@ -1404,9 +1404,10 @@
     if (channel === 'sms') return { content: plain, plainText: plain };
     let html = escapeInvitationHtml(plain).replaceAll('\r\n', '\n').replaceAll('\n', '<br>');
     const guestLink = escapeInvitationHtml(values.guest_link);
-    html = html.replaceAll(escapeInvitationHtml(values.guest_link), `<a href="${guestLink}">Open your personalized invitation</a>`);
+    html = html.replaceAll(escapeInvitationHtml(values.guest_link), `<a href="${guestLink}" style="background:#0b1f47;border-radius:6px;color:#ffffff;display:inline-block;font-size:18px;font-weight:700;margin-top:12px;padding:12px 18px;text-decoration:none;">Open your personalized invitation</a>`);
+    html = `<div style="color:#0b1f47;font-family:Arial,sans-serif;font-size:18px;font-weight:700;line-height:1.6;">${html}</div>`;
     const imageUrl = validInvitationImageUrl();
-    if (imageUrl) html = `<p><a href="${guestLink}"><img alt="Invitation card" src="${escapeInvitationHtml(imageUrl)}" style="display:block;height:auto;max-width:100%;"></a></p>${html}`;
+    if (imageUrl) html = `${html}<p style="margin-top:24px;"><a href="${guestLink}"><img alt="Invitation card" src="${escapeInvitationHtml(imageUrl)}" style="display:block;height:auto;max-width:100%;"></a></p>`;
     return { content: html, plainText: plain };
   };
 
@@ -1620,7 +1621,7 @@
     field(templateForm, 'allowed_fields').value = 'recipient_name, event_name, guest_link';
     field(templateForm, 'subject').value = channel === 'email' ? "You're invited to {{event_name}}" : '';
     const message = channel === 'email'
-      ? 'Hello {{recipient_name}},\n\nYou are warmly invited to {{event_name}}. Please open your personalized invitation, confirm your attendance, and add your companions for seating:\n\n{{guest_link}}'
+      ? 'Hello {{recipient_name}},\n\nYou are warmly invited to {{event_name}}. Please open your personalized invitation, confirm your attendance, and add your companions for seating.\n\nImportant: Please confirm your attendance and submit the names of your guest/companions by September 2, 2026, so we can finalize seating.\n\n{{guest_link}}'
       : 'Hello {{recipient_name}}, you are invited to {{event_name}}. RSVP and add your companions: {{guest_link}}';
     field(templateForm, 'body').value = message;
     field(templateForm, 'plain_text').value = message;
