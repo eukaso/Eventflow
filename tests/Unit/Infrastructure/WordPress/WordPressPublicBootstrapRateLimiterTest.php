@@ -10,7 +10,9 @@ namespace {
     if (!function_exists('set_transient')) {
         function set_transient(string $key, mixed $value, int $expiration): bool
         {
-            $GLOBALS['eventflow_test_transients'][$key] = $value;
+            $GLOBALS['eventflow_test_transients'][$key] = ($GLOBALS['eventflow_test_transient_string_storage'] ?? false)
+                ? (string) $value
+                : $value;
             $GLOBALS['eventflow_test_transient_expiries'][$key] = $expiration;
             return !($GLOBALS['eventflow_test_transient_false_after_write'] ?? false);
         }
@@ -36,11 +38,12 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
             $GLOBALS['eventflow_test_transients'] = [];
             $GLOBALS['eventflow_test_transient_expiries'] = [];
             $GLOBALS['eventflow_test_transient_false_after_write'] = false;
+            $GLOBALS['eventflow_test_transient_string_storage'] = false;
         }
 
         protected function tearDown(): void
         {
-            unset($GLOBALS['eventflow_test_transients'], $GLOBALS['eventflow_test_transient_expiries'], $GLOBALS['eventflow_test_transient_false_after_write']);
+            unset($GLOBALS['eventflow_test_transients'], $GLOBALS['eventflow_test_transient_expiries'], $GLOBALS['eventflow_test_transient_false_after_write'], $GLOBALS['eventflow_test_transient_string_storage']);
         }
 
         public function testCredentialAndClientBucketsUseOnlyOneWayIdentifiers(): void
@@ -78,11 +81,12 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
         public function testCacheFalseReturnIsAcceptedWhenTheIncrementWasPersisted(): void
         {
             $GLOBALS['eventflow_test_transient_false_after_write'] = true;
+            $GLOBALS['eventflow_test_transient_string_storage'] = true;
             $fingerprint = hash('sha256', str_repeat('b', 64));
 
             (new WordPressPublicBootstrapRateLimiter())->consume('203.0.113.10', $fingerprint);
 
-            self::assertSame([1, 1], array_values($GLOBALS['eventflow_test_transients']));
+            self::assertSame(['1', '1'], array_values($GLOBALS['eventflow_test_transients']));
         }
     }
 }

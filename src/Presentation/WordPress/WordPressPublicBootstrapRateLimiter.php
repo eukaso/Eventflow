@@ -39,8 +39,13 @@ final readonly class WordPressPublicBootstrapRateLimiter implements PublicBootst
             throw new RequestInputException('rate_limit_exceeded', new RetryAfterDetails($this->windowSeconds));
         }
         $next = $attempts + 1;
-        if (set_transient($key, $next, $this->windowSeconds) === false && get_transient($key) !== $next) {
-            throw new RuntimeException('wordpress_rate_limiter_write_failed');
+        if (set_transient($key, $next, $this->windowSeconds) === false) {
+            $stored = get_transient($key);
+            $persisted = $stored === $next
+                || (is_string($stored) && ctype_digit($stored) && (int) $stored === $next);
+            if (!$persisted) {
+                throw new RuntimeException('wordpress_rate_limiter_write_failed');
+            }
         }
     }
 }
