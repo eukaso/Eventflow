@@ -3,7 +3,7 @@
 namespace EventFlow\Presentation\Api;
 
 use EventFlow\Application\Error\RequestIdFactory;
-use EventFlow\Application\GuestAccess\{GuestCredentialType, GuestSessionBootstrap};
+use EventFlow\Application\GuestAccess\{GuestAccessException, GuestCredentialType, GuestSessionBootstrap};
 
 final readonly class GuestBootstrapController
 {
@@ -21,7 +21,14 @@ final readonly class GuestBootstrapController
         $requestId = $this->requestIds->fromUntrusted($request->header('X-Request-ID'));
         $credential = $this->requests->credential($request);
         $this->rateLimiter->consume($request->clientAddress(), hash('sha256', $credential));
-        $credentials = $this->guestAccess->bootstrap($credential, GuestCredentialType::INVITATION);
+        try {
+            $credentials = $this->guestAccess->bootstrap($credential, GuestCredentialType::INVITATION);
+        } catch (GuestAccessException $failure) {
+            if ($failure->safeCode !== 'guest_credential_invalid') {
+                throw $failure;
+            }
+            $credentials = $this->guestAccess->bootstrap($credential, GuestCredentialType::MESSAGE_LINK);
+        }
         return $this->presenter->bootstrap($credentials, $requestId);
     }
 }

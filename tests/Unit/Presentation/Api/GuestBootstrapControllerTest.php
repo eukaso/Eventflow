@@ -5,7 +5,7 @@ namespace EventFlow\Tests\Unit\Presentation\Api;
 use DateTimeImmutable;
 use DateTimeZone;
 use EventFlow\Application\Error\RequestIdFactory;
-use EventFlow\Application\GuestAccess\{GuestCredentialType, GuestSessionBootstrap, GuestSessionCredentials, GuestSessionRecord};
+use EventFlow\Application\GuestAccess\{GuestAccessException, GuestCredentialType, GuestSessionBootstrap, GuestSessionCredentials, GuestSessionRecord};
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Presentation\Api\{ApiResponse, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestSessionPresenter, PublicBootstrapRateLimiter, RequestInputException, RestRequest, RestRouteRegistry};
@@ -57,6 +57,23 @@ final class GuestBootstrapControllerTest extends TestCase
         self::assertSame(0, $limiter->calls);
     }
 
+    public function testMessageLinkCredentialFallsBackAfterInvitationLookupMisses(): void
+    {
+        $port = new GuestBootstrapPort(failInvitationLookup: true);
+        $limiter = new GuestBootstrapLimiter();
+        $credential = str_repeat('b', 64);
+
+        $response = $this->controller($port, $limiter)->bootstrap(new RestRequest(
+            json: ['credential' => $credential],
+            trustedClientAddress: '203.0.113.7',
+        ));
+
+        self::assertSame([GuestCredentialType::INVITATION, GuestCredentialType::MESSAGE_LINK], $port->types);
+        self::assertSame([$credential, $credential], $port->credentials);
+        self::assertSame(1, $limiter->calls);
+        self::assertSame(201, $response->status());
+    }
+
     private function controller(GuestSessionBootstrap $port, PublicBootstrapRateLimiter $limiter): GuestBootstrapController
     {
         return new GuestBootstrapController(
@@ -84,10 +101,14 @@ final class GuestBootstrapPort implements GuestSessionBootstrap
 {
     public array $credentials = [];
     public array $types = [];
+    public function __construct(private readonly bool $failInvitationLookup = false) {}
     public function bootstrap(string $rawCredential, GuestCredentialType $type): GuestSessionCredentials
     {
         $this->credentials[] = $rawCredential;
         $this->types[] = $type;
+        if ($this->failInvitationLookup && $type === GuestCredentialType::INVITATION) {
+            throw new GuestAccessException('guest_credential_invalid');
+        }
         return new GuestSessionCredentials(
             new GuestSessionRecord(9, new EventScope(44), 81, 2, str_repeat('x', 32), new DateTimeImmutable('2026-08-18 02:00:00', new DateTimeZone('UTC'))),
             str_repeat('c', 64),
