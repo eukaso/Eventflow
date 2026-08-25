@@ -38,7 +38,8 @@ final readonly class WordPressPublicBootstrapRateLimiter implements PublicBootst
         if ($attempts >= $limit) {
             throw new RequestInputException('rate_limit_exceeded', new RetryAfterDetails($this->windowSeconds));
         }
-        if (set_transient($key, $attempts + 1, $this->windowSeconds) === false) {
+        $next = $attempts + 1;
+        if (set_transient($key, $next, $this->windowSeconds) === false && get_transient($key) !== $next) {
             throw new RuntimeException('wordpress_rate_limiter_write_failed');
         }
     }

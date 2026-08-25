@@ -12,7 +12,7 @@ namespace {
         {
             $GLOBALS['eventflow_test_transients'][$key] = $value;
             $GLOBALS['eventflow_test_transient_expiries'][$key] = $expiration;
-            return true;
+            return !($GLOBALS['eventflow_test_transient_false_after_write'] ?? false);
         }
     }
     if (!function_exists('delete_transient')) {
@@ -35,11 +35,12 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
         {
             $GLOBALS['eventflow_test_transients'] = [];
             $GLOBALS['eventflow_test_transient_expiries'] = [];
+            $GLOBALS['eventflow_test_transient_false_after_write'] = false;
         }
 
         protected function tearDown(): void
         {
-            unset($GLOBALS['eventflow_test_transients'], $GLOBALS['eventflow_test_transient_expiries']);
+            unset($GLOBALS['eventflow_test_transients'], $GLOBALS['eventflow_test_transient_expiries'], $GLOBALS['eventflow_test_transient_false_after_write']);
         }
 
         public function testCredentialAndClientBucketsUseOnlyOneWayIdentifiers(): void
@@ -72,6 +73,16 @@ namespace EventFlow\Tests\Unit\Infrastructure\WordPress {
                 self::assertSame('validation_failed', $failure->safeCode);
             }
             self::assertSame([], $GLOBALS['eventflow_test_transients']);
+        }
+
+        public function testCacheFalseReturnIsAcceptedWhenTheIncrementWasPersisted(): void
+        {
+            $GLOBALS['eventflow_test_transient_false_after_write'] = true;
+            $fingerprint = hash('sha256', str_repeat('b', 64));
+
+            (new WordPressPublicBootstrapRateLimiter())->consume('203.0.113.10', $fingerprint);
+
+            self::assertSame([1, 1], array_values($GLOBALS['eventflow_test_transients']));
         }
     }
 }
