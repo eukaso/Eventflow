@@ -49,6 +49,7 @@ final class GuestBootstrapControllerTest extends TestCase
         foreach ([
             ['credential' => 'short'],
             ['credential' => str_repeat('b', 64), 'type' => 'message_link'],
+            ['credential' => str_repeat('b', 64), 'credential_type' => 'unknown'],
         ] as $json) {
             try { $this->controller($port, $limiter)->bootstrap(new RestRequest(json: $json)); self::fail('Expected failure.'); }
             catch (RequestInputException $failure) { self::assertContains($failure->safeCode, ['guest_session_invalid', 'validation_failed']); }
@@ -71,6 +72,17 @@ final class GuestBootstrapControllerTest extends TestCase
         self::assertSame([GuestCredentialType::INVITATION, GuestCredentialType::MESSAGE_LINK], $port->types);
         self::assertSame([$credential, $credential], $port->credentials);
         self::assertSame(1, $limiter->calls);
+        self::assertSame(201, $response->status());
+    }
+
+    public function testExplicitMessageLinkCredentialUsesOnlyTheRequestedStore(): void
+    {
+        $port = new GuestBootstrapPort(failInvitationLookup: true);
+        $response = $this->controller($port, new GuestBootstrapLimiter())->bootstrap(new RestRequest(
+            json: ['credential' => str_repeat('b', 64), 'credential_type' => 'message_link'],
+        ));
+
+        self::assertSame([GuestCredentialType::MESSAGE_LINK], $port->types);
         self::assertSame(201, $response->status());
     }
 

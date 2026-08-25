@@ -248,11 +248,11 @@
     render(contextResult.payload.data || {}, responseResult.payload.data || {});
   };
 
-  const bootstrap = async (credential) => {
+  const bootstrap = async (credential, credentialType) => {
     const result = await request('public/invitations/bootstrap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential }),
+      body: JSON.stringify({ credential, credential_type: credentialType }),
     });
     csrfToken = result.payload.data?.csrf_token || null;
   };
@@ -321,7 +321,14 @@
       return;
     }
     try {
-      if (invitationCredential) await bootstrap(invitationCredential);
+      if (invitationCredential) {
+        try {
+          await bootstrap(invitationCredential, 'message_link');
+        } catch (error) {
+          if (error.code !== 'guest_session_invalid') throw error;
+          await bootstrap(invitationCredential, 'invitation');
+        }
+      }
       openingPhase = 'invitation';
       await loadInvitation();
     } catch (error) {

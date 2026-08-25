@@ -20,7 +20,12 @@ final readonly class GuestBootstrapController
     {
         $requestId = $this->requestIds->fromUntrusted($request->header('X-Request-ID'));
         $credential = $this->requests->credential($request);
+        $credentialType = $this->requests->credentialType($request);
         $this->rateLimiter->consume($request->clientAddress(), hash('sha256', $credential));
+        if ($credentialType !== null) {
+            $credentials = $this->guestAccess->bootstrap($credential, $credentialType);
+            return $this->presenter->bootstrap($credentials, $requestId);
+        }
         try {
             $credentials = $this->guestAccess->bootstrap($credential, GuestCredentialType::INVITATION);
         } catch (GuestAccessException $failure) {
