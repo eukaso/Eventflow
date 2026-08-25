@@ -11,6 +11,8 @@ final class Sprint11GuestExperienceValidationTest extends TestCase
         $script = $this->source('assets/guest/eventflow-guest.js');
         self::assertStringContainsString('window.location.hash', $script);
         self::assertStringContainsString("parameters.get('eventflow-invitation')", $script);
+        self::assertStringContainsString("openingPhase === 'bootstrap'", $script);
+        self::assertStringContainsString('Your secure link was accepted, but the invitation details could not be loaded.', $script);
         self::assertStringContainsString('window.history.replaceState', $script);
         self::assertStringContainsString('/^[a-f0-9]{64}$/', $script);
         $clean = strpos($script, 'const invitationCredential = cleanCredentialFragment()');

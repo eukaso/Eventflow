@@ -311,6 +311,7 @@
   const initialize = async () => {
     const invitationPreview = isInvitationPreviewFragment();
     const invitationCredential = cleanCredentialFragment();
+    let openingPhase = 'bootstrap';
     if (!config.ready) {
       setStatus('EventFlow is temporarily unavailable. Please try again later.');
       return;
@@ -321,10 +322,13 @@
     }
     try {
       if (invitationCredential) await bootstrap(invitationCredential);
+      openingPhase = 'invitation';
       await loadInvitation();
     } catch (error) {
       const reference = error.requestId ? ` Reference: ${error.requestId}.` : '';
-      setStatus(`This secure invitation could not be opened. Use the complete invitation link or request a new one.${reference}`);
+      setStatus(openingPhase === 'bootstrap'
+        ? `This secure invitation could not be opened. Use the complete invitation link or request a new one.${reference}`
+        : `Your secure link was accepted, but the invitation details could not be loaded. Please try again.${reference}`);
     }
   };
 
