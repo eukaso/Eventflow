@@ -108,11 +108,12 @@ final class WpdbGuestAccessRepository extends AbstractWpdbRepository implements 
     {
         $table = $this->table(TableName::GUEST_SESSIONS);
         $timestamp = $this->timestamp($now);
-        if ($this->database->execute(
+        $affected = $this->database->execute(
             "UPDATE {$table} SET last_seen_at = %s, updated_at = %s WHERE guest_session_id = %d AND event_id = %d " .
             'AND invitation_id = %d AND invitation_token_version = %d AND session_status = %s AND expires_at > %s',
             [$timestamp, $timestamp, $session->sessionId, $session->eventScope->eventId, $session->invitationId, $session->invitationTokenVersion, 'active', $timestamp],
-        ) !== 1) throw new PersistenceException('guest_session_touch_conflict');
+        );
+        if (!in_array($affected, [0, 1], true)) throw new PersistenceException('guest_session_touch_conflict');
     }
 
     public function issueMessageLink(EventScope $scope, int $invitationId, int $messageId, string $purpose, string $digest, int $tokenVersion, DateTimeImmutable $expiresAt, DateTimeImmutable $now): int

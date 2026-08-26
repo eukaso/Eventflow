@@ -5,6 +5,7 @@ namespace EventFlow\Tests\Unit\Infrastructure\Persistence\WordPress;
 use DateTimeImmutable;
 use DateTimeZone;
 use EventFlow\Application\GuestAccess\GuestCredentialType;
+use EventFlow\Application\GuestAccess\GuestSessionRecord;
 use EventFlow\Application\Invitation\CreateInvitation;
 use EventFlow\Application\Invitation\InvitationRecord;
 use EventFlow\Application\Invitation\InvitationStatus;
@@ -104,6 +105,26 @@ final class WpdbInvitationGuestAccessRepositoryTest extends TestCase
         self::assertCount(2, $wpdb->queries);
         self::assertStringContainsString('first_used_at = COALESCE(first_used_at', $wpdb->queries[0]);
         self::assertStringContainsString('last_accessed_at', $wpdb->queries[1]);
+    }
+
+    public function testTouchingSessionTwiceWithinOneDatabaseSecondIsIdempotent(): void
+    {
+        $wpdb = new InvitationRepositoryWpdb();
+        $wpdb->queryResults = [0];
+        $session = new GuestSessionRecord(
+            9,
+            new EventScope(80),
+            12,
+            4,
+            str_repeat('c', 32),
+            new DateTimeImmutable('2026-08-17 01:00:00', new DateTimeZone('UTC')),
+        );
+
+        $this->guests($wpdb)->touchSession($session, $this->now());
+
+        self::assertCount(1, $wpdb->queries);
+        self::assertStringContainsString('UPDATE wp_eventflow_guest_sessions', $wpdb->queries[0]);
+        self::assertStringContainsString("session_status = 'active'", $wpdb->queries[0]);
     }
 
     private function invitations(InvitationRepositoryWpdb $wpdb): WpdbInvitationRepository { return new WpdbInvitationRepository(new WpdbAdapter($wpdb), new WpdbTableNames('wp_')); }
