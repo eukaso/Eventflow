@@ -54,11 +54,12 @@ final class WpdbGuestAccessRepository extends AbstractWpdbRepository implements 
         $timestamp = $this->timestamp($now);
         if ($type === GuestCredentialType::MESSAGE_LINK) {
             $links = $this->table(TableName::GUEST_LINK_CREDENTIALS);
-            if ($this->database->execute(
+            $affected = $this->database->execute(
                 "UPDATE {$links} SET first_used_at = COALESCE(first_used_at, %s) WHERE credential_lookup = %s " .
                 'AND event_id = %d AND invitation_id = %d AND invitation_token_version = %d AND credential_status = %s',
                 [$timestamp, $digest, $invitation->eventScope->eventId, $invitation->invitationId, $invitation->tokenVersion, 'active'],
-            ) !== 1) throw new PersistenceException('guest_link_use_conflict');
+            );
+            if (!in_array($affected, [0, 1], true)) throw new PersistenceException('guest_link_use_conflict');
         }
         $table = $this->table(TableName::INVITATIONS);
         if ($this->database->execute(

@@ -88,6 +88,24 @@ final class WpdbInvitationGuestAccessRepositoryTest extends TestCase
         self::assertStringContainsString('FOR UPDATE', $wpdb->queries[0]);
     }
 
+    public function testMarkingPreviouslyUsedMessageLinkIsIdempotent(): void
+    {
+        $wpdb = new InvitationRepositoryWpdb();
+        $wpdb->queryResults = [0, 1];
+        $invitation = new InvitationRecord(12, new EventScope(80), 'ABC', 'Guest', 2, InvitationStatus::ACTIVE, 4, null);
+
+        $this->guests($wpdb)->markCredentialUsed(
+            GuestCredentialType::MESSAGE_LINK,
+            str_repeat('l', 32),
+            $invitation,
+            $this->now(),
+        );
+
+        self::assertCount(2, $wpdb->queries);
+        self::assertStringContainsString('first_used_at = COALESCE(first_used_at', $wpdb->queries[0]);
+        self::assertStringContainsString('last_accessed_at', $wpdb->queries[1]);
+    }
+
     private function invitations(InvitationRepositoryWpdb $wpdb): WpdbInvitationRepository { return new WpdbInvitationRepository(new WpdbAdapter($wpdb), new WpdbTableNames('wp_')); }
     private function guests(InvitationRepositoryWpdb $wpdb): WpdbGuestAccessRepository { return new WpdbGuestAccessRepository(new WpdbAdapter($wpdb), new WpdbTableNames('wp_')); }
     private function now(): DateTimeImmutable { return new DateTimeImmutable('2026-08-16 18:00:00', new DateTimeZone('UTC')); }
@@ -100,8 +118,9 @@ final class InvitationRepositoryWpdb
     public int $last_errno = 0;
     public int $insert_id = 1;
     /** @var list<string> */ public array $queries = [];
+    /** @var list<int> */ public array $queryResults = [];
     /** @var list<array<string, mixed>|null> */ public array $rows = [];
     public function prepare(string $query, mixed ...$values): string { foreach ($values as $value) { $replacement = is_int($value) ? (string) $value : "'" . str_replace("'", "''", (string) $value) . "'"; $query = (string) preg_replace('/%[dfs]/', $replacement, $query, 1); } return $query; }
-    public function query(string $query): int { $this->queries[] = $query; return 1; }
+    public function query(string $query): int { $this->queries[] = $query; return array_shift($this->queryResults) ?? 1; }
     /** @return array<string, mixed>|null */ public function get_row(string $query, string $format): ?array { $this->queries[] = $query; return array_shift($this->rows); }
 }
