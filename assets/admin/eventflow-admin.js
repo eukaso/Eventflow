@@ -211,16 +211,28 @@
     ...additional,
   });
 
-  const requestJson = async (path, options = {}) => {
-    const response = await fetch(`${config.restUrl}${path}`, {
+  const requestJson = async (path, options = {}, retryRoute = true) => {
+    const mutation = String(options.method || 'GET').toUpperCase() !== 'GET';
+    const requestPath = mutation
+      ? `${path}${path.includes('?') ? '&' : '?'}eventflow_no_cache=${encodeURIComponent(String(Date.now()))}`
+      : path;
+    const response = await fetch(`${config.restUrl}${requestPath}`, {
       credentials: 'same-origin',
+      cache: 'no-store',
       ...options,
       headers: requestHeaders(options.headers || {}),
     });
     const payload = await response.json();
     if (!response.ok) {
+      if (retryRoute && payload.code === 'rest_no_route') {
+        await new Promise((resolve) => window.setTimeout(resolve, 750));
+        return requestJson(path, options, false);
+      }
       const failure = new Error(payload.message || payload.code || 'request_failed');
       failure.code = payload.code || 'request_failed';
+      failure.path = path;
+      failure.responseUrl = response.url;
+      failure.status = response.status;
       failure.requestId = payload.request_id || response.headers.get('X-Request-ID') || '';
       throw failure;
     }
@@ -1560,7 +1572,14 @@
         }),
       });
       const templateId = Number(template.payload.data?.id);
-      await requestJson(`${communicationEventPath()}/communication-templates/${encodeURIComponent(String(templateId))}/publish`, { method: 'POST', headers: mutationHeaders(), body: JSON.stringify({}) });
+      const templatePath = `${communicationEventPath()}/communication-templates/${encodeURIComponent(String(templateId))}`;
+      try {
+        await requestJson(`${templatePath}/activate`, { method: 'POST', headers: mutationHeaders(), body: JSON.stringify({}) });
+      } catch (error) {
+        if (error.code !== 'rest_no_route') throw error;
+        const verification = await requestJson(templatePath);
+        if (verification.payload.data?.status !== 'published') throw error;
+      }
       const campaign = await requestJson(`${communicationEventPath()}/campaigns`, {
         method: 'POST', headers: mutationHeaders(), body: JSON.stringify({
           template_id: templateId,
@@ -1580,8 +1599,11 @@
       await loadCommunicationData();
     } catch (error) {
       preparedInvitationCampaign = null;
+      const code = error.code && error.code !== 'request_failed' ? ` Error: ${error.code}.` : '';
+      const path = error.path ? ` Path: ${error.path}.` : '';
+      const response = error.responseUrl ? ` Response: ${error.status || ''} ${error.responseUrl}.` : '';
       const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
-      invitationReviewStatus.textContent = `Recipient review failed. Nothing was sent.${reference}`;
+      invitationReviewStatus.textContent = `Recipient review failed. Nothing was sent.${code}${path}${response}${reference}`;
     } finally {
       invitationReview.disabled = selectedInvitationRecipients.size < 1;
     }
@@ -1650,9 +1672,10 @@
 
   const templateAction = async (template, action) => {
     const path = `${communicationEventPath()}/communication-templates/${encodeURIComponent(String(template.id))}`;
+    const routeAction = action === 'publish' ? 'activate' : action;
     try {
       const current = await requestJson(path);
-      const result = await communicationMutation(`${path}/${action}`, {}, current.etag);
+      const result = await communicationMutation(`${path}/${routeAction}`, {}, current.etag);
       if (result) await loadCommunicationData();
     } catch (error) {
       communicationsNotice.textContent = 'The latest Template revision could not be loaded. Refresh before retrying.';

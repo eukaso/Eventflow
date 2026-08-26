@@ -29,7 +29,7 @@ final class Sprint12OrganizerInvitationWorkspaceValidationTest extends TestCase
         $script = $this->source('assets/admin/eventflow-admin.js');
         foreach ([
             '/communication-templates',
-            '/publish',
+            '/activate',
             '/campaigns',
             '/audience-preview',
             '/queue',
@@ -37,6 +37,13 @@ final class Sprint12OrganizerInvitationWorkspaceValidationTest extends TestCase
             'selectedInvitationRecipients',
             'window.confirm(`Send this personalized',
             'Nothing has been sent yet.',
+            'Error: ${error.code}.',
+            'Path: ${error.path}.',
+            'Response: ${error.status',
+            "payload.code === 'rest_no_route'",
+            "cache: 'no-store'",
+            'eventflow_no_cache=',
+            "verification.payload.data?.status !== 'published'",
         ] as $contract) {
             self::assertStringContainsString($contract, $script);
         }

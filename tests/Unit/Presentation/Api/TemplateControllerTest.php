@@ -20,6 +20,7 @@ final class TemplateControllerTest extends TestCase
         self::assertSame([
             'POST eventflow/v1/events/(?P<event_id>\d+)/communication-templates',
             'POST eventflow/v1/events/(?P<event_id>\d+)/communication-templates/(?P<template_id>\d+)/publish',
+            'POST eventflow/v1/events/(?P<event_id>\d+)/communication-templates/(?P<template_id>\d+)/activate',
         ], $routes->registered);
     }
 

@@ -15,5 +15,10 @@ final readonly class TemplateRouteRegistrar implements RestRouteRegistrar
             $collection . '/(?P<template_id>\d+)/publish',
             $this->controller->publish(...),
         );
+        $routes->registerAuthenticatedPost(
+            SystemRouteRegistrar::NAMESPACE,
+            $collection . '/(?P<template_id>\d+)/activate',
+            $this->controller->publish(...),
+        );
     }
 }
