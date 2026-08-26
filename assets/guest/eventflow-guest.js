@@ -331,6 +331,10 @@
       await loadInvitation();
     } catch (error) {
       const reference = error.requestId ? ` Reference: ${error.requestId}.` : '';
+      if (openingPhase === 'invitation' && error.code === 'guest_session_invalid') {
+        setStatus(`This secure session has expired. Reopen your original invitation email and click the personalized link again.${reference}`);
+        return;
+      }
       setStatus(openingPhase === 'bootstrap'
         ? `This secure invitation could not be opened. Use the complete invitation link or request a new one.${reference}`
         : `Your secure link was accepted, but the invitation details could not be loaded. Please try again.${reference}`);
