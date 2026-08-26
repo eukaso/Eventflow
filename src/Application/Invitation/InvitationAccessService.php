@@ -111,6 +111,43 @@ final readonly class InvitationAccessService implements InvitationOperations
         );
     }
 
+    public function applyCompanionRollout(
+        PrincipalContext $principal,
+        EventScope $scope,
+        string $idempotencyKey,
+    ): IdempotencyOutcome {
+        return $this->idempotency->execute(
+            $principal,
+            $scope,
+            'invitation.apply_companion_rollout',
+            $idempotencyKey,
+            ['total_capacity' => CompanionRolloutPolicy::DEFAULT_TOTAL_CAPACITY],
+            function () use ($principal, $scope): IdempotentOperationResult {
+                $this->authorization->requireEventCapability($principal, $scope, Capability::MANAGE_INVITATIONS);
+                $updated = $this->invitations->applyCompanionRollout(
+                    $scope,
+                    CompanionRolloutPolicy::DEFAULT_TOTAL_CAPACITY,
+                    $this->actorUserId($principal),
+                    $this->clock->now(),
+                );
+                $this->audit->recordRequired(new AuditEvent(
+                    $principal,
+                    $scope,
+                    AuditAction::INVITATION_UPDATED,
+                    AuditEntityType::EVENT,
+                    $scope->eventId,
+                    before: ['rollout_policy' => 'spreadsheet_capacity'],
+                    after: ['total_capacity' => CompanionRolloutPolicy::DEFAULT_TOTAL_CAPACITY, 'updated_invitations' => $updated],
+                ));
+                $result = new CompanionRolloutResult($updated);
+                return new IdempotentOperationResult(
+                    new IdempotencyResultReference('invitation_rollout', $scope->eventId, 200),
+                    $result,
+                );
+            },
+        );
+    }
+
     public function restore(
         PrincipalContext $principal,
         EventScope $scope,

@@ -15,6 +15,7 @@ final readonly class InvitationAccessRouteRegistrar implements RestRouteRegistra
         $routes->registerAuthenticatedGet(SystemRouteRegistrar::NAMESPACE, $collection, $this->controller->list(...));
         $routes->registerAuthenticatedGet(SystemRouteRegistrar::NAMESPACE, $member, $this->controller->read(...));
         $routes->registerAuthenticatedPatch(SystemRouteRegistrar::NAMESPACE, $member, $this->controller->update(...));
+        $routes->registerAuthenticatedPost(SystemRouteRegistrar::NAMESPACE, $collection . '/apply-companion-rollout', $this->controller->applyCompanionRollout(...));
         foreach (InvitationAccessCommand::cases() as $command) {
             $routes->registerAuthenticatedPost(
                 SystemRouteRegistrar::NAMESPACE,

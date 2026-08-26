@@ -187,7 +187,7 @@
     });
     attendeeRegion.hidden = !accepting;
     partyCapacity.textContent = capacity > 1
-      ? `${used} of ${capacity} places named. ${remaining ? `${remaining} remaining.` : 'Your party is complete.'}`
+      ? `You may add up to ${capacity - 1} companion${capacity - 1 === 1 ? '' : 's'}. ${used} of ${capacity} places named. ${remaining ? `${remaining} remaining.` : 'Your party is complete.'}`
       : 'This invitation is reserved for you.';
     addGuest.hidden = capacity <= 1;
     addGuest.disabled = !rsvpEditable || !accepting || used >= capacity;

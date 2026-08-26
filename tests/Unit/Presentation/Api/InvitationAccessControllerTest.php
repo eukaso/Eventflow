@@ -6,7 +6,7 @@ use DateTimeImmutable;
 use EventFlow\Application\Authorization\PrincipalContext;
 use EventFlow\Application\Error\RequestIdFactory;
 use EventFlow\Application\Idempotency\{IdempotencyOutcome, IdempotencyResultReference};
-use EventFlow\Application\Invitation\{InvitationOperations, InvitationPage, InvitationPatch, InvitationRecord, InvitationStatus};
+use EventFlow\Application\Invitation\{CompanionRolloutResult, InvitationOperations, InvitationPage, InvitationPatch, InvitationRecord, InvitationStatus};
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Presentation\Api\{ApiResponse, AuthenticatedPrincipalResolver, AuthenticatedRequestContextFactory, InvitationAccessCommand, InvitationAccessController, InvitationAccessRequestMapper, InvitationAccessRouteRegistrar, InvitationPresenter, RequestInputException, RestRequest, RestRouteRegistry};
@@ -23,6 +23,7 @@ final class InvitationAccessControllerTest extends TestCase
             'GET eventflow/v1/events/(?P<event_id>\d+)/invitations',
             'GET eventflow/v1/events/(?P<event_id>\d+)/invitations/(?P<invitation_id>\d+)',
             'PATCH eventflow/v1/events/(?P<event_id>\d+)/invitations/(?P<invitation_id>\d+)',
+            'POST eventflow/v1/events/(?P<event_id>\d+)/invitations/apply-companion-rollout',
             'POST eventflow/v1/events/(?P<event_id>\d+)/invitations/(?P<invitation_id>\d+)/archive',
             'POST eventflow/v1/events/(?P<event_id>\d+)/invitations/(?P<invitation_id>\d+)/restore',
         ], $routes->registered);
@@ -79,6 +80,19 @@ final class InvitationAccessControllerTest extends TestCase
         self::assertSame(['invitation-archive', 'invitation-restore'], $port->keys);
     }
 
+    public function testCompanionRolloutReturnsUpdatedCount(): void
+    {
+        $port = new InvitationAccessPort();
+        $response = $this->controller($port)->applyCompanionRollout(new RestRequest(
+            ['Idempotency-Key' => 'companion-rollout-001'],
+            routeParameters: ['event_id' => '44'],
+        ));
+
+        self::assertSame('rollout', $port->calls[0]);
+        self::assertSame(3, $response->body()['data']['updated_invitations']);
+        self::assertSame(2, $response->body()['data']['total_capacity']);
+    }
+
     public function testInvalidInputsFailBeforePortInvocation(): void
     {
         $port = new InvitationAccessPort();
@@ -128,6 +142,11 @@ final class InvitationAccessPort implements InvitationOperations
     {
         $this->calls[] = 'update'; $this->keys[] = $idempotencyKey; $this->patch = $patch;
         return $this->outcome($this->record($scope, 5));
+    }
+    public function applyCompanionRollout(PrincipalContext $principal, EventScope $scope, string $idempotencyKey): IdempotencyOutcome
+    {
+        $this->calls[] = 'rollout'; $this->keys[] = $idempotencyKey;
+        return new IdempotencyOutcome(false, new IdempotencyResultReference('invitation_rollout', $scope->eventId, 200), new CompanionRolloutResult(3));
     }
     public function archive(PrincipalContext $principal, EventScope $scope, int $invitationId, string $idempotencyKey): IdempotencyOutcome
     {

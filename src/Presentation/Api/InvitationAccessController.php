@@ -52,6 +52,17 @@ final readonly class InvitationAccessController
         return $this->presenter->outcome($outcome, $scope, $context->requestId);
     }
 
+    public function applyCompanionRollout(RestRequest $request): ApiResponse
+    {
+        $context = $this->contexts->create($request, MutationPreconditionPolicy::IDEMPOTENCY_KEY);
+        $this->requests->requireEmptyBody($request);
+        $scope = $this->requests->scope($request);
+        return $this->presenter->rolloutOutcome(
+            $this->invitations->applyCompanionRollout($context->principal, $scope, $context->requiredIdempotencyKey()),
+            $context->requestId,
+        );
+    }
+
     public function transition(RestRequest $request, InvitationAccessCommand $command): ApiResponse
     {
         $context = $this->contexts->create($request, MutationPreconditionPolicy::IDEMPOTENCY_KEY);

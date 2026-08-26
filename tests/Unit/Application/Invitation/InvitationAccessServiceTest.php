@@ -79,6 +79,20 @@ final class InvitationAccessServiceTest extends TestCase
         self::assertSame([AuditAction::INVITATION_ARCHIVED, AuditAction::INVITATION_RESTORED], $audit->actions);
     }
 
+    public function testCompanionRolloutUsesOneTransactionalRepositoryUpdate(): void
+    {
+        [$service, $repository, $audit] = $this->fixture();
+        $outcome = $service->applyCompanionRollout(
+            PrincipalContext::wordpressUser(7),
+            new EventScope(80),
+            'companion-rollout-001',
+        );
+
+        self::assertSame(3, $outcome->response->updatedInvitations);
+        self::assertSame(2, $repository->rolloutCapacity);
+        self::assertSame([AuditAction::INVITATION_UPDATED], $audit->actions);
+    }
+
     /** @return array{InvitationAccessService, IaxMemoryRepository, IaxAuditRepository} */
     private function fixture(): array
     {
@@ -104,6 +118,7 @@ final class IaxMemoryRepository implements InvitationAccessRepository
     public int $updates = 0;
     public int $invalidations = 0;
     public int $activeAttendees = 1;
+    public ?int $rolloutCapacity = null;
     public ?EventScope $scope = null;
     public ?int $limit = null;
     public ?int $after = null;
@@ -129,6 +144,7 @@ final class IaxMemoryRepository implements InvitationAccessRepository
     public function find(EventScope $scope, int $invitationId): ?InvitationRecord { return $invitationId === 11 && $this->record->archivedAt === null ? $this->record : null; }
     public function lock(EventScope $scope, int $invitationId, bool $archived): ?InvitationRecord { return $invitationId === 11 && ($this->record->archivedAt !== null) === $archived ? $this->record : null; }
     public function activeAttendeeCount(EventScope $scope, int $invitationId): int { return $this->activeAttendees; }
+    public function applyCompanionRollout(EventScope $scope, int $totalCapacity, int $actorUserId, DateTimeImmutable $now): int { $this->rolloutCapacity = $totalCapacity; return 3; }
     public function update(InvitationRecord $current, InvitationRecord $replacement, int $actorUserId, DateTimeImmutable $now): InvitationRecord
     {
         $this->updates++;

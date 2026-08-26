@@ -42,6 +42,7 @@
   const invitationEditor = document.getElementById('eventflow-invitation-editor');
   const invitationSubmit = document.getElementById('eventflow-invitation-submit');
   const invitationEditCancel = document.getElementById('eventflow-invitation-edit-cancel');
+  const applyCompanionRollout = document.getElementById('eventflow-apply-companion-rollout');
   const invitationFilter = document.getElementById('eventflow-invitation-filter');
   const invitationStateFilter = document.getElementById('eventflow-invitation-state-filter');
   const invitationFilterStatus = document.getElementById('eventflow-invitation-filter-status');
@@ -870,7 +871,7 @@
     editingInvitationId = null;
     editingInvitationEtag = null;
     invitationForm.reset();
-    setField(invitationForm, 'capacity', 1);
+    setField(invitationForm, 'capacity', 2);
     field(invitationForm, 'token_expires_at').disabled = false;
     invitationSubmit.textContent = 'Create invitation';
     invitationEditCancel.hidden = true;
@@ -1580,6 +1581,37 @@
       tab.tabIndex = selected ? 0 : -1;
       panel.hidden = !selected;
     });
+  };
+
+  const applyOneCompanionRollout = async () => {
+    if (!activeEvent) return;
+    const targets = loadedInvitations.filter((invitation) => invitation.archived_at === null && Number(invitation.capacity) !== 2);
+    if (!targets.length) {
+      peopleNotice.textContent = 'Every active invitation already allows exactly one companion.';
+      return;
+    }
+    if (!window.confirm(`Set ${targets.length} active invitation${targets.length === 1 ? '' : 's'} to one companion each? Approved family exceptions can be increased manually afterward.`)) return;
+
+    applyCompanionRollout.disabled = true;
+    peopleNotice.textContent = `Applying the one-companion limit to ${targets.length} invitations…`;
+    const eventId = encodeURIComponent(String(activeEvent.id));
+    let result;
+    try {
+      result = await requestJson(`events/${eventId}/invitations/apply-companion-rollout`, {
+        method: 'POST',
+        headers: mutationHeaders(),
+        body: JSON.stringify({}),
+      });
+    } catch (error) {
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      peopleNotice.textContent = `The companion limit was not applied.${reference}`;
+      applyCompanionRollout.disabled = false;
+      return;
+    }
+    await loadPeopleData(false);
+    applyCompanionRollout.disabled = false;
+    const updated = Number(result.payload?.data?.updated_invitations || 0);
+    peopleNotice.textContent = `${updated} invitations now allow exactly one companion. Family exceptions can be increased manually.`;
   };
 
   const escapeInvitationHtml = (value) => String(value || '')
@@ -2575,6 +2607,7 @@
   configureTabs(peopleTabs, selectPeopleTab);
   membershipForm.addEventListener('submit', submitMembership);
   invitationForm.addEventListener('submit', submitInvitation);
+  applyCompanionRollout.addEventListener('click', applyOneCompanionRollout);
   invitationFilter.addEventListener('input', () => renderInvitations());
   invitationStateFilter.addEventListener('change', () => renderInvitations());
   invitationEditCancel.addEventListener('click', () => {

@@ -6,6 +6,7 @@ use DateTimeZone;
 use EventFlow\Application\Error\RequestId;
 use EventFlow\Application\Idempotency\IdempotencyOutcome;
 use EventFlow\Application\Invitation\{InvitationPage, InvitationRecord, IssuedInvitation};
+use EventFlow\Application\Invitation\CompanionRolloutResult;
 use EventFlow\Application\Persistence\EventScope;
 
 final readonly class InvitationPresenter
@@ -49,6 +50,17 @@ final readonly class InvitationPresenter
             ['data' => $this->invitation($invitation), 'request_id' => $requestId->value],
             $this->headers($requestId, $invitation),
         );
+    }
+
+    public function rolloutOutcome(IdempotencyOutcome $outcome, RequestId $requestId): JsonApiResponse
+    {
+        $result = $outcome->response;
+        if (!$result instanceof CompanionRolloutResult) throw new \LogicException('invalid_companion_rollout_result');
+        return new JsonApiResponse(200, [
+            'data' => ['updated_invitations' => $result->updatedInvitations, 'total_capacity' => $result->totalCapacity],
+            'meta' => ['replayed' => $outcome->replayed],
+            'request_id' => $requestId->value,
+        ], $this->headers($requestId));
     }
 
     /** @return array<string, mixed> */
