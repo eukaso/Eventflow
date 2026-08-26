@@ -29,7 +29,7 @@ final readonly class GuestSessionPresenter
                 'Pragma' => 'no-cache',
                 'Set-Cookie' => GuestSessionCookie::NAME . '=' . $credentials->rawSessionToken
                     . '; Expires=' . $expiresAt->format('D, d M Y H:i:s') . ' GMT'
-                    . '; Path=/wp-json/eventflow/v1/public; Secure; HttpOnly; SameSite=Lax',
+                    . '; Path=' . GuestSessionCookie::PATH . '; Secure; HttpOnly; SameSite=Lax',
             ],
         );
     }

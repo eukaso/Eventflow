@@ -57,7 +57,7 @@ final readonly class GuestSessionAccessPresenter
         $headers = $this->headers($requestId);
         $headers['Set-Cookie'] = GuestSessionCookie::NAME
             . '=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0'
-            . '; Path=/wp-json/eventflow/v1/public; Secure; HttpOnly; SameSite=Lax';
+            . '; Path=' . GuestSessionCookie::PATH . '; Secure; HttpOnly; SameSite=Lax';
         return new JsonApiResponse(204, [], $headers);
     }
 

@@ -31,10 +31,13 @@ final class Sprint10GuestSessionDeliveryTest extends TestCase
     public function testResponseCachingAndCookieExpiryAreExplicit(): void
     {
         $presenter = $this->source('src/Presentation/Api/GuestSessionAccessPresenter.php');
+        $cookie = $this->source('src/Presentation/Api/GuestSessionCookie.php');
         self::assertStringContainsString("'Cache-Control' => 'no-store, max-age=0'", $presenter);
         self::assertStringContainsString("['ETag']", $presenter);
         self::assertStringContainsString('Max-Age=0', $presenter);
-        self::assertStringContainsString('Path=/wp-json/eventflow/v1/public; Secure; HttpOnly; SameSite=Lax', $presenter);
+        self::assertStringContainsString("public const NAME = 'eventflow_guest_session_v2'", $cookie);
+        self::assertStringContainsString("public const PATH = '/'", $cookie);
+        self::assertStringContainsString("'; Path=' . GuestSessionCookie::PATH . '; Secure; HttpOnly; SameSite=Lax'", $presenter);
     }
 
     private function source(string $path): string

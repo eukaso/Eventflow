@@ -18,7 +18,7 @@ final readonly class WordPressRestRequestMapper
         $headers = $this->headers(method_exists($wordpressRequest, 'get_headers') ? $wordpressRequest->get_headers() : []);
         $routes = $this->routes(method_exists($wordpressRequest, 'get_url_params') ? $wordpressRequest->get_url_params() : []);
         $query = $this->routes(method_exists($wordpressRequest, 'get_query_params') ? $wordpressRequest->get_query_params() : []);
-        $cookies = $this->cookies(method_exists($wordpressRequest, 'get_cookie_params') ? $wordpressRequest->get_cookie_params() : []);
+        $cookies = $this->cookies($this->cookieSource($wordpressRequest));
         $raw = method_exists($wordpressRequest, 'get_body') ? $wordpressRequest->get_body() : '';
         $files = $this->files(method_exists($wordpressRequest,'get_file_params')?$wordpressRequest->get_file_params():[]);
         if (!is_string($raw) || ($files===[]&&strlen($raw)>self::MAX_JSON_BYTES)) {
@@ -89,6 +89,23 @@ final readonly class WordPressRestRequestMapper
             if (is_string($name) && is_string($value)) $cookies[$name] = $value;
         }
         return $cookies;
+    }
+
+    /** @return array<string, mixed> */
+    private function cookieSource(object $wordpressRequest): array
+    {
+        $serverCookies = is_array($_COOKIE ?? null) ? $_COOKIE : [];
+        $requestCookies = method_exists($wordpressRequest, 'get_cookie_params')
+            ? $wordpressRequest->get_cookie_params()
+            : [];
+
+        if (!is_array($requestCookies)) {
+            return $serverCookies;
+        }
+
+        // Prefer WordPress's parsed values, but retain PHP's cookie values when
+        // a host or REST rewrite leaves get_cookie_params() incomplete.
+        return array_replace($serverCookies, $requestCookies);
     }
 
     /** @param array<string, string> $headers */

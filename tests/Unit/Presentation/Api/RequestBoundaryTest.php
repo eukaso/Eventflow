@@ -5,7 +5,7 @@ namespace EventFlow\Tests\Unit\Presentation\Api;
 use EventFlow\Application\Authorization\PrincipalType;
 use EventFlow\Application\Error\RequestIdFactory;
 use EventFlow\Application\Security\SecureRandom;
-use EventFlow\Presentation\Api\{AuthenticatedRequestContextFactory, MutationPreconditionPolicy, RequestInputException, RestRequest};
+use EventFlow\Presentation\Api\{AuthenticatedRequestContextFactory, GuestSessionCookie, MutationPreconditionPolicy, RequestInputException, RestRequest};
 use EventFlow\Presentation\WordPress\{WordPressAuthenticatedPrincipalResolver, WordPressRestRequestMapper};
 use PHPUnit\Framework\TestCase;
 
@@ -42,6 +42,19 @@ final class RequestBoundaryTest extends TestCase
         self::assertSame('invitation-create-001', $request->header('Idempotency-Key'));
         self::assertSame('"7"', $request->header('If-Match'));
         self::assertSame('signed-value', $request->header('X-Twilio-Signature'));
+    }
+
+    public function testPhpCookieFallbackSurvivesIncompleteWordPressRestParsing(): void
+    {
+        $originalCookies = $_COOKIE;
+        try {
+            $_COOKIE[GuestSessionCookie::NAME] = str_repeat('a', 64);
+            $request = (new WordPressRestRequestMapper())->map(new BoundaryWordPressRequest(''));
+
+            self::assertSame(str_repeat('a', 64), $request->cookie(GuestSessionCookie::NAME));
+        } finally {
+            $_COOKIE = $originalCookies;
+        }
     }
 
     public function testOpaqueWebhookBodyIsPreservedWithoutForcedJsonDecoding(): void

@@ -8,7 +8,7 @@ use EventFlow\Application\Error\RequestIdFactory;
 use EventFlow\Application\GuestAccess\{GuestAccessException, GuestCredentialType, GuestSessionBootstrap, GuestSessionCredentials, GuestSessionRecord};
 use EventFlow\Application\Persistence\EventScope;
 use EventFlow\Application\Security\SecureRandom;
-use EventFlow\Presentation\Api\{ApiResponse, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestSessionPresenter, PublicBootstrapRateLimiter, RequestInputException, RestRequest, RestRouteRegistry};
+use EventFlow\Presentation\Api\{ApiResponse, GuestBootstrapController, GuestBootstrapRequestMapper, GuestBootstrapRouteRegistrar, GuestSessionCookie, GuestSessionPresenter, PublicBootstrapRateLimiter, RequestInputException, RestRequest, RestRouteRegistry};
 use PHPUnit\Framework\TestCase;
 
 final class GuestBootstrapControllerTest extends TestCase
@@ -38,7 +38,8 @@ final class GuestBootstrapControllerTest extends TestCase
         self::assertSame(201, $response->status());
         self::assertSame(str_repeat('d', 64), $response->body()['data']['csrf_token']);
         self::assertStringNotContainsString(str_repeat('c', 64), json_encode($response->body(), JSON_THROW_ON_ERROR));
-        self::assertStringContainsString('eventflow_guest_session=' . str_repeat('c', 64), $response->headers()['Set-Cookie']);
+        self::assertStringContainsString(GuestSessionCookie::NAME . '=' . str_repeat('c', 64), $response->headers()['Set-Cookie']);
+        self::assertStringContainsString('Path=/; Secure; HttpOnly; SameSite=Lax', $response->headers()['Set-Cookie']);
         self::assertStringContainsString('Secure; HttpOnly; SameSite=Lax', $response->headers()['Set-Cookie']);
     }
 

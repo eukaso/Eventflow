@@ -59,7 +59,7 @@ final class GuestSessionAccessControllerTest extends TestCase
         self::assertTrue($port->loggedOut);
         self::assertSame(204, $response->status());
         self::assertSame([], $response->body());
-        self::assertStringContainsString('Max-Age=0; Path=/wp-json/eventflow/v1/public', $response->headers()['Set-Cookie']);
+        self::assertStringContainsString('Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Lax', $response->headers()['Set-Cookie']);
         self::assertStringContainsString('Secure; HttpOnly; SameSite=Lax', $response->headers()['Set-Cookie']);
     }
 
