@@ -41,6 +41,33 @@ final readonly class AdminShellView
       </div>
       <dl class="eventflow-overview__facts" id="eventflow-overview-facts"></dl>
       <p class="eventflow-overview__message" id="eventflow-overview-message" role="status"></p>
+      <section class="eventflow-dashboard" id="eventflow-dashboard" aria-labelledby="eventflow-dashboard-title">
+        <div class="eventflow-dashboard__heading">
+          <div>
+            <p class="eventflow-admin__eyebrow">Guest responses</p>
+            <h3 id="eventflow-dashboard-title">Event dashboard</h3>
+            <p>See who has replied, who still owes companion names, and prepare targeted reminders without searching through every contact.</p>
+          </div>
+          <div class="eventflow-dashboard__primary-actions">
+            <button class="button button-secondary" id="eventflow-dashboard-email-reminder" type="button" disabled>Prepare email reminder</button>
+            <button class="button button-secondary" id="eventflow-dashboard-sms-reminder" type="button" disabled>Prepare SMS reminder</button>
+          </div>
+        </div>
+        <div class="eventflow-dashboard__metrics" id="eventflow-dashboard-metrics" aria-live="polite"></div>
+        <div class="eventflow-dashboard__filters">
+          <div><label for="eventflow-dashboard-search">Find a guest</label><input id="eventflow-dashboard-search" placeholder="Name, email, phone, or guest code" type="search"></div>
+          <div><label for="eventflow-dashboard-status-filter">Response status</label><select id="eventflow-dashboard-status-filter"><option value="all">All guests</option><option value="action_required">Needs a reminder</option><option value="pending">Awaiting RSVP</option><option value="incomplete">Missing companion names</option><option value="accepted">Confirmed</option><option value="declined">Declined</option></select></div>
+          <div class="eventflow-dashboard__selection-actions"><button class="button button-secondary" id="eventflow-dashboard-select-action" type="button">Select guests needing action</button><button class="button-link" id="eventflow-dashboard-clear-selection" type="button">Clear</button></div>
+        </div>
+        <p class="eventflow-dashboard__selection" id="eventflow-dashboard-selection" role="status">Loading guest progress…</p>
+        <div class="eventflow-dashboard__table-wrap">
+          <table class="widefat striped eventflow-dashboard__table">
+            <thead><tr><th class="check-column" scope="col"><span class="screen-reader-text">Select</span></th><th scope="col">Primary guest</th><th scope="col">Contact</th><th scope="col">RSVP</th><th scope="col">Seats</th><th scope="col">Companions</th><th scope="col">Next action</th></tr></thead>
+            <tbody id="eventflow-dashboard-guest-body"></tbody>
+          </table>
+        </div>
+        <p class="eventflow-admin__status" id="eventflow-dashboard-empty" hidden>No guests match this view.</p>
+      </section>
       <section class="eventflow-setup" id="eventflow-setup" aria-labelledby="eventflow-setup-title" hidden>
         <div class="eventflow-setup__heading">
           <div>
@@ -141,6 +168,8 @@ final readonly class AdminShellView
           <div class="eventflow-record-list" id="eventflow-membership-list"></div>
         </section>
         <section id="eventflow-invitations-panel" role="tabpanel" aria-labelledby="eventflow-invitations-tab" hidden>
+          <details class="eventflow-guest-editor" id="eventflow-invitation-editor">
+            <summary>Add or edit a guest</summary>
           <form class="eventflow-inline-form eventflow-inline-form--wide" id="eventflow-invitation-form">
             <label for="eventflow-invitation-name">Primary guest</label>
             <input id="eventflow-invitation-name" maxlength="190" name="primary_name" required type="text">
@@ -157,13 +186,14 @@ final readonly class AdminShellView
             <button class="button button-secondary" id="eventflow-invitation-submit" type="submit">Create invitation</button>
             <button class="button-link" id="eventflow-invitation-edit-cancel" type="button" hidden>Cancel edit</button>
           </form>
+          </details>
           <div class="eventflow-list-filter">
             <div><label for="eventflow-invitation-filter">Filter invitations</label><input autocomplete="off" id="eventflow-invitation-filter" placeholder="Name, email, phone, code, or calling code" type="search"></div>
             <div><label for="eventflow-invitation-state-filter">Invitation state</label><select id="eventflow-invitation-state-filter"><option value="all">All invitations</option><option value="active">Active only</option><option value="archived">Archived only</option></select></div>
             <p aria-live="polite" id="eventflow-invitation-filter-status" role="status"></p>
           </div>
           <p class="description">To review Nigerian contacts, filter by <code>+234</code>. Archive only the contacts you intend to exclude. <code>+1</code> covers both Canada and the United States, so those contacts require individual verification.</p>
-          <div class="eventflow-record-list" id="eventflow-invitation-list"></div>
+          <div id="eventflow-invitation-list"></div>
         </section>
         <section id="eventflow-attendees-panel" role="tabpanel" aria-labelledby="eventflow-attendees-tab" hidden>
           <form class="eventflow-inline-form eventflow-inline-form--wide" id="eventflow-attendee-form">
@@ -321,6 +351,7 @@ Important: Please confirm your attendance and submit the names of your guest/com
               <legend>3. Choose recipients</legend>
               <div class="eventflow-invitation-recipient-filters">
                 <div><label for="eventflow-invitation-recipient-search">Search contacts</label><input id="eventflow-invitation-recipient-search" type="search"></div>
+                <div><label for="eventflow-invitation-response-filter">Guest status</label><select id="eventflow-invitation-response-filter"><option value="all">All active guests</option><option value="action_required">Needs a reminder</option><option value="pending">Awaiting RSVP</option><option value="incomplete">Missing companion names</option><option value="accepted">Confirmed</option><option value="declined">Declined</option></select></div>
                 <div><label for="eventflow-invitation-phone-region">Phone region</label><select id="eventflow-invitation-phone-region"><option value="all">All regions</option><option value="north_america">Canada/US (+1)</option><option value="international">International (not +1)</option></select></div>
                 <div class="eventflow-invitation-recipient-actions"><button class="button button-secondary" id="eventflow-invitation-select-visible" type="button">Select visible</button><button class="button-link" id="eventflow-invitation-clear-selection" type="button">Clear selection</button></div>
               </div>

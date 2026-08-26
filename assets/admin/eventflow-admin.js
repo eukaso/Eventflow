@@ -16,6 +16,17 @@
   const overviewFacts = document.getElementById('eventflow-overview-facts');
   const overviewActions = document.getElementById('eventflow-overview-actions');
   const overviewMessage = document.getElementById('eventflow-overview-message');
+  const dashboard = document.getElementById('eventflow-dashboard');
+  const dashboardMetrics = document.getElementById('eventflow-dashboard-metrics');
+  const dashboardSearch = document.getElementById('eventflow-dashboard-search');
+  const dashboardStatusFilter = document.getElementById('eventflow-dashboard-status-filter');
+  const dashboardSelectAction = document.getElementById('eventflow-dashboard-select-action');
+  const dashboardClearSelection = document.getElementById('eventflow-dashboard-clear-selection');
+  const dashboardSelection = document.getElementById('eventflow-dashboard-selection');
+  const dashboardEmailReminder = document.getElementById('eventflow-dashboard-email-reminder');
+  const dashboardSmsReminder = document.getElementById('eventflow-dashboard-sms-reminder');
+  const dashboardGuestBody = document.getElementById('eventflow-dashboard-guest-body');
+  const dashboardEmpty = document.getElementById('eventflow-dashboard-empty');
   const setup = document.getElementById('eventflow-setup');
   const setupClose = document.getElementById('eventflow-setup-close');
   const setupNotice = document.getElementById('eventflow-setup-notice');
@@ -28,6 +39,7 @@
   const peopleNotice = document.getElementById('eventflow-people-notice');
   const membershipForm = document.getElementById('eventflow-membership-form');
   const invitationForm = document.getElementById('eventflow-invitation-form');
+  const invitationEditor = document.getElementById('eventflow-invitation-editor');
   const invitationSubmit = document.getElementById('eventflow-invitation-submit');
   const invitationEditCancel = document.getElementById('eventflow-invitation-edit-cancel');
   const invitationFilter = document.getElementById('eventflow-invitation-filter');
@@ -87,6 +99,7 @@
   const invitationTestSend = document.getElementById('eventflow-invitation-test-send');
   const invitationTestStatus = document.getElementById('eventflow-invitation-test-status');
   const invitationRecipientSearch = document.getElementById('eventflow-invitation-recipient-search');
+  const invitationResponseFilter = document.getElementById('eventflow-invitation-response-filter');
   const invitationPhoneRegion = document.getElementById('eventflow-invitation-phone-region');
   const invitationSelectVisible = document.getElementById('eventflow-invitation-select-visible');
   const invitationClearSelection = document.getElementById('eventflow-invitation-clear-selection');
@@ -139,11 +152,15 @@
   let editingInvitationId = null;
   let editingInvitationEtag = null;
   let loadedInvitations = [];
+  let dashboardInvitations = [];
+  let dashboardAttendees = [];
+  let dashboardSelectedInvitations = new Set();
   let seatingTables = [];
   let seatingRecommendation = null;
   let receptionAttendees = [];
   let communicationTemplates = [];
   let invitationRecipients = [];
+  let invitationRecipientAttendees = [];
   let selectedInvitationRecipients = new Set();
   let preparedInvitationCampaign = null;
 
@@ -283,8 +300,157 @@
     overviewFacts.append(term, description);
   };
 
+  const activeAttendeesForInvitation = (invitationId, attendees) => attendees.filter((attendee) => (
+    Number(attendee.invitation_id) === Number(invitationId)
+    && !['cancelled', 'declined'].includes(String(attendee.status || ''))
+  ));
+
+  const invitationProgress = (invitation, attendees = dashboardAttendees) => {
+    const response = String(invitation.response_status || 'pending');
+    const capacity = Math.max(1, Number(invitation.capacity || 1));
+    const activeAttendees = activeAttendeesForInvitation(invitation.id, attendees);
+    const companions = activeAttendees.filter((attendee) => String(attendee.role) === 'companion').length;
+    const companionCapacity = Math.max(0, capacity - 1);
+    const incomplete = response === 'accepted' && activeAttendees.length < capacity;
+    const pending = response === 'pending';
+    const eligible = invitation.archived_at === null && String(invitation.status || '') === 'active';
+    return {
+      response,
+      capacity,
+      attendeeCount: activeAttendees.length,
+      companions,
+      companionCapacity,
+      incomplete,
+      pending,
+      needsAction: eligible && (pending || incomplete),
+      complete: response === 'accepted' && activeAttendees.length >= capacity,
+    };
+  };
+
+  const appendMetric = (value, label, tone = '') => {
+    const card = document.createElement('article');
+    card.className = `eventflow-dashboard__metric${tone ? ` eventflow-dashboard__metric--${tone}` : ''}`;
+    appendText(card, 'strong', 'eventflow-dashboard__metric-value', String(value));
+    appendText(card, 'span', 'eventflow-dashboard__metric-label', label);
+    dashboardMetrics.appendChild(card);
+  };
+
+  const dashboardInvitationMatches = (invitation) => {
+    const progress = invitationProgress(invitation);
+    const filter = String(dashboardStatusFilter.value || 'all');
+    if (filter === 'action_required' && !progress.needsAction) return false;
+    if (filter === 'pending' && !progress.pending) return false;
+    if (filter === 'incomplete' && !progress.incomplete) return false;
+    if (filter === 'accepted' && progress.response !== 'accepted') return false;
+    if (filter === 'declined' && progress.response !== 'declined') return false;
+    const query = String(dashboardSearch.value || '').trim().toLocaleLowerCase();
+    return !query || [invitation.primary_name, invitation.primary_email, invitation.primary_phone, invitation.code]
+      .some((value) => String(value || '').toLocaleLowerCase().includes(query));
+  };
+
+  const dashboardResponseLabel = (progress) => {
+    if (progress.pending) return 'Awaiting RSVP';
+    if (progress.response === 'accepted') return progress.incomplete ? 'Confirmed — details missing' : 'Confirmed';
+    if (progress.response === 'declined') return 'Declined';
+    return progress.response;
+  };
+
+  const updateDashboardSelection = () => {
+    const actionableIds = new Set(dashboardInvitations.filter((invitation) => invitationProgress(invitation).needsAction).map((invitation) => Number(invitation.id)));
+    dashboardSelectedInvitations = new Set(Array.from(dashboardSelectedInvitations).filter((id) => actionableIds.has(id)));
+    const selected = dashboardSelectedInvitations.size;
+    const emailEligible = dashboardInvitations.filter((invitation) => dashboardSelectedInvitations.has(Number(invitation.id)) && String(invitation.primary_email || '').trim()).length;
+    const smsEligible = dashboardInvitations.filter((invitation) => dashboardSelectedInvitations.has(Number(invitation.id)) && String(invitation.primary_phone || '').trim()).length;
+    dashboardSelection.textContent = selected
+      ? `${selected} guest${selected === 1 ? '' : 's'} selected • ${emailEligible} with email • ${smsEligible} with mobile number.`
+      : 'Select guests who still need to RSVP or provide companion names.';
+    dashboardEmailReminder.disabled = emailEligible < 1;
+    dashboardSmsReminder.disabled = smsEligible < 1;
+  };
+
+  const renderDashboard = () => {
+    dashboardMetrics.replaceChildren();
+    const active = dashboardInvitations.filter((invitation) => invitation.archived_at === null);
+    const progress = active.map((invitation) => invitationProgress(invitation));
+    appendMetric(active.length, 'Primary guests');
+    appendMetric(active.reduce((total, invitation) => total + Math.max(1, Number(invitation.capacity || 1)), 0), 'Reserved seats');
+    appendMetric(progress.filter((item) => item.complete).length, 'Forms complete', 'success');
+    appendMetric(progress.filter((item) => item.pending).length, 'Awaiting RSVP', 'warning');
+    appendMetric(progress.filter((item) => item.incomplete).length, 'Missing companion names', 'warning');
+    appendMetric(progress.filter((item) => item.response === 'declined').length, 'Declined');
+
+    dashboardGuestBody.replaceChildren();
+    const visible = active.filter(dashboardInvitationMatches);
+    dashboardEmpty.hidden = visible.length > 0;
+    visible.forEach((invitation) => {
+      const guestProgress = invitationProgress(invitation);
+      const row = document.createElement('tr');
+      const selectionCell = document.createElement('th');
+      selectionCell.className = 'check-column';
+      selectionCell.scope = 'row';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.disabled = !guestProgress.needsAction;
+      checkbox.checked = dashboardSelectedInvitations.has(Number(invitation.id));
+      checkbox.setAttribute('aria-label', `Select ${String(invitation.primary_name || 'guest')} for a reminder`);
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) dashboardSelectedInvitations.add(Number(invitation.id));
+        else dashboardSelectedInvitations.delete(Number(invitation.id));
+        updateDashboardSelection();
+      });
+      selectionCell.appendChild(checkbox);
+      const guestCell = document.createElement('td');
+      appendText(guestCell, 'strong', 'eventflow-dashboard__guest-name', String(invitation.primary_name || 'Unnamed guest'));
+      appendText(guestCell, 'span', 'eventflow-dashboard__guest-code', String(invitation.code || ''));
+      const contactCell = document.createElement('td');
+      appendText(contactCell, 'span', '', String(invitation.primary_email || 'No email'));
+      appendText(contactCell, 'span', '', String(invitation.primary_phone || 'No phone'));
+      const responseCell = document.createElement('td');
+      appendText(responseCell, 'span', `eventflow-dashboard__badge eventflow-dashboard__badge--${guestProgress.response}`, dashboardResponseLabel(guestProgress));
+      const seatsCell = document.createElement('td');
+      seatsCell.textContent = String(guestProgress.capacity);
+      const companionsCell = document.createElement('td');
+      companionsCell.textContent = `${guestProgress.companions}/${guestProgress.companionCapacity}`;
+      const actionCell = document.createElement('td');
+      actionCell.textContent = guestProgress.pending
+        ? 'Send RSVP reminder'
+        : (guestProgress.incomplete ? `Request ${guestProgress.capacity - guestProgress.attendeeCount} remaining name${guestProgress.capacity - guestProgress.attendeeCount === 1 ? '' : 's'}` : (guestProgress.complete ? 'Ready for seating' : 'No reminder needed'));
+      row.append(selectionCell, guestCell, contactCell, responseCell, seatsCell, companionsCell, actionCell);
+      dashboardGuestBody.appendChild(row);
+    });
+    updateDashboardSelection();
+  };
+
+  const loadDashboardData = async () => {
+    if (!activeEvent) return;
+    dashboardSelection.textContent = 'Loading guest progress…';
+    const eventPath = `events/${encodeURIComponent(String(activeEvent.id))}`;
+    try {
+      const [invitations, attendees] = await Promise.all([
+        requestAllPages(`${eventPath}/invitations`, 'next_after_invitation_id'),
+        requestAllPages(`${eventPath}/attendees`, 'next_after_attendee_id'),
+      ]);
+      dashboardInvitations = Array.isArray(invitations.payload.data) ? invitations.payload.data : [];
+      dashboardAttendees = Array.isArray(attendees.payload.data) ? attendees.payload.data : [];
+      renderDashboard();
+    } catch (error) {
+      dashboardMetrics.replaceChildren();
+      dashboardGuestBody.replaceChildren();
+      dashboardSelection.textContent = 'Guest response statistics are temporarily unavailable. Refresh this event to try again.';
+      dashboardEmailReminder.disabled = true;
+      dashboardSmsReminder.disabled = true;
+    }
+  };
+
+  const prepareDashboardReminder = async (channel) => {
+    const recipientIds = Array.from(dashboardSelectedInvitations);
+    if (!recipientIds.length) return;
+    await openCommunications({ channel, recipientIds, reminder: true });
+  };
+
   const showOverview = (event, etag = null) => {
     clearCredential();
+    if (Number(activeEvent?.id || 0) !== Number(event.id || 0)) dashboardSelectedInvitations.clear();
     activeEvent = event;
     activeEventEtag = etag;
     activeConfigurationEtag = null;
@@ -297,6 +463,7 @@
     communications.hidden = true;
     governance.hidden = true;
     overviewFacts.hidden = false;
+    dashboard.hidden = false;
     overviewTitle.textContent = String(event.name || 'Untitled event');
     overviewStatus.textContent = String(event.status || 'unknown');
     overviewFacts.replaceChildren();
@@ -310,14 +477,14 @@
     const setupButton = document.createElement('button');
     setupButton.className = 'button button-secondary';
     setupButton.type = 'button';
-    setupButton.textContent = 'Edit setup';
+    setupButton.textContent = 'Event settings';
     setupButton.addEventListener('click', openSetup);
     overviewActions.appendChild(setupButton);
 
     const peopleButton = document.createElement('button');
     peopleButton.className = 'button button-secondary';
     peopleButton.type = 'button';
-    peopleButton.textContent = 'Manage people';
+    peopleButton.textContent = 'Guest list';
     peopleButton.addEventListener('click', openPeople);
     overviewActions.appendChild(peopleButton);
 
@@ -331,21 +498,21 @@
     const receptionButton = document.createElement('button');
     receptionButton.className = 'button button-primary';
     receptionButton.type = 'button';
-    receptionButton.textContent = 'Open reception';
+    receptionButton.textContent = 'Open check-in';
     receptionButton.addEventListener('click', openReception);
     overviewActions.appendChild(receptionButton);
 
     const communicationsButton = document.createElement('button');
     communicationsButton.className = 'button button-secondary';
     communicationsButton.type = 'button';
-    communicationsButton.textContent = 'Communications';
+    communicationsButton.textContent = 'Messages & reminders';
     communicationsButton.addEventListener('click', openCommunications);
     overviewActions.appendChild(communicationsButton);
 
     const governanceButton = document.createElement('button');
     governanceButton.className = 'button button-secondary';
     governanceButton.type = 'button';
-    governanceButton.textContent = 'Data and governance';
+    governanceButton.textContent = 'Advanced data';
     governanceButton.addEventListener('click', openGovernance);
     overviewActions.appendChild(governanceButton);
 
@@ -365,6 +532,7 @@
     try {
       const { payload, etag } = await requestJson(`events/${encodeURIComponent(String(eventId))}`);
       showOverview(payload.data || {}, etag);
+      await loadDashboardData();
       return true;
     } catch (error) {
       overviewMessage.textContent = 'The Event overview could not be loaded. Return to the Event list and try again.';
@@ -453,6 +621,7 @@
   const openSetup = async () => {
     if (!activeEvent) return;
     overviewFacts.hidden = true;
+    dashboard.hidden = true;
     people.hidden = true;
     seating.hidden = true;
     reception.hidden = true;
@@ -705,6 +874,7 @@
     field(invitationForm, 'token_expires_at').disabled = false;
     invitationSubmit.textContent = 'Create invitation';
     invitationEditCancel.hidden = true;
+    invitationEditor.open = false;
   };
 
   const startInvitationEdit = async (invitationId) => {
@@ -723,6 +893,7 @@
       invitationSubmit.textContent = 'Save invitation profile';
       invitationEditCancel.hidden = false;
       selectPeopleTab('invitations');
+      invitationEditor.open = true;
       field(invitationForm, 'primary_name').focus();
       peopleNotice.textContent = 'Editing the current revision. Credential expiry is changed only during credential rotation.';
     } catch (error) {
@@ -748,14 +919,36 @@
     populateInvitationOptions(invitations);
     const visibleInvitations = invitations.filter(invitationMatchesFilter);
     invitationFilterStatus.textContent = `${visibleInvitations.length} of ${invitations.length} invitations shown.`;
-    if (!visibleInvitations.length) appendText(invitationList, 'p', 'eventflow-admin__status', 'No invitations match the current filter.');
+    if (!visibleInvitations.length) {
+      appendText(invitationList, 'p', 'eventflow-admin__status', 'No invitations match the current filter.');
+      return;
+    }
+    const tableWrap = document.createElement('div');
+    tableWrap.className = 'eventflow-admin-table-wrap';
+    const table = document.createElement('table');
+    table.className = 'widefat striped eventflow-admin-table';
+    const head = document.createElement('thead');
+    const headingRow = document.createElement('tr');
+    ['Primary guest', 'Contact', 'RSVP', 'Seats', 'Invitation', 'Actions'].forEach((label) => appendText(headingRow, 'th', '', label));
+    head.appendChild(headingRow);
+    const body = document.createElement('tbody');
     visibleInvitations.forEach((invitation) => {
       const state = invitation.archived_at ? 'archived' : String(invitation.status || 'unknown');
-      const { card, actions } = recordCard(
-        String(invitation.primary_name || 'Unnamed invitation'),
-        state,
-        [String(invitation.code || ''), invitation.primary_email || '', invitation.primary_phone || '', `Capacity ${invitation.capacity}`, `RSVP ${invitation.response_status}`],
-      );
+      const row = document.createElement('tr');
+      const guestCell = document.createElement('td');
+      appendText(guestCell, 'strong', 'eventflow-dashboard__guest-name', String(invitation.primary_name || 'Unnamed invitation'));
+      appendText(guestCell, 'span', 'eventflow-dashboard__guest-code', String(invitation.code || ''));
+      const contactCell = document.createElement('td');
+      appendText(contactCell, 'span', '', String(invitation.primary_email || 'No email'));
+      appendText(contactCell, 'span', '', String(invitation.primary_phone || 'No phone'));
+      const responseCell = document.createElement('td');
+      appendText(responseCell, 'span', `eventflow-dashboard__badge eventflow-dashboard__badge--${String(invitation.response_status || 'pending')}`, String(invitation.response_status || 'pending'));
+      const capacityCell = document.createElement('td');
+      capacityCell.textContent = String(invitation.capacity || 1);
+      const stateCell = document.createElement('td');
+      stateCell.textContent = state;
+      const actions = document.createElement('td');
+      actions.className = 'eventflow-admin-table__actions';
       const eventId = encodeURIComponent(String(activeEvent.id));
       const invitationId = encodeURIComponent(String(invitation.id));
       const invitationPath = `events/${eventId}/invitations/${invitationId}`;
@@ -782,8 +975,12 @@
           actions.appendChild(actionButton('Activate credential', () => invitationAction('activate', true)));
         }
       }
-      invitationList.appendChild(card);
+      row.append(guestCell, contactCell, responseCell, capacityCell, stateCell, actions);
+      body.appendChild(row);
     });
+    table.append(head, body);
+    tableWrap.appendChild(table);
+    invitationList.appendChild(tableWrap);
   };
 
   const renderAttendees = (attendees) => {
@@ -858,8 +1055,9 @@
     communications.hidden = true;
     governance.hidden = true;
     overviewFacts.hidden = true;
+    dashboard.hidden = true;
     people.hidden = false;
-    selectPeopleTab('memberships');
+    selectPeopleTab('invitations');
     await loadPeopleData();
   };
 
@@ -1111,6 +1309,7 @@
     communications.hidden = true;
     governance.hidden = true;
     overviewFacts.hidden = true;
+    dashboard.hidden = true;
     seating.hidden = false;
     renderRecommendation(null);
     await loadSeatingData();
@@ -1344,6 +1543,7 @@
     people.hidden = true;
     seating.hidden = true;
     overviewFacts.hidden = true;
+    dashboard.hidden = true;
     reception.hidden = false;
     communications.hidden = true;
     governance.hidden = true;
@@ -1436,8 +1636,15 @@
   const visibleInvitationRecipients = () => {
     const query = String(invitationRecipientSearch.value || '').trim().toLocaleLowerCase();
     const regionFilter = String(invitationPhoneRegion.value || 'all');
+    const responseFilter = String(invitationResponseFilter.value || 'all');
     return invitationRecipients.filter((invitation) => {
       if (invitation.archived_at !== null || invitation.status !== 'active' || !invitationRecipientAddress(invitation)) return false;
+      const progress = invitationProgress(invitation, invitationRecipientAttendees);
+      if (responseFilter === 'action_required' && !progress.needsAction) return false;
+      if (responseFilter === 'pending' && !progress.pending) return false;
+      if (responseFilter === 'incomplete' && !progress.incomplete) return false;
+      if (responseFilter === 'accepted' && progress.response !== 'accepted') return false;
+      if (responseFilter === 'declined' && progress.response !== 'declined') return false;
       if (String(invitationChannel.value) === 'sms' && regionFilter !== 'all' && phoneRegion(invitation.primary_phone) !== regionFilter) return false;
       if (!query) return true;
       return [invitation.primary_name, invitation.primary_email, invitation.primary_phone, invitation.code]
@@ -1484,7 +1691,10 @@
       const address = document.createElement('span');
       address.className = 'eventflow-invitation-recipient__address';
       address.textContent = invitationRecipientAddress(invitation);
-      row.append(checkbox, name, address);
+      const response = document.createElement('span');
+      response.className = 'eventflow-invitation-recipient__status';
+      response.textContent = dashboardResponseLabel(invitationProgress(invitation, invitationRecipientAttendees));
+      row.append(checkbox, name, address, response);
       invitationRecipientList.appendChild(row);
     });
     updateInvitationSelection();
@@ -1877,7 +2087,7 @@
     communicationsNotice.textContent = failures.join(' ') || 'Communication records loaded.';
   };
 
-  const openCommunications = async () => {
+  const openCommunications = async (options = {}) => {
     if (!activeEvent) return;
     clearCredential();
     setup.hidden = true;
@@ -1885,21 +2095,37 @@
     seating.hidden = true;
     reception.hidden = true;
     overviewFacts.hidden = true;
+    dashboard.hidden = true;
     communications.hidden = false;
     governance.hidden = true;
     selectCommunicationTab('templates');
     selectedInvitationRecipients.clear();
     preparedInvitationCampaign = null;
     invitationRecipientSearch.value = '';
+    invitationResponseFilter.value = options.reminder ? 'action_required' : 'all';
     invitationPhoneRegion.value = 'all';
     invitationSend.disabled = true;
     const invitationRequest = requestAllPages(`${communicationEventPath()}/invitations`, 'next_after_invitation_id');
-    const [, recipients] = await Promise.allSettled([loadCommunicationData(), invitationRequest]);
-    if (recipients.status === 'fulfilled') {
+    const attendeeRequest = requestAllPages(`${communicationEventPath()}/attendees`, 'next_after_attendee_id');
+    const [, recipients, attendees] = await Promise.allSettled([loadCommunicationData(), invitationRequest, attendeeRequest]);
+    if (recipients.status === 'fulfilled' && attendees.status === 'fulfilled') {
       invitationRecipients = Array.isArray(recipients.value.payload.data) ? recipients.value.payload.data : [];
+      invitationRecipientAttendees = Array.isArray(attendees.value.payload.data) ? attendees.value.payload.data : [];
+      if (options.channel === 'email' || options.channel === 'sms') invitationChannel.value = options.channel;
       configureInvitationChannel();
+      if (Array.isArray(options.recipientIds)) {
+        const eligibleIds = new Set(visibleInvitationRecipients().map((invitation) => Number(invitation.id)));
+        selectedInvitationRecipients = new Set(options.recipientIds.map(Number).filter((id) => eligibleIds.has(id)));
+        if (options.reminder) {
+          invitationSubject.value = 'Reminder: please confirm for {{event_name}}';
+          invitationMessage.value = 'Hello {{recipient_name}},\n\nThis is a friendly reminder to confirm your attendance and provide the names of your guest/companions for seating. Please complete this by September 2, 2026.\n\n{{guest_link}}';
+          communicationsNotice.textContent = `${selectedInvitationRecipients.size} guest${selectedInvitationRecipients.size === 1 ? '' : 's'} needing action prepared for a ${String(invitationChannel.value).toUpperCase()} reminder. Review before sending.`;
+        }
+        renderInvitationRecipients();
+      }
     } else {
       invitationRecipients = [];
+      invitationRecipientAttendees = [];
       renderInvitationRecipients();
       communicationsNotice.textContent = `${communicationsNotice.textContent} Guest contacts unavailable.`.trim();
     }
@@ -2186,6 +2412,7 @@
     reception.hidden = true;
     communications.hidden = true;
     overviewFacts.hidden = true;
+    dashboard.hidden = true;
     governance.hidden = false;
     selectGovernanceTab('imports');
     await loadGovernanceData();
@@ -2289,6 +2516,7 @@
   setupClose.addEventListener('click', () => {
     setup.hidden = true;
     overviewFacts.hidden = false;
+    dashboard.hidden = false;
     overviewMessage.textContent = 'Setup closed.';
   });
   eventForm.addEventListener('submit', submitEventSetup);
@@ -2299,33 +2527,51 @@
     resetInvitationEditor();
     people.hidden = true;
     overviewFacts.hidden = false;
+    dashboard.hidden = false;
     overviewMessage.textContent = 'People workspace closed.';
   });
   seatingClose.addEventListener('click', () => {
     seating.hidden = true;
     overviewFacts.hidden = false;
+    dashboard.hidden = false;
     overviewMessage.textContent = 'Seating workspace closed.';
   });
   receptionClose.addEventListener('click', () => {
     reception.hidden = true;
     receptionAttendees = [];
     overviewFacts.hidden = false;
+    dashboard.hidden = false;
     overviewMessage.textContent = 'Reception workspace closed.';
   });
   communicationsClose.addEventListener('click', () => {
     clearCommunicationDetails();
     communications.hidden = true;
     overviewFacts.hidden = false;
+    dashboard.hidden = false;
     overviewMessage.textContent = 'Communications workspace closed.';
   });
   governanceClose.addEventListener('click', () => {
     clearGovernanceDetails();
     governance.hidden = true;
     overviewFacts.hidden = false;
+    dashboard.hidden = false;
     overviewMessage.textContent = 'Data and governance workspace closed.';
   });
   root.addEventListener('invalid', reportInvalidControl, true);
   root.addEventListener('input', clearInvalidControl);
+  dashboardSearch.addEventListener('input', renderDashboard);
+  dashboardStatusFilter.addEventListener('change', renderDashboard);
+  dashboardSelectAction.addEventListener('click', () => {
+    dashboardInvitations.filter((invitation) => invitationProgress(invitation).needsAction)
+      .forEach((invitation) => dashboardSelectedInvitations.add(Number(invitation.id)));
+    renderDashboard();
+  });
+  dashboardClearSelection.addEventListener('click', () => {
+    dashboardSelectedInvitations.clear();
+    renderDashboard();
+  });
+  dashboardEmailReminder.addEventListener('click', () => prepareDashboardReminder('email'));
+  dashboardSmsReminder.addEventListener('click', () => prepareDashboardReminder('sms'));
   configureTabs(peopleTabs, selectPeopleTab);
   membershipForm.addEventListener('submit', submitMembership);
   invitationForm.addEventListener('submit', submitInvitation);
@@ -2355,6 +2601,7 @@
   invitationChannel.addEventListener('change', configureInvitationChannel);
   [invitationSubject, invitationImage, invitationMessage].forEach((control) => control.addEventListener('input', invalidatePreparedInvitation));
   invitationRecipientSearch.addEventListener('input', renderInvitationRecipients);
+  invitationResponseFilter.addEventListener('change', renderInvitationRecipients);
   invitationPhoneRegion.addEventListener('change', renderInvitationRecipients);
   invitationSelectVisible.addEventListener('click', () => {
     visibleInvitationRecipients().forEach((invitation) => selectedInvitationRecipients.add(Number(invitation.id)));

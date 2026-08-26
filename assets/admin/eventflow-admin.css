@@ -5,7 +5,7 @@
   --ef-accent: #3157d5;
   --ef-border: #dfe4ee;
   color: var(--ef-ink);
-  max-width: 1180px;
+  max-width: 1440px;
   overflow-wrap: anywhere;
 }
 
@@ -118,7 +118,9 @@
 
 .eventflow-overview__heading h2 {
   font-size: 1.75rem;
+  line-height: 1.2;
   margin: 6px 0 20px;
+  max-width: 720px;
 }
 
 .eventflow-overview__actions {
@@ -149,6 +151,171 @@
 .eventflow-overview__message {
   min-height: 1.5em;
   margin: 20px 0 0;
+}
+
+.eventflow-dashboard {
+  border-top: 1px solid var(--ef-border);
+  margin-top: 22px;
+  padding-top: 24px;
+}
+
+.eventflow-dashboard__heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.eventflow-dashboard__heading h3 {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  margin: 5px 0 6px;
+}
+
+.eventflow-dashboard__heading p:last-child {
+  color: var(--ef-muted);
+  margin: 0;
+  max-width: 760px;
+}
+
+.eventflow-dashboard__primary-actions,
+.eventflow-dashboard__selection-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eventflow-dashboard__metrics {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  margin: 22px 0;
+}
+
+.eventflow-dashboard__metric {
+  background: #f8fafc;
+  border: 1px solid var(--ef-border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 84px;
+  padding: 16px;
+}
+
+.eventflow-dashboard__metric--success {
+  background: #f0fdf4;
+  border-color: #bbdfc6;
+}
+
+.eventflow-dashboard__metric--warning {
+  background: #fff9e8;
+  border-color: #ead79b;
+}
+
+.eventflow-dashboard__metric-value {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.eventflow-dashboard__metric-label {
+  color: var(--ef-muted);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.eventflow-dashboard__filters {
+  align-items: end;
+  background: #f8fafc;
+  border: 1px solid var(--ef-border);
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(240px, 2fr) minmax(190px, 1fr) auto;
+  padding: 14px;
+}
+
+.eventflow-dashboard__filters label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.eventflow-dashboard__filters input,
+.eventflow-dashboard__filters select {
+  box-sizing: border-box;
+  min-height: 40px;
+  width: 100%;
+}
+
+.eventflow-dashboard__selection {
+  font-weight: 600;
+  margin: 12px 0;
+}
+
+.eventflow-dashboard__table-wrap {
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  max-height: 560px;
+  overflow: auto;
+}
+
+.eventflow-dashboard__table {
+  border: 0;
+  border-spacing: 0;
+  min-width: 980px;
+}
+
+.eventflow-dashboard__table thead th {
+  background: #f6f7f7;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.eventflow-dashboard__table td,
+.eventflow-dashboard__table th {
+  padding-bottom: 12px;
+  padding-top: 12px;
+  vertical-align: middle;
+}
+
+.eventflow-dashboard__table td span {
+  display: block;
+}
+
+.eventflow-dashboard__guest-name {
+  color: var(--ef-ink);
+}
+
+.eventflow-dashboard__guest-code,
+.eventflow-dashboard__table td span + span {
+  color: var(--ef-muted);
+  font-size: 0.82rem;
+  margin-top: 3px;
+}
+
+.eventflow-dashboard__badge {
+  border-radius: 999px;
+  display: inline-block !important;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 9px;
+}
+
+.eventflow-dashboard__badge--accepted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.eventflow-dashboard__badge--pending {
+  background: #fef3c7;
+  color: #854d0e;
+}
+
+.eventflow-dashboard__badge--declined {
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .eventflow-setup {
@@ -227,6 +394,23 @@
 .eventflow-venue-create summary {
   cursor: pointer;
   font-weight: 700;
+}
+
+.eventflow-guest-editor {
+  background: #f8fafc;
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+}
+
+.eventflow-guest-editor > summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.eventflow-guest-editor[open] > summary {
+  margin-bottom: 16px;
 }
 
 .eventflow-form--compact {
@@ -694,7 +878,7 @@
   align-items: end;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(220px, 2fr) minmax(180px, 1fr) auto;
+  grid-template-columns: minmax(220px, 2fr) minmax(180px, 1fr) minmax(180px, 1fr) auto;
 }
 
 .eventflow-invitation-recipient-filters label {
@@ -722,7 +906,7 @@
   border-bottom: 1px solid var(--ef-border);
   display: grid;
   gap: 4px 12px;
-  grid-template-columns: auto minmax(150px, 1fr) minmax(180px, 1fr);
+  grid-template-columns: auto minmax(150px, 1fr) minmax(180px, 1fr) minmax(150px, 0.8fr);
   padding: 11px 14px;
 }
 
@@ -741,6 +925,12 @@
 
 .eventflow-invitation-recipient__address {
   overflow-wrap: anywhere;
+}
+
+.eventflow-invitation-recipient__status {
+  color: var(--ef-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .eventflow-invitation-review {
@@ -772,6 +962,18 @@
 }
 
 @media (max-width: 782px) {
+  .eventflow-dashboard__heading {
+    display: block;
+  }
+
+  .eventflow-dashboard__primary-actions {
+    margin-top: 16px;
+  }
+
+  .eventflow-dashboard__filters {
+    grid-template-columns: 1fr;
+  }
+
   .eventflow-communication-start,
   .eventflow-communication-start ol {
     grid-template-columns: 1fr;
@@ -783,6 +985,15 @@
 
   .eventflow-invitation-recipient-filters {
     grid-template-columns: 1fr;
+  }
+
+  .eventflow-invitation-recipient {
+    grid-template-columns: auto 1fr;
+  }
+
+  .eventflow-invitation-recipient__address,
+  .eventflow-invitation-recipient__status {
+    grid-column: 2;
   }
 
   .eventflow-invitation-review {
@@ -820,6 +1031,35 @@
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.eventflow-admin-table-wrap {
+  border: 1px solid var(--ef-border);
+  border-radius: 8px;
+  overflow: auto;
+}
+
+.eventflow-admin-table {
+  border: 0;
+  min-width: 920px;
+}
+
+.eventflow-admin-table td,
+.eventflow-admin-table th {
+  padding: 11px 12px;
+  vertical-align: middle;
+}
+
+.eventflow-admin-table td span {
+  display: block;
+}
+
+.eventflow-admin-table__actions {
+  min-width: 260px;
+}
+
+.eventflow-admin-table__actions .button {
+  margin: 2px 5px 2px 0;
 }
 
 .eventflow-person-card {

@@ -15,7 +15,9 @@ final class Sprint11GuestExperienceValidationTest extends TestCase
         self::assertStringContainsString("await bootstrap(invitationCredential, 'invitation')", $script);
         self::assertStringContainsString("openingPhase === 'bootstrap'", $script);
         self::assertStringContainsString('Your secure link was accepted, but the invitation details could not be loaded.', $script);
-        self::assertStringContainsString('This secure session has expired. Reopen your original invitation email and click the personalized link again.', $script);
+        self::assertStringContainsString('This secure browser session has expired. Reopen the original invitation email', $script);
+        $service = $this->source('src/Application/GuestAccess/GuestAccessService.php');
+        self::assertStringContainsString('private int $sessionLifetimeSeconds = 86400', $service);
         self::assertStringContainsString('window.history.replaceState', $script);
         self::assertStringContainsString('/^[a-f0-9]{64}$/', $script);
         $clean = strpos($script, 'const invitationCredential = cleanCredentialFragment()');

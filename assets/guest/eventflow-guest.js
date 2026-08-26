@@ -332,7 +332,7 @@
     } catch (error) {
       const reference = error.requestId ? ` Reference: ${error.requestId}.` : '';
       if (openingPhase === 'invitation' && error.code === 'guest_session_invalid') {
-        setStatus(`This secure session has expired. Reopen your original invitation email and click the personalized link again.${reference}`);
+        setStatus(`This secure browser session has expired. Reopen the original invitation email and click its personalized link—not a saved or refreshed Confirm page.${reference}`);
         return;
       }
       setStatus(openingPhase === 'bootstrap'

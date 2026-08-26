@@ -43,6 +43,20 @@ final class Sprint11EventOverviewValidationTest extends TestCase
         self::assertStringNotContainsString('insertAdjacentHTML', $script);
     }
 
+    public function testDashboardMakesGuestProgressAndTargetedRemindersVisible(): void
+    {
+        $view = $this->source('src/Presentation/Admin/AdminShellView.php');
+        foreach (['Event dashboard', 'Needs a reminder', 'Missing companion names', 'Prepare email reminder', 'Prepare SMS reminder'] as $expected) {
+            self::assertStringContainsString($expected, $view);
+        }
+
+        $script = $this->source('assets/admin/eventflow-admin.js');
+        foreach (['loadDashboardData', 'invitationProgress', 'dashboardSelectedInvitations', "openCommunications({ channel, recipientIds, reminder: true })", "invitationResponseFilter.value = options.reminder ? 'action_required' : 'all'", 'Review before sending.'] as $expected) {
+            self::assertStringContainsString($expected, $script);
+        }
+        self::assertStringContainsString("response === 'accepted' && activeAttendees.length < capacity", $script);
+    }
+
     private function source(string $path): string
     {
         $source = file_get_contents(dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $path));

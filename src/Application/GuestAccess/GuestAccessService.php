@@ -35,7 +35,7 @@ final readonly class GuestAccessService implements GuestSessionAuthenticator, Gu
         private SecureRandom $random,
         private CredentialDigester $digester,
         private TransactionManager $transactions,
-        private int $sessionLifetimeSeconds = 28800,
+        private int $sessionLifetimeSeconds = 86400,
     ) {
         if ($sessionLifetimeSeconds < 300 || $sessionLifetimeSeconds > 86400) {
             throw new \InvalidArgumentException('invalid_guest_session_lifetime');
