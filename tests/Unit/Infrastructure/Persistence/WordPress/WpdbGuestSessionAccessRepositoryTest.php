@@ -14,7 +14,7 @@ final class WpdbGuestSessionAccessRepositoryTest extends TestCase
         $wpdb = new GuestSessionAccessWpdb();
         $wpdb->row = [
             'event_id'=>'44','event_name'=>'Launch Party','timezone'=>'America/Edmonton','starts_at'=>null,'ends_at'=>null,
-            'invitation_id'=>'81','primary_name'=>'Guest','capacity'=>'2','response_status'=>'pending','response_revision'=>'0',
+            'invitation_id'=>'81','primary_name'=>'Guest','primary_email'=>'guest@example.test','primary_phone'=>'+15875550100','capacity'=>'2','response_status'=>'pending','response_revision'=>'0',
             'allow_guest_edits'=>'1','welcome_message'=>'Welcome','confirmation_message'=>null,'surprise_notice'=>null,
             'dress_code'=>'Formal','confirmation_opens_at'=>null,'confirmation_closes_at'=>null,
         ];
@@ -23,9 +23,30 @@ final class WpdbGuestSessionAccessRepositoryTest extends TestCase
         $context = $repository->findContext(new EventScope(44), 81);
 
         self::assertSame('Launch Party', $context?->eventName);
+        self::assertSame('guest@example.test', $context?->primaryEmail);
+        self::assertSame('+15875550100', $context?->primaryPhone);
+        self::assertTrue($context?->collectDietaryRequirements);
+        self::assertTrue($context?->collectAccessibilityRequirements);
         self::assertTrue($context?->allowGuestEdits);
         self::assertStringContainsString('i.event_id=44 AND i.invitation_id=81', $wpdb->queries[0]);
         self::assertStringNotContainsString('token_lookup', $wpdb->queries[0]);
+    }
+
+    public function testLui60ReconciliationUsesCompactRsvpWithoutRemovingPluginFields(): void
+    {
+        $wpdb = new GuestSessionAccessWpdb();
+        $wpdb->row = [
+            'event_id'=>'44','event_name'=>'Lui @ 60 Reference Reconciliation (Staging)','timezone'=>'America/Edmonton','starts_at'=>null,'ends_at'=>null,
+            'invitation_id'=>'81','primary_name'=>'Guest','primary_email'=>'guest@example.test','primary_phone'=>'5875550100','capacity'=>'2','response_status'=>'pending','response_revision'=>'0',
+            'allow_guest_edits'=>'1','welcome_message'=>'Welcome','confirmation_message'=>null,'surprise_notice'=>null,
+            'dress_code'=>null,'confirmation_opens_at'=>null,'confirmation_closes_at'=>null,
+        ];
+        $repository = new WpdbGuestSessionAccessRepository(new WpdbAdapter($wpdb), new WpdbTableNames('wp_'));
+
+        $context = $repository->findContext(new EventScope(44), 81);
+
+        self::assertFalse($context?->collectDietaryRequirements);
+        self::assertFalse($context?->collectAccessibilityRequirements);
     }
 
     public function testLogoutRevokesOnlyExactActiveSessionScope(): void

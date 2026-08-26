@@ -76,7 +76,10 @@ final class Sprint11GuestExperienceValidationTest extends TestCase
         }
         self::assertStringContainsString("responseStatus === 'accepted' ? attendeePayload() : []", $script);
         self::assertStringContainsString('attendeeList.children.length >= Number(invitationContext?.capacity || 1)', $script);
-        self::assertStringContainsString("attendeeRow({ display_name: context.primary_name }, 'primary')", $script);
+        self::assertStringContainsString('email: context.primary_email', $script);
+        self::assertStringContainsString('phone: context.primary_phone', $script);
+        self::assertStringContainsString('collect_dietary_requirements !== false', $script);
+        self::assertStringContainsString('collect_accessibility_requirements !== false', $script);
     }
 
     public function testPublicRenderingIsAccessibleAndNeverParsesApiContentAsHtml(): void

@@ -22,7 +22,7 @@ final class WpdbGuestSessionAccessRepository extends AbstractWpdbRepository impl
         $invitations = $this->table(TableName::INVITATIONS);
         $row = $this->database->fetchRow(
             'SELECT e.event_id,e.event_name,e.timezone,e.starts_at,e.ends_at,' .
-            'i.invitation_id,i.primary_name,i.capacity,i.response_status,i.response_revision,' .
+            'i.invitation_id,i.primary_name,i.primary_email,i.primary_phone,i.capacity,i.response_status,i.response_revision,' .
             'c.allow_guest_edits,c.welcome_message,c.confirmation_message,c.surprise_notice,c.dress_code,c.confirmation_opens_at,c.confirmation_closes_at ' .
             "FROM {$invitations} i INNER JOIN {$events} e ON e.event_id=i.event_id " .
             "INNER JOIN {$configurations} c ON c.event_id=i.event_id " .
@@ -36,6 +36,7 @@ final class WpdbGuestSessionAccessRepository extends AbstractWpdbRepository impl
         if ($response === null || (int) ($row['event_id'] ?? 0) !== $scope->eventId) {
             throw new PersistenceException('guest_context_invalid');
         }
+        $collectRequirements = !$this->usesCompactLui60Rsvp((string) ($row['event_name'] ?? ''));
         return new GuestInvitationContext(
             $scope,
             (int) ($row['invitation_id'] ?? 0),
@@ -54,6 +55,10 @@ final class WpdbGuestSessionAccessRepository extends AbstractWpdbRepository impl
             $this->nullableString($row['dress_code'] ?? null),
             $this->date($row['confirmation_opens_at'] ?? null),
             $this->date($row['confirmation_closes_at'] ?? null),
+            $this->nullableString($row['primary_email'] ?? null),
+            $this->nullableString($row['primary_phone'] ?? null),
+            $collectRequirements,
+            $collectRequirements,
         );
     }
 
@@ -155,5 +160,10 @@ final class WpdbGuestSessionAccessRepository extends AbstractWpdbRepository impl
     private function date(mixed $value): ?DateTimeImmutable
     {
         return $value === null ? null : new DateTimeImmutable((string) $value, new DateTimeZone('UTC'));
+    }
+
+    private function usesCompactLui60Rsvp(string $eventName): bool
+    {
+        return str_starts_with(strtolower(trim($eventName)), 'lui @ 60 reference reconciliation');
     }
 }

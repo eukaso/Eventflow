@@ -21,6 +21,8 @@ final readonly class GuestSessionAccessPresenter
                 'starts_at' => $this->date($context->startsAt),
                 'ends_at' => $this->date($context->endsAt),
                 'primary_name' => $context->primaryName,
+                'primary_email' => $context->primaryEmail,
+                'primary_phone' => $context->primaryPhone,
                 'capacity' => $context->capacity,
                 'response_status' => $context->responseStatus->value,
                 'response_revision' => $context->responseRevision,
@@ -31,6 +33,8 @@ final readonly class GuestSessionAccessPresenter
                 'dress_code' => $context->dressCode,
                 'confirmation_opens_at' => $this->date($context->confirmationOpensAt),
                 'confirmation_closes_at' => $this->date($context->confirmationClosesAt),
+                'collect_dietary_requirements' => $context->collectDietaryRequirements,
+                'collect_accessibility_requirements' => $context->collectAccessibilityRequirements,
             ],
             'request_id' => $requestId->value,
         ], $this->headers($requestId));

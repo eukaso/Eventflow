@@ -156,11 +156,17 @@
     email.control.dataset.field = 'email';
     const phone = input('Phone', 'tel', attendee?.phone || '');
     phone.control.dataset.field = 'phone';
-    const dietary = input('Dietary requirements', 'text', attendee?.dietary_requirements || '');
-    dietary.control.dataset.field = 'dietary_requirements';
-    const accessibility = input('Accessibility requirements', 'text', attendee?.accessibility_requirements || '');
-    accessibility.control.dataset.field = 'accessibility_requirements';
-    row.append(name.label, email.label, phone.label, dietary.label, accessibility.label);
+    row.append(name.label, email.label, phone.label);
+    if (invitationContext?.collect_dietary_requirements !== false) {
+      const dietary = input('Dietary requirements', 'text', attendee?.dietary_requirements || '');
+      dietary.control.dataset.field = 'dietary_requirements';
+      row.append(dietary.label);
+    }
+    if (invitationContext?.collect_accessibility_requirements !== false) {
+      const accessibility = input('Accessibility requirements', 'text', attendee?.accessibility_requirements || '');
+      accessibility.control.dataset.field = 'accessibility_requirements';
+      row.append(accessibility.label);
+    }
     if (role !== 'primary') {
       const remove = document.createElement('button');
       remove.className = 'eventflow-guest__link';
@@ -215,9 +221,20 @@
     attendeeList.replaceChildren();
     const attendees = Array.isArray(response.attendees) ? response.attendees : [];
     if (attendees.length) {
-      attendees.forEach((attendee) => attendeeRow(attendee, attendee.role === 'primary' ? 'primary' : 'companion'));
+      attendees.forEach((attendee) => {
+        const primary = attendee.role === 'primary';
+        attendeeRow(primary ? {
+          ...attendee,
+          email: attendee.email || context.primary_email || '',
+          phone: attendee.phone || context.primary_phone || '',
+        } : attendee, primary ? 'primary' : 'companion');
+      });
     } else {
-      attendeeRow({ display_name: context.primary_name }, 'primary');
+      attendeeRow({
+        display_name: context.primary_name,
+        email: context.primary_email || '',
+        phone: context.primary_phone || '',
+      }, 'primary');
     }
     const responseStatus = response.response_status || context.response_status || 'pending';
     const selected = form.querySelector(`input[name="response_status"][value="${responseStatus}"]`);
@@ -257,7 +274,9 @@
 
   const attendeePayload = () => Array.from(attendeeList.children).map((row) => {
     const value = (name) => {
-      const candidate = String(row.querySelector(`[data-field="${name}"]`).value || '').trim();
+      const control = row.querySelector(`[data-field="${name}"]`);
+      if (!control) return null;
+      const candidate = String(control.value || '').trim();
       return candidate === '' ? null : candidate;
     };
     const attendeeId = String(row.dataset.attendeeId || '');

@@ -35,6 +35,10 @@ final class GuestSessionAccessControllerTest extends TestCase
         $context = $controller->context($this->readRequest());
         self::assertSame(200, $context->status());
         self::assertSame('Annual Dinner', $context->body()['data']['event_name']);
+        self::assertSame('guest@example.test', $context->body()['data']['primary_email']);
+        self::assertSame('+15875550100', $context->body()['data']['primary_phone']);
+        self::assertTrue($context->body()['data']['collect_dietary_requirements']);
+        self::assertTrue($context->body()['data']['collect_accessibility_requirements']);
         self::assertArrayNotHasKey('organizer_notes', $context->body()['data']);
         self::assertSame('no-store, max-age=0', $context->headers()['Cache-Control']);
         self::assertNull($sessions->csrfToken);
@@ -131,6 +135,7 @@ final class GuestSessionAccessPort implements GuestSessionAccess
             new EventScope(44), 81, 'Annual Dinner', 'America/Edmonton',
             new DateTimeImmutable('2026-09-01T18:00:00-06:00'), null, 'Guest One', 2,
             InvitationResponseStatus::ACCEPTED, 7, true, 'Welcome', 'Confirmed', null, 'Formal',
+            primaryEmail: 'guest@example.test', primaryPhone: '+15875550100',
         );
     }
     public function response(PrincipalContext $principal): RsvpResult

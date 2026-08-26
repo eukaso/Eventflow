@@ -27,6 +27,10 @@ final readonly class GuestInvitationContext
         public ?string $dressCode = null,
         public ?DateTimeImmutable $confirmationOpensAt = null,
         public ?DateTimeImmutable $confirmationClosesAt = null,
+        public ?string $primaryEmail = null,
+        public ?string $primaryPhone = null,
+        public bool $collectDietaryRequirements = true,
+        public bool $collectAccessibilityRequirements = true,
     ) {
         if (
             $invitationId < 1
@@ -35,6 +39,8 @@ final readonly class GuestInvitationContext
             || trim($primaryName) === ''
             || $capacity < 1
             || $responseRevision < 0
+            || ($primaryEmail !== null && filter_var($primaryEmail, FILTER_VALIDATE_EMAIL) === false)
+            || ($primaryPhone !== null && strlen($primaryPhone) > 40)
         ) {
             throw new InvalidArgumentException('invalid_guest_invitation_context');
         }

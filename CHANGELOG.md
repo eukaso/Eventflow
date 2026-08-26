@@ -1,5 +1,6 @@
 # Changelog
 
+- Added a compact Lui @ 60 RSVP profile that retains optional dietary/accessibility fields for other events while hiding them for this rollout, and prepopulates the primary guest's invitation email and phone on their secure form.
 - Fixed personalized RSVP links on WordPress hosts whose REST routes are rewritten by using a versioned, root-scoped Secure/HttpOnly guest-session cookie and retaining a safe PHP cookie fallback when WordPress REST parsing is incomplete.
 - Fixed the public RSVP bootstrap journey so invitation context and response data are loaded sequentially, preventing concurrent guest-session reads from racing immediately after a secure link is accepted.
 - Guest-facing CSS and JavaScript now use content-hashed cache keys so corrected RSVP builds reach visitors without changing the release candidate version.
