@@ -53,6 +53,18 @@ final class Sprint11GuestExperienceValidationTest extends TestCase
         self::assertStringNotContainsString('Math.random', $script);
     }
 
+    public function testGuestSessionReadsAreSequentialAfterBootstrap(): void
+    {
+        $script = $this->source('assets/guest/eventflow-guest.js');
+        $context = strpos($script, "const contextResult = await request('public/invitation')");
+        $response = strpos($script, "const responseResult = await request('public/invitation/response')");
+
+        self::assertIsInt($context);
+        self::assertIsInt($response);
+        self::assertLessThan($response, $context);
+        self::assertStringNotContainsString("Promise.all([\n      request('public/invitation')", $script);
+    }
+
     public function testRsvpPayloadPreservesIdentityCapacityAndDeclineRules(): void
     {
         $script = $this->source('assets/guest/eventflow-guest.js');

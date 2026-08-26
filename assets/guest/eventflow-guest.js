@@ -240,10 +240,8 @@
   };
 
   const loadInvitation = async () => {
-    const [contextResult, responseResult] = await Promise.all([
-      request('public/invitation'),
-      request('public/invitation/response'),
-    ]);
+    const contextResult = await request('public/invitation');
+    const responseResult = await request('public/invitation/response');
     responseEtag = responseResult.etag;
     render(contextResult.payload.data || {}, responseResult.payload.data || {});
   };
