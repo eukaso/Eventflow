@@ -11,7 +11,7 @@ final readonly class CreateInvitation
     public function __construct(
         public EventScope $eventScope,
         public string $primaryName,
-        public int $capacity = 1,
+        public int $capacity = CompanionRolloutPolicy::DEFAULT_TOTAL_CAPACITY,
         public ?string $primaryEmail = null,
         public ?string $primaryPhone = null,
         public ?DateTimeImmutable $tokenExpiresAt = null,

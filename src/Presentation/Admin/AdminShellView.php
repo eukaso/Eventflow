@@ -177,8 +177,9 @@ final readonly class AdminShellView
             <input id="eventflow-invitation-email" name="primary_email" type="email">
             <label for="eventflow-invitation-phone">Phone</label>
             <input id="eventflow-invitation-phone" name="primary_phone" type="tel">
-            <label for="eventflow-invitation-capacity">Capacity</label>
-            <input id="eventflow-invitation-capacity" max="65535" min="1" name="capacity" required type="number" value="1">
+            <label for="eventflow-invitation-capacity">Total places</label>
+            <input aria-describedby="eventflow-invitation-capacity-help" id="eventflow-invitation-capacity" max="65535" min="1" name="capacity" required type="number" value="2">
+            <p class="description" id="eventflow-invitation-capacity-help">Initial rollout: 2 total places (the primary guest plus 1 companion). Increase this only for an approved family exception.</p>
             <label for="eventflow-invitation-expiry">Credential expires</label>
             <input id="eventflow-invitation-expiry" name="token_expires_at" placeholder="Optional ISO 8601 timestamp" type="text">
             <label for="eventflow-invitation-notes">Organizer notes</label>
@@ -187,6 +188,11 @@ final readonly class AdminShellView
             <button class="button-link" id="eventflow-invitation-edit-cancel" type="button" hidden>Cancel edit</button>
           </form>
           </details>
+          <div class="notice notice-info inline eventflow-rollout-policy">
+            <h4>Initial rollout companion limit</h4>
+            <p>Set every active invitation to 2 total places: the primary guest plus 1 companion. After applying the rollout, use <strong>Edit profile</strong> to increase an approved family exception.</p>
+            <button class="button button-secondary" id="eventflow-apply-companion-rollout" type="button">Apply one-companion limit</button>
+          </div>
           <div class="eventflow-list-filter">
             <div><label for="eventflow-invitation-filter">Filter invitations</label><input autocomplete="off" id="eventflow-invitation-filter" placeholder="Name, email, phone, code, or calling code" type="search"></div>
             <div><label for="eventflow-invitation-state-filter">Invitation state</label><select id="eventflow-invitation-state-filter"><option value="all">All invitations</option><option value="active">Active only</option><option value="archived">Archived only</option></select></div>

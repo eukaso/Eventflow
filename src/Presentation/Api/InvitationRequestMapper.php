@@ -4,6 +4,7 @@ namespace EventFlow\Presentation\Api;
 
 use DateTimeImmutable;
 use EventFlow\Application\Invitation\CreateInvitation;
+use EventFlow\Application\Invitation\CompanionRolloutPolicy;
 use EventFlow\Application\Persistence\EventScope;
 use Exception;
 use InvalidArgumentException;
@@ -17,7 +18,7 @@ final readonly class InvitationRequestMapper
             return new CreateInvitation(
                 $this->scope($request),
                 $this->requiredString($json, 'primary_name'),
-                $this->capacity($json['capacity'] ?? 1),
+                $this->capacity($json['capacity'] ?? CompanionRolloutPolicy::DEFAULT_TOTAL_CAPACITY),
                 $this->optionalString($json['primary_email'] ?? null),
                 $this->optionalString($json['primary_phone'] ?? null),
                 $this->date($json['token_expires_at'] ?? null),

@@ -42,6 +42,7 @@
   const invitationEditor = document.getElementById('eventflow-invitation-editor');
   const invitationSubmit = document.getElementById('eventflow-invitation-submit');
   const invitationEditCancel = document.getElementById('eventflow-invitation-edit-cancel');
+  const applyCompanionRollout = document.getElementById('eventflow-apply-companion-rollout');
   const invitationFilter = document.getElementById('eventflow-invitation-filter');
   const invitationStateFilter = document.getElementById('eventflow-invitation-state-filter');
   const invitationFilterStatus = document.getElementById('eventflow-invitation-filter-status');
@@ -870,7 +871,7 @@
     editingInvitationId = null;
     editingInvitationEtag = null;
     invitationForm.reset();
-    setField(invitationForm, 'capacity', 1);
+    setField(invitationForm, 'capacity', 2);
     field(invitationForm, 'token_expires_at').disabled = false;
     invitationSubmit.textContent = 'Create invitation';
     invitationEditCancel.hidden = true;
@@ -1580,6 +1581,44 @@
       tab.tabIndex = selected ? 0 : -1;
       panel.hidden = !selected;
     });
+  };
+
+  const applyOneCompanionRollout = async () => {
+    if (!activeEvent) return;
+    const targets = loadedInvitations.filter((invitation) => invitation.archived_at === null && Number(invitation.capacity) !== 2);
+    if (!targets.length) {
+      peopleNotice.textContent = 'Every active invitation already allows exactly one companion.';
+      return;
+    }
+    if (!window.confirm(`Set ${targets.length} active invitation${targets.length === 1 ? '' : 's'} to one companion each? Approved family exceptions can be increased manually afterward.`)) return;
+
+    applyCompanionRollout.disabled = true;
+    peopleNotice.textContent = `Applying the one-companion limit to ${targets.length} invitations…`;
+    const eventId = encodeURIComponent(String(activeEvent.id));
+    const queue = [...targets];
+    let updated = 0;
+    const failures = [];
+    const worker = async () => {
+      while (queue.length) {
+        const invitation = queue.shift();
+        try {
+          await requestJson(`events/${eventId}/invitations/${encodeURIComponent(String(invitation.id))}`, {
+            method: 'PATCH',
+            headers: mutationHeaders(`"${Number(invitation.revision)}"`),
+            body: JSON.stringify({ capacity: 2 }),
+          });
+          updated += 1;
+        } catch (error) {
+          failures.push({ id: invitation.id, code: error.code || 'update_failed' });
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(6, targets.length) }, () => worker()));
+    await loadPeopleData(false);
+    applyCompanionRollout.disabled = false;
+    peopleNotice.textContent = failures.length
+      ? `${updated} invitations now allow one companion. ${failures.length} could not be changed because of their current records; review those family profiles manually.`
+      : `${updated} invitations now allow exactly one companion. Family exceptions can be increased manually.`;
   };
 
   const escapeInvitationHtml = (value) => String(value || '')
@@ -2575,6 +2614,7 @@
   configureTabs(peopleTabs, selectPeopleTab);
   membershipForm.addEventListener('submit', submitMembership);
   invitationForm.addEventListener('submit', submitInvitation);
+  applyCompanionRollout.addEventListener('click', applyOneCompanionRollout);
   invitationFilter.addEventListener('input', () => renderInvitations());
   invitationStateFilter.addEventListener('change', () => renderInvitations());
   invitationEditCancel.addEventListener('click', () => {
