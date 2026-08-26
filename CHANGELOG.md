@@ -1,6 +1,7 @@
 # Changelog
 
 - Fixed the public RSVP bootstrap journey so invitation context and response data are loaded sequentially, preventing concurrent guest-session reads from racing immediately after a secure link is accepted.
+- Guest-facing CSS and JavaScript now use content-hashed cache keys so corrected RSVP builds reach visitors without changing the release candidate version.
 
 - IMP-098: replaced the organizer-facing communication setup with a one-screen invitation composer, WordPress Media Library invitation-card selection, isolated personal email/SMS tests, searchable channel-aware contact selection, North America/international SMS filtering, guarded audience review and sending, and an Advanced records section.
 - IMP-097: added bounded one-minute WordPress worker composition, strict Import/Export/Privacy handlers, same-second heartbeat recovery, and completed the backup-bound live staging operations certification gate.

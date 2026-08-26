@@ -96,6 +96,8 @@ final class Sprint11GuestExperienceValidationTest extends TestCase
         self::assertStringContainsString('add_shortcode', $hooks);
         self::assertStringContainsString('assets/guest/eventflow-guest.js', $hooks);
         self::assertStringContainsString('assets/guest/eventflow-guest.css', $hooks);
+        self::assertStringContainsString('hash_file(\'sha256\', $absolutePath)', $hooks);
+        self::assertStringContainsString('$this->version . \'-\' . substr($digest, 0, 12)', $hooks);
         $bootstrap = $this->source('src/Bootstrap/ApplicationBootstrap.php');
         self::assertStringContainsString('new WordPressGuestHooks(', $bootstrap);
         self::assertStringContainsString('new GuestShellView()', $bootstrap);

@@ -126,7 +126,9 @@ namespace EventFlow\Tests\Unit\Presentation\WordPress {
 
             self::assertStringContainsString('id="eventflow-guest"', $html);
             self::assertSame('https://eventflow.test/plugins/eventflow/assets/guest/eventflow-guest.css', $GLOBALS['eventflow_test_admin_style'][1]);
+            self::assertSame('1.2.0', $GLOBALS['eventflow_test_admin_style'][3]);
             self::assertSame('https://eventflow.test/plugins/eventflow/assets/guest/eventflow-guest.js', $GLOBALS['eventflow_test_admin_script'][1]);
+            self::assertSame('1.2.0', $GLOBALS['eventflow_test_admin_script'][3]);
             self::assertSame([
                 'restUrl' => 'https://eventflow.test/wp-json/eventflow/v1/',
                 'version' => '1.2.0',
