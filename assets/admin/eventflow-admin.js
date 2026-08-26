@@ -1585,12 +1585,12 @@
 
   const applyOneCompanionRollout = async () => {
     if (!activeEvent) return;
-    const targets = loadedInvitations.filter((invitation) => invitation.archived_at === null && Number(invitation.capacity) !== 2);
+    const targets = loadedInvitations.filter((invitation) => invitation.archived_at === null && Number(invitation.capacity) > 2);
     if (!targets.length) {
-      peopleNotice.textContent = 'Every active invitation already allows exactly one companion.';
+      peopleNotice.textContent = 'Every active invitation already allows no more than one companion.';
       return;
     }
-    if (!window.confirm(`Set ${targets.length} active invitation${targets.length === 1 ? '' : 's'} to one companion each? Approved family exceptions can be increased manually afterward.`)) return;
+    if (!window.confirm(`Reduce ${targets.length} larger invitation${targets.length === 1 ? '' : 's'} to one companion each? Primary-only invitations will stay unchanged, and approved family exceptions can be increased manually afterward.`)) return;
 
     applyCompanionRollout.disabled = true;
     peopleNotice.textContent = `Applying the one-companion limit to ${targets.length} invitations…`;
@@ -1611,7 +1611,7 @@
     await loadPeopleData(false);
     applyCompanionRollout.disabled = false;
     const updated = Number(result.payload?.data?.updated_invitations || 0);
-    peopleNotice.textContent = `${updated} invitations now allow exactly one companion. Family exceptions can be increased manually.`;
+    peopleNotice.textContent = `${updated} larger invitations were capped at one companion. Primary-only invitations stayed unchanged, and family exceptions can be increased manually.`;
   };
 
   const escapeInvitationHtml = (value) => String(value || '')

@@ -17,7 +17,7 @@ final readonly class ImportNormalizer
         if ($phone !== null && strlen($phone) > 40) $errors[] = 'primary_phone_invalid';
         $requestedCapacity = $capacityRaw === null || $capacityRaw === '' ? 1 : filter_var($capacityRaw, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 65535]]);
         if ($requestedCapacity === false) $errors[] = 'capacity_invalid';
-        $capacity = $requestedCapacity === false ? false : CompanionRolloutPolicy::importedCapacity();
+        $capacity = $requestedCapacity === false ? false : CompanionRolloutPolicy::importedCapacity($requestedCapacity);
         if (is_int($requestedCapacity) && $requestedCapacity !== $capacity) $warnings[] = 'capacity_adjusted_for_initial_rollout';
         if (($email === null || $email === '') && ($phone === null || $phone === '')) $warnings[] = 'delivery_contact_missing';
         return [

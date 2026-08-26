@@ -64,7 +64,7 @@ final class WpdbInvitationAccessRepository extends AbstractWpdbRepository implem
         $attendees = $this->table(TableName::ATTENDEES);
         return $this->database->execute(
             "UPDATE {$invitations} i SET i.capacity=%d,i.invitation_revision=i.invitation_revision+1,i.updated_by_user_id=%d,i.updated_at=%s " .
-            "WHERE i.event_id=%d AND i.deleted_at IS NULL AND i.capacity<>%d AND " .
+            "WHERE i.event_id=%d AND i.deleted_at IS NULL AND i.capacity>%d AND " .
             "(SELECT COUNT(*) FROM {$attendees} a WHERE a.event_id=i.event_id AND a.invitation_id=i.invitation_id " .
             "AND a.attendance_status IN (%s,%s) AND a.deleted_at IS NULL)<=%d",
             [$totalCapacity, $actorUserId, $this->timestamp($now), $scope->eventId, $totalCapacity, 'pending', 'confirmed', $totalCapacity],

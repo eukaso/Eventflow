@@ -24,11 +24,11 @@ final class CompanionRolloutPolicyTest extends TestCase
         $normalizer = new ImportNormalizer();
         $mapping = new ImportMapping(['primary_name' => 'Name', 'capacity' => 'Seats']);
 
-        foreach (['1', '2', '7'] as $requestedCapacity) {
+        foreach (['1' => 1, '2' => 2, '7' => 2] as $requestedCapacity => $expectedCapacity) {
             $result = $normalizer->normalize(['Name' => 'Guest', 'Seats' => $requestedCapacity], $mapping);
 
             self::assertSame([], $result['errors']);
-            self::assertSame(2, $result['normalized']['capacity']);
+            self::assertSame($expectedCapacity, $result['normalized']['capacity']);
         }
     }
 

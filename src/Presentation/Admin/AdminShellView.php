@@ -190,7 +190,7 @@ final readonly class AdminShellView
           </details>
           <div class="notice notice-info inline eventflow-rollout-policy">
             <h4>Initial rollout companion limit</h4>
-            <p>Set every active invitation to 2 total places: the primary guest plus 1 companion. After applying the rollout, use <strong>Edit profile</strong> to increase an approved family exception.</p>
+            <p>Keep primary-only invitations at 1 total place and reduce larger parties to 2 total places: the primary guest plus 1 companion. After applying the rollout, use <strong>Edit profile</strong> to increase an approved family exception.</p>
             <button class="button button-secondary" id="eventflow-apply-companion-rollout" type="button">Apply one-companion limit</button>
           </div>
           <div class="eventflow-list-filter">
