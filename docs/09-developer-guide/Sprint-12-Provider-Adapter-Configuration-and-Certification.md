@@ -14,6 +14,10 @@ Set `EVENTFLOW_GUEST_PAGE_URL` to the canonical HTTPS WordPress page containing 
 
 Brevo must send the configured static secret as `X-EventFlow-Webhook-Token`. Twilio must call the exact configured HTTPS webhook URL; EventFlow verifies `X-Twilio-Signature` against the URL, query context, and form parameters.
 
+### Lui60 production sender requirement
+
+The production `lui60.com` deployment must set `EVENTFLOW_BREVO_SENDER_EMAIL` to `admin@lui60.com`. The address and `lui60.com` domain are verified in Brevo. Treat any staging sender as environment-specific and verify the effective production sender during cutover before enabling bulk delivery.
+
 ## Certification sequence
 
 1. Keep the dispatch gate false while installing credentials and registering sandbox webhooks.
