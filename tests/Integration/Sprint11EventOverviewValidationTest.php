@@ -51,10 +51,13 @@ final class Sprint11EventOverviewValidationTest extends TestCase
         }
 
         $script = $this->source('assets/admin/eventflow-admin.js');
-        foreach (['loadDashboardData', 'invitationProgress', 'dashboardSelectedInvitations', "openCommunications({ channel, recipientIds, reminder: true })", "invitationResponseFilter.value = options.reminder ? 'action_required' : 'all'", 'Review before sending.'] as $expected) {
+        foreach (['loadDashboardData', 'invitationProgress', 'dashboardSelectedInvitations', 'Confirmed seats', 'showDashboard(true)', "openCommunications({ channel, recipientIds, reminder: true })", "invitationResponseFilter.value = options.reminder ? 'action_required' : 'all'", 'Review before sending.'] as $expected) {
             self::assertStringContainsString($expected, $script);
         }
         self::assertStringContainsString("response === 'accepted' && activeAttendees.length < capacity", $script);
+
+        $styles = $this->source('assets/admin/eventflow-admin.css');
+        self::assertStringContainsString('.eventflow-dashboard--summary', $styles);
     }
 
     private function source(string $path): string

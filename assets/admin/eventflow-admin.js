@@ -373,9 +373,10 @@
     dashboardMetrics.replaceChildren();
     const active = dashboardInvitations.filter((invitation) => invitation.archived_at === null);
     const progress = active.map((invitation) => invitationProgress(invitation));
-    appendMetric(active.length, 'Primary guests');
+    appendMetric(active.length, 'Primary invitees');
     appendMetric(active.reduce((total, invitation) => total + Math.max(1, Number(invitation.capacity || 1)), 0), 'Reserved seats');
-    appendMetric(progress.filter((item) => item.complete).length, 'Forms complete', 'success');
+    appendMetric(progress.filter((item) => item.response === 'accepted').length, 'Confirmed invitees', 'success');
+    appendMetric(progress.filter((item) => item.response === 'accepted').reduce((total, item) => total + item.attendeeCount, 0), 'Confirmed seats', 'success');
     appendMetric(progress.filter((item) => item.pending).length, 'Awaiting RSVP', 'warning');
     appendMetric(progress.filter((item) => item.incomplete).length, 'Missing companion names', 'warning');
     appendMetric(progress.filter((item) => item.response === 'declined').length, 'Declined');
@@ -449,6 +450,11 @@
     await openCommunications({ channel, recipientIds, reminder: true });
   };
 
+  const showDashboard = (summaryOnly = false) => {
+    dashboard.hidden = false;
+    dashboard.classList.toggle('eventflow-dashboard--summary', summaryOnly);
+  };
+
   const showOverview = (event, etag = null) => {
     clearCredential();
     if (Number(activeEvent?.id || 0) !== Number(event.id || 0)) dashboardSelectedInvitations.clear();
@@ -464,7 +470,7 @@
     communications.hidden = true;
     governance.hidden = true;
     overviewFacts.hidden = false;
-    dashboard.hidden = false;
+    showDashboard();
     overviewTitle.textContent = String(event.name || 'Untitled event');
     overviewStatus.textContent = String(event.status || 'unknown');
     overviewFacts.replaceChildren();
@@ -622,7 +628,7 @@
   const openSetup = async () => {
     if (!activeEvent) return;
     overviewFacts.hidden = true;
-    dashboard.hidden = true;
+    showDashboard(true);
     people.hidden = true;
     seating.hidden = true;
     reception.hidden = true;
@@ -1056,10 +1062,10 @@
     communications.hidden = true;
     governance.hidden = true;
     overviewFacts.hidden = true;
-    dashboard.hidden = true;
+    showDashboard(true);
     people.hidden = false;
     selectPeopleTab('invitations');
-    await loadPeopleData();
+    await Promise.all([loadPeopleData(), loadDashboardData()]);
   };
 
   const submitMembership = async (submissionEvent) => {
@@ -1310,7 +1316,7 @@
     communications.hidden = true;
     governance.hidden = true;
     overviewFacts.hidden = true;
-    dashboard.hidden = true;
+    showDashboard(true);
     seating.hidden = false;
     renderRecommendation(null);
     await loadSeatingData();
@@ -1544,7 +1550,7 @@
     people.hidden = true;
     seating.hidden = true;
     overviewFacts.hidden = true;
-    dashboard.hidden = true;
+    showDashboard(true);
     reception.hidden = false;
     communications.hidden = true;
     governance.hidden = true;
@@ -2127,7 +2133,7 @@
     seating.hidden = true;
     reception.hidden = true;
     overviewFacts.hidden = true;
-    dashboard.hidden = true;
+    showDashboard(true);
     communications.hidden = false;
     governance.hidden = true;
     selectCommunicationTab('templates');
@@ -2444,7 +2450,7 @@
     reception.hidden = true;
     communications.hidden = true;
     overviewFacts.hidden = true;
-    dashboard.hidden = true;
+    showDashboard(true);
     governance.hidden = false;
     selectGovernanceTab('imports');
     await loadGovernanceData();
@@ -2548,7 +2554,7 @@
   setupClose.addEventListener('click', () => {
     setup.hidden = true;
     overviewFacts.hidden = false;
-    dashboard.hidden = false;
+    showDashboard();
     overviewMessage.textContent = 'Setup closed.';
   });
   eventForm.addEventListener('submit', submitEventSetup);
@@ -2559,34 +2565,34 @@
     resetInvitationEditor();
     people.hidden = true;
     overviewFacts.hidden = false;
-    dashboard.hidden = false;
+    showDashboard();
     overviewMessage.textContent = 'People workspace closed.';
   });
   seatingClose.addEventListener('click', () => {
     seating.hidden = true;
     overviewFacts.hidden = false;
-    dashboard.hidden = false;
+    showDashboard();
     overviewMessage.textContent = 'Seating workspace closed.';
   });
   receptionClose.addEventListener('click', () => {
     reception.hidden = true;
     receptionAttendees = [];
     overviewFacts.hidden = false;
-    dashboard.hidden = false;
+    showDashboard();
     overviewMessage.textContent = 'Reception workspace closed.';
   });
   communicationsClose.addEventListener('click', () => {
     clearCommunicationDetails();
     communications.hidden = true;
     overviewFacts.hidden = false;
-    dashboard.hidden = false;
+    showDashboard();
     overviewMessage.textContent = 'Communications workspace closed.';
   });
   governanceClose.addEventListener('click', () => {
     clearGovernanceDetails();
     governance.hidden = true;
     overviewFacts.hidden = false;
-    dashboard.hidden = false;
+    showDashboard();
     overviewMessage.textContent = 'Data and governance workspace closed.';
   });
   root.addEventListener('invalid', reportInvalidControl, true);

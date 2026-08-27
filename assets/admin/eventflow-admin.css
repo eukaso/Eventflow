@@ -295,6 +295,24 @@
   margin-top: 3px;
 }
 
+.eventflow-dashboard--summary {
+  margin-bottom: 24px;
+  padding-top: 18px;
+}
+
+.eventflow-dashboard--summary .eventflow-dashboard__heading p:last-child,
+.eventflow-dashboard--summary .eventflow-dashboard__primary-actions,
+.eventflow-dashboard--summary .eventflow-dashboard__filters,
+.eventflow-dashboard--summary .eventflow-dashboard__selection,
+.eventflow-dashboard--summary .eventflow-dashboard__table-wrap,
+.eventflow-dashboard--summary > .eventflow-admin__status {
+  display: none;
+}
+
+.eventflow-dashboard--summary .eventflow-dashboard__metrics {
+  margin: 14px 0 0;
+}
+
 .eventflow-dashboard__badge {
   border-radius: 999px;
   display: inline-block !important;
