@@ -1,6 +1,6 @@
 # EventFlow IMP-102 — Stable 1.3.0 promotion
 
-IMP-102 promotes the accepted Sprint 12 candidate to stable EventFlow 1.3.0 repository metadata.
+IMP-102 promotes the accepted Sprint 12 candidate to stable EventFlow 1.3.0 repository metadata. Candidate commit `c373370` passed GitHub Actions run `33042049633` on PHP 8.2 and PHP 8.3.
 
 The WordPress plugin header and `EVENTFLOW_VERSION` are promoted from `1.3.0-dev` to `1.3.0`; schema version 15 remains unchanged. The release retains deterministic artifact generation, an adjacent SHA-256 manifest, and a clean-source requirement.
 

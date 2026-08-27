@@ -20,8 +20,9 @@ final class Sprint12ReleasePromotionTest extends TestCase
         $release = $this->source('docs/11-releases/1.3.0-sprint-12-production-readiness.md');
 
         foreach ([
-            '**Status:** Stable source release; production cutover gated',
+            '**Status:** Released; production cutover gated',
             '`v1.3.0-production-readiness`',
+            'run `33042049633`',
             'November 28, 2026, 5:00–7:00 PM',
             'Venice Banquet Hall',
             'admin@lui60.com',
