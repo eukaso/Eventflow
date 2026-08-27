@@ -3,6 +3,7 @@
 namespace EventFlow\Tests\Unit\Presentation\Api;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use EventFlow\Application\Attendee\{AttendanceStatus, AttendeeRecord, AttendeeRole, InvitationResponseStatus, RsvpInvitation, RsvpResult};
 use EventFlow\Application\Authorization\PrincipalContext;
 use EventFlow\Application\Error\RequestIdFactory;
@@ -135,7 +136,7 @@ final class GuestSessionAccessPort implements GuestSessionAccess
     {
         return new GuestInvitationContext(
             new EventScope(44), 81, 'Annual Dinner', 'America/Edmonton',
-            new DateTimeImmutable('2026-11-28T17:00:00-07:00'), null, 'Guest One', 2,
+            new DateTimeImmutable('2026-11-28 17:00:00', new DateTimeZone('America/Edmonton')), null, 'Guest One', 2,
             InvitationResponseStatus::ACCEPTED, 7, true, 'Welcome', 'Confirmed', null, 'Formal',
             primaryEmail: 'guest@example.test', primaryPhone: '+15875550100',
         );
