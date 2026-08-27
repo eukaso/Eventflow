@@ -28,7 +28,7 @@ final class Sprint11EventSetupValidationTest extends TestCase
     public function testSetupSerializesOnlyAcceptedFieldsAndNeverParsesApiHtml(): void
     {
         $script = $this->source('assets/admin/eventflow-admin.js');
-        foreach (['name:', 'slug:', 'timezone:', 'starts_at:', 'ends_at:', 'venue_id:', 'welcome_message:', 'confirmation_message:', 'confirmation_opens_at:', 'confirmation_closes_at:', 'seating_mode:', 'allow_guest_edits:', 'automatic_seating_enabled:', 'address_line_1:', 'address_line_2:', 'region:', 'postal_code:', 'country_code:', 'default_capacity:'] as $field) {
+        foreach (['name:', 'slug:', 'timezone:', 'starts_at:', 'ends_at:', 'venue_id:', 'invitation_media_id:', 'welcome_message:', 'confirmation_message:', 'confirmation_opens_at:', 'confirmation_closes_at:', 'seating_mode:', 'allow_guest_edits:', 'automatic_seating_enabled:', 'address_line_1:', 'address_line_2:', 'region:', 'postal_code:', 'country_code:', 'default_capacity:'] as $field) {
             self::assertStringContainsString($field, $script);
         }
         self::assertStringContainsString('textContent', $script);
@@ -44,6 +44,7 @@ final class Sprint11EventSetupValidationTest extends TestCase
         self::assertStringContainsString('await refreshSetup(eventId', $script);
         self::assertStringContainsString('Refresh before retrying', $script);
         self::assertStringContainsString('Venue access is unavailable.', $script);
+        self::assertStringContainsString('resolveConfiguredInvitationImage', $script);
     }
 
     private function source(string $path): string

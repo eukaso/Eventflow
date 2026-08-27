@@ -12,6 +12,8 @@ final class Sprint12OrganizerInvitationWorkspaceValidationTest extends TestCase
         foreach ([
             'Create, test, and send from one screen',
             'Invitation-card image',
+            'Official invitation card',
+            'Choose official card',
             'Send yourself a test',
             'Choose recipients',
             'Canada/US (+1)',
@@ -89,6 +91,8 @@ final class Sprint12OrganizerInvitationWorkspaceValidationTest extends TestCase
         self::assertStringContainsString("candidate.alt || ''", $script);
         self::assertStringContainsString('officialInvitationCardRequired', $script);
         self::assertStringContainsString('Choose the official invitation-card image before sending this event email.', $script);
+        self::assertStringContainsString('officialInvitationImageUrl', $script);
+        self::assertStringContainsString("title: 'Choose official invitation card'", $script);
     }
 
     private function source(string $path): string

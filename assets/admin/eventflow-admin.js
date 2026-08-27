@@ -32,6 +32,9 @@
   const setupNotice = document.getElementById('eventflow-setup-notice');
   const eventForm = document.getElementById('eventflow-event-form');
   const configurationForm = document.getElementById('eventflow-configuration-form');
+  const configuredInvitationMedia = document.getElementById('eventflow-config-invitation-media');
+  const configuredInvitationImageUrl = document.getElementById('eventflow-config-invitation-image-url');
+  const configuredInvitationImageChoose = document.getElementById('eventflow-config-invitation-image-choose');
   const venueForm = document.getElementById('eventflow-venue-form');
   const venueSelect = document.getElementById('eventflow-event-venue');
   const people = document.getElementById('eventflow-people');
@@ -149,6 +152,8 @@
   let activeEvent = null;
   let activeEventEtag = null;
   let activeConfigurationEtag = null;
+  let activeConfiguration = null;
+  let officialInvitationImageUrl = '';
   let credentialClearTimer = null;
   let editingInvitationId = null;
   let editingInvitationEtag = null;
@@ -602,9 +607,29 @@
   };
 
   const fillConfigurationForm = (configuration) => {
-    ['welcome_message', 'confirmation_message', 'dress_code', 'confirmation_opens_at', 'confirmation_closes_at', 'seating_mode', 'allow_guest_edits', 'automatic_seating_enabled']
+    activeConfiguration = configuration;
+    ['invitation_media_id', 'welcome_message', 'confirmation_message', 'dress_code', 'confirmation_opens_at', 'confirmation_closes_at', 'seating_mode', 'allow_guest_edits', 'automatic_seating_enabled']
       .forEach((name) => setField(configurationForm, name, configuration[name]));
     disableForm(configurationForm, false);
+  };
+
+  const resolveConfiguredInvitationImage = async (configuration = activeConfiguration) => {
+    const mediaId = Number(configuration?.invitation_media_id || 0);
+    officialInvitationImageUrl = '';
+    configuredInvitationImageUrl.value = '';
+    if (!mediaId || !window.wp?.media?.attachment) return '';
+    try {
+      const attachment = window.wp.media.attachment(mediaId);
+      await attachment.fetch();
+      const url = String(attachment.get('url') || '').trim();
+      if (!url) return '';
+      officialInvitationImageUrl = url;
+      configuredInvitationImageUrl.value = url;
+      invitationImage.value = url;
+      return url;
+    } catch (error) {
+      return '';
+    }
   };
 
   const loadVenues = async (selectedVenueId = null) => {
@@ -649,6 +674,7 @@
     if (configurationResult.status === 'fulfilled') {
       activeConfigurationEtag = configurationResult.value.etag;
       fillConfigurationForm(configurationResult.value.payload.data || {});
+      await resolveConfiguredInvitationImage();
     } else {
       activeConfigurationEtag = null;
       messages.push('Guest and seating settings are unavailable.');
@@ -711,6 +737,7 @@
         body: JSON.stringify({
           welcome_message: nullableText(configurationForm, 'welcome_message'),
           confirmation_message: nullableText(configurationForm, 'confirmation_message'),
+          invitation_media_id: String(configuredInvitationMedia.value || '') === '' ? null : Number(configuredInvitationMedia.value),
           dress_code: nullableText(configurationForm, 'dress_code'),
           confirmation_opens_at: nullableText(configurationForm, 'confirmation_opens_at'),
           confirmation_closes_at: nullableText(configurationForm, 'confirmation_closes_at'),
@@ -1988,7 +2015,7 @@
   const renderTemplates = (templates) => {
     communicationTemplates = templates;
     if (!String(invitationImage.value || '').trim()) {
-      invitationImage.value = invitationCardImageFromTemplates(templates);
+      invitationImage.value = officialInvitationImageUrl || invitationCardImageFromTemplates(templates);
     }
     templateList.replaceChildren();
     campaignTemplate.replaceChildren();
@@ -2182,7 +2209,13 @@
     invitationSend.disabled = true;
     const invitationRequest = requestAllPages(`${communicationEventPath()}/invitations`, 'next_after_invitation_id');
     const attendeeRequest = requestAllPages(`${communicationEventPath()}/attendees`, 'next_after_attendee_id');
-    const [, recipients, attendees] = await Promise.allSettled([loadCommunicationData(), invitationRequest, attendeeRequest]);
+    const configurationRequest = requestJson(`${communicationEventPath()}/configuration`);
+    const [, recipients, attendees, currentConfiguration] = await Promise.allSettled([loadCommunicationData(), invitationRequest, attendeeRequest, configurationRequest]);
+    if (currentConfiguration.status === 'fulfilled') {
+      activeConfigurationEtag = currentConfiguration.value.etag;
+      fillConfigurationForm(currentConfiguration.value.payload.data || {});
+      await resolveConfiguredInvitationImage();
+    }
     if (recipients.status === 'fulfilled' && attendees.status === 'fulfilled') {
       invitationRecipients = Array.isArray(recipients.value.payload.data) ? recipients.value.payload.data : [];
       invitationRecipientAttendees = Array.isArray(attendees.value.payload.data) ? attendees.value.payload.data : [];
@@ -2688,6 +2721,23 @@
     selectedInvitationRecipients.clear();
     invalidatePreparedInvitation();
     renderInvitationRecipients();
+  });
+  configuredInvitationImageChoose.addEventListener('click', () => {
+    if (!window.wp?.media) {
+      setupNotice.textContent = 'The Media Library picker is unavailable.';
+      return;
+    }
+    const mediaFrame = window.wp.media({ title: 'Choose official invitation card', button: { text: 'Use as official card' }, library: { type: 'image' }, multiple: false });
+    mediaFrame.on('select', () => {
+      const attachment = mediaFrame.state().get('selection').first()?.toJSON();
+      if (!attachment?.id || !attachment?.url) return;
+      configuredInvitationMedia.value = String(attachment.id);
+      configuredInvitationImageUrl.value = String(attachment.url);
+      officialInvitationImageUrl = String(attachment.url);
+      invitationImage.value = officialInvitationImageUrl;
+      setupNotice.textContent = 'Official invitation card selected. Save guest settings to keep it for every event email.';
+    });
+    mediaFrame.open();
   });
   invitationImageChoose.addEventListener('click', () => {
     if (!window.wp?.media) {

@@ -104,6 +104,13 @@ final readonly class AdminShellView
               <textarea class="large-text" id="eventflow-welcome-message" name="welcome_message" rows="4"></textarea>
               <label for="eventflow-confirmation-message">Confirmation message</label>
               <textarea class="large-text" id="eventflow-confirmation-message" name="confirmation_message" rows="4"></textarea>
+              <label for="eventflow-config-invitation-image-url">Official invitation card</label>
+              <div class="eventflow-invitation-image-control">
+                <input id="eventflow-config-invitation-media" name="invitation_media_id" type="hidden">
+                <input class="regular-text" id="eventflow-config-invitation-image-url" readonly type="url">
+                <button class="button button-secondary" id="eventflow-config-invitation-image-choose" type="button">Choose official card</button>
+              </div>
+              <p class="description">This card is automatically included in every email invitation and reminder for the event.</p>
               <label for="eventflow-dress-code">Dress code</label>
               <input class="regular-text" id="eventflow-dress-code" name="dress_code" maxlength="255" type="text">
               <label for="eventflow-confirmation-opens">RSVP opens</label>
