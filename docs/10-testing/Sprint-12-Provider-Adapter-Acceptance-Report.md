@@ -12,4 +12,4 @@ It does not claim a provider account was configured or that an email/SMS was sen
 
 - Brevo staging email: provider acceptance observed during personalized invitation testing.
 - Production email sender: `admin@lui60.com` is the required Brevo-verified address for `lui60.com`; production cutover verification remains pending.
-- Twilio SMS: live delivery has not yet been certified. One explicitly authorized test to a verified Canadian destination, followed by provider acceptance and terminal delivery verification, remains required before any bulk SMS approval.
+- Twilio SMS: one explicitly authorized Canadian test was created as EventFlow Message 10 and failed before provider acceptance. Twilio remained in free-trial onboarding with no certified active sender. Complete the Twilio SMS trial/number setup and recipient verification, then obtain fresh action-time authorization before retrying. Terminal delivery verification remains required before any bulk SMS approval.
