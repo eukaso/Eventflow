@@ -9,8 +9,8 @@ final class Sprint11UiFoundationValidationTest extends TestCase
     public function testMetadataAdvancesFromReleasedApiBaselineWithoutSchemaChange(): void
     {
         $plugin = $this->source('eventflow.php');
-        self::assertMatchesRegularExpression('/Version: (?:1\\.2\\.0|1\\.[3-9]\\.[0-9]+-dev)/', $plugin);
-        self::assertMatchesRegularExpression("/define\\('EVENTFLOW_VERSION', '(?:1\\.2\\.0|1\\.[3-9]\\.[0-9]+-dev)'\\);/", $plugin);
+        self::assertMatchesRegularExpression('/Version: (?:1\\.2\\.0|1\\.[3-9]\\.[0-9]+(?:-dev)?)/', $plugin);
+        self::assertMatchesRegularExpression("/define\\('EVENTFLOW_VERSION', '(?:1\\.2\\.0|1\\.[3-9]\\.[0-9]+(?:-dev)?)'\\);/", $plugin);
         self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 15);", $plugin);
         self::assertStringContainsString('`v1.1.0-api-completion`', $this->source('README-IMP-081.md'));
     }

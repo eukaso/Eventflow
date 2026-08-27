@@ -45,6 +45,8 @@ The project follows Semantic Versioning.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-26
+
 ### Added
 - Organizer-focused invitation sending with image-card selection, dedicated personal test delivery, explicit guest checklists and phone-region filtering, audience verification, confirmed bulk queueing, and protected advanced delivery records.
 - Durable WordPress cron workers for Import, Export, and Privacy jobs plus staging certification of cadence, heartbeat, retry/backoff, expired-lease recovery, protected storage, authenticated export denial, audit integrity, privacy readiness, and sanitized diagnostics.
@@ -52,6 +54,16 @@ The project follows Semantic Versioning.
 - Live staging environment acceptance for PHP, WordPress, MySQL/MariaDB, HTTPS, filesystem, bootstrap, cron, protected storage, external-secret attestation, and complete WordPress route/admin/guest composition.
 - Deterministic production plugin packaging with an explicit runtime allowlist, dependency review boundary, SHA-256 manifests, independent verification, and byte-for-byte CI reproducibility enforcement.
 - Sprint 12 production-readiness baseline with ordered deployment gates, a fail-closed staging checklist, and a bounded credential-free remote preflight for exact-version health/readiness validation.
+
+### Changed
+- The Lui @ 60 rollout limits ordinary invitations to one companion while retaining administrator-controlled family exceptions.
+- Event-level invitation cards, venue details, RSVP deadlines, and local event times are consistently reused across personalized email, SMS, and guest RSVP experiences.
+- The organizer dashboard now exposes primary invitees, reserved and confirmed seats, pending responses, missing companion names, and declined responses with targeted reminder filters.
+
+### Fixed
+- Personalized RSVP links now survive WordPress REST rewrites, caching, email scanners, and compact SMS delivery while preserving secure guest sessions.
+- Guest email and phone values are prepopulated from the invitation, and optional dietary/accessibility fields can be disabled per event without removing them from the platform.
+- Server-rendered event times remain correct in the event timezone rather than shifting with the guest device timezone.
 
 ## [1.2.0] - 2026-08-20
 

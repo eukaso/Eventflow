@@ -9,8 +9,8 @@ final class Sprint12ProductionReadinessBaselineTest extends TestCase
     public function testSprintStartsFromStableUiReleaseWithoutSchemaChange(): void
     {
         $plugin = $this->source('eventflow.php');
-        self::assertStringContainsString('Version: 1.3.0-dev', $plugin);
-        self::assertStringContainsString("define('EVENTFLOW_VERSION', '1.3.0-dev');", $plugin);
+        self::assertMatchesRegularExpression('/Version: 1\\.3\\.0(?:-dev)?/', $plugin);
+        self::assertMatchesRegularExpression("/define\\('EVENTFLOW_VERSION', '1\\.3\\.0(?:-dev)?'\\);/", $plugin);
         self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 15);", $plugin);
         self::assertStringContainsString('`v1.2.0-ui-experience`', $this->source('README-IMP-092.md'));
     }

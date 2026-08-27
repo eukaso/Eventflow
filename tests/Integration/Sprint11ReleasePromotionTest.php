@@ -20,8 +20,8 @@ final class Sprint11ReleasePromotionTest extends TestCase
         self::assertStringContainsString('## [1.2.0] - 2026-08-20', $this->source('CHANGELOG.md'));
 
         $plugin = $this->source('eventflow.php');
-        self::assertMatchesRegularExpression('/Version: (?:1\\.2\\.0|1\\.[3-9]\\.[0-9]+-dev)/', $plugin);
-        self::assertMatchesRegularExpression("/define\\('EVENTFLOW_VERSION', '(?:1\\.2\\.0|1\\.[3-9]\\.[0-9]+-dev)'\\);/", $plugin);
+        self::assertMatchesRegularExpression('/Version: (?:1\\.2\\.0|1\\.[3-9]\\.[0-9]+(?:-dev)?)/', $plugin);
+        self::assertMatchesRegularExpression("/define\\('EVENTFLOW_VERSION', '(?:1\\.2\\.0|1\\.[3-9]\\.[0-9]+(?:-dev)?)'\\);/", $plugin);
         self::assertStringContainsString("define('EVENTFLOW_SCHEMA_VERSION', 15);", $plugin);
     }
 

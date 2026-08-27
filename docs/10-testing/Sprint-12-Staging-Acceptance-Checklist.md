@@ -32,6 +32,8 @@ Operator/date: authorized site owner with Codex / `2026-08-21` UTC
 - [x] Audit integrity, privacy reconciliation, and sanitized diagnostics pass.
 - [ ] Provider sandbox send, webhook authentication, dedupe, correlation, and outage isolation pass before bulk communication is enabled.
 
+Live send note (2026-08-26): separately authorized Brevo email and Twilio SMS were accepted and received. The remaining unchecked portion is authenticated terminal callback/dedupe and outage-isolation evidence; bulk communication remains disabled.
+
 ## Experience and launch rehearsal
 
 - [ ] Required WordPress roles and EventFlow capabilities are exercised.
@@ -42,3 +44,5 @@ Operator/date: authorized site owner with Codex / `2026-08-21` UTC
 - [x] No production PII, credentials, raw logs, or database exports were committed.
 
 Result: IMP-097 operations gate PASS; overall staging acceptance remains BLOCKED pending provider and experience/launch evidence.
+
+Owner acceptance note (2026-08-26): organizer dashboard, personalized email/SMS, secure guest RSVP, correct local time and Venue, prepopulated contact details, one-companion enforcement, saved companion data, and confirmed-guest reminder exclusion passed. Seating, reception, governance, complete role/accessibility coverage, resilience rehearsal, and provider terminal callbacks remain production-launch gates.
