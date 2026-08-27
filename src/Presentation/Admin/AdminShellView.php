@@ -125,6 +125,14 @@ final readonly class AdminShellView
             <input class="regular-text" id="eventflow-venue-name" name="name" maxlength="190" required type="text">
             <label for="eventflow-venue-city">City</label>
             <input class="regular-text" id="eventflow-venue-city" name="city" maxlength="120" type="text">
+            <label for="eventflow-venue-address-1">Street address</label>
+            <input class="regular-text" id="eventflow-venue-address-1" name="address_line_1" maxlength="190" type="text">
+            <label for="eventflow-venue-address-2">Unit or suite</label>
+            <input class="regular-text" id="eventflow-venue-address-2" name="address_line_2" maxlength="190" type="text">
+            <label for="eventflow-venue-region">Province or region</label>
+            <input class="regular-text" id="eventflow-venue-region" name="region" maxlength="120" type="text">
+            <label for="eventflow-venue-postal">Postal code</label>
+            <input class="regular-text" id="eventflow-venue-postal" name="postal_code" maxlength="32" type="text">
             <label for="eventflow-venue-country">Country code</label>
             <input id="eventflow-venue-country" name="country_code" maxlength="2" pattern="[A-Za-z]{2}" size="4" type="text">
             <label for="eventflow-venue-capacity">Default capacity</label>

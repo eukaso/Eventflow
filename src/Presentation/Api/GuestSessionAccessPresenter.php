@@ -20,6 +20,10 @@ final readonly class GuestSessionAccessPresenter
                 'timezone' => $context->timezone,
                 'starts_at' => $this->date($context->startsAt),
                 'ends_at' => $this->date($context->endsAt),
+                'starts_at_display' => $this->eventDate($context->startsAt, $context->timezone),
+                'ends_at_display' => $this->eventDate($context->endsAt, $context->timezone),
+                'venue_name' => $context->venueName,
+                'venue_address' => $context->venueAddress,
                 'primary_name' => $context->primaryName,
                 'primary_email' => $context->primaryEmail,
                 'primary_phone' => $context->primaryPhone,
@@ -74,6 +78,15 @@ final readonly class GuestSessionAccessPresenter
     private function date(?DateTimeImmutable $date): ?string
     {
         return $date?->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z');
+    }
+
+    private function eventDate(?DateTimeImmutable $date, string $timezone): ?string
+    {
+        if ($date === null) {
+            return null;
+        }
+
+        return $date->setTimezone(new DateTimeZone($timezone))->format('l, F j, Y \a\t g:i A');
     }
 
     /** @return array<string, mixed> */

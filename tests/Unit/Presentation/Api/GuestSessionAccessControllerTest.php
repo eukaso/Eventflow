@@ -35,6 +35,8 @@ final class GuestSessionAccessControllerTest extends TestCase
         $context = $controller->context($this->readRequest());
         self::assertSame(200, $context->status());
         self::assertSame('Annual Dinner', $context->body()['data']['event_name']);
+        self::assertSame('Saturday, November 28, 2026 at 5:00 PM', $context->body()['data']['starts_at_display']);
+        self::assertNull($context->body()['data']['ends_at_display']);
         self::assertSame('guest@example.test', $context->body()['data']['primary_email']);
         self::assertSame('+15875550100', $context->body()['data']['primary_phone']);
         self::assertTrue($context->body()['data']['collect_dietary_requirements']);
@@ -133,7 +135,7 @@ final class GuestSessionAccessPort implements GuestSessionAccess
     {
         return new GuestInvitationContext(
             new EventScope(44), 81, 'Annual Dinner', 'America/Edmonton',
-            new DateTimeImmutable('2026-09-01T18:00:00-06:00'), null, 'Guest One', 2,
+            new DateTimeImmutable('2026-11-28T17:00:00-07:00'), null, 'Guest One', 2,
             InvitationResponseStatus::ACCEPTED, 7, true, 'Welcome', 'Confirmed', null, 'Formal',
             primaryEmail: 'guest@example.test', primaryPhone: '+15875550100',
         );

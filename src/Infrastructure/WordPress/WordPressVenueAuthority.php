@@ -10,6 +10,8 @@ final readonly class WordPressVenueAuthority implements VenueAuthority
 
     public function canManageVenues(int $userId): bool
     {
-        return $userId > 0 && function_exists('user_can') && user_can($userId,self::CAPABILITY);
+        return $userId > 0
+            && function_exists('user_can')
+            && (user_can($userId, self::CAPABILITY) || user_can($userId, 'manage_options'));
     }
 }

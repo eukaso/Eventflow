@@ -22,9 +22,11 @@ final class WpdbGuestSessionAccessRepository extends AbstractWpdbRepository impl
         $invitations = $this->table(TableName::INVITATIONS);
         $row = $this->database->fetchRow(
             'SELECT e.event_id,e.event_name,e.timezone,e.starts_at,e.ends_at,' .
+            'v.venue_name,v.address_line_1,v.address_line_2,v.city,v.region,v.postal_code,v.country_code,' .
             'i.invitation_id,i.primary_name,i.primary_email,i.primary_phone,i.capacity,i.response_status,i.response_revision,' .
             'c.allow_guest_edits,c.welcome_message,c.confirmation_message,c.surprise_notice,c.dress_code,c.confirmation_opens_at,c.confirmation_closes_at ' .
             "FROM {$invitations} i INNER JOIN {$events} e ON e.event_id=i.event_id " .
+            'LEFT JOIN ' . $this->table(TableName::VENUES) . ' v ON v.venue_id=e.venue_id AND v.deleted_at IS NULL ' .
             "INNER JOIN {$configurations} c ON c.event_id=i.event_id " .
             'WHERE i.event_id=%d AND i.invitation_id=%d AND i.invitation_status=%s AND i.deleted_at IS NULL AND e.deleted_at IS NULL LIMIT 1',
             [$scope->eventId, $invitationId, InvitationStatus::ACTIVE->value],
@@ -59,6 +61,8 @@ final class WpdbGuestSessionAccessRepository extends AbstractWpdbRepository impl
             $this->nullableString($row['primary_phone'] ?? null),
             $collectRequirements,
             $collectRequirements,
+            $this->nullableString($row['venue_name'] ?? null),
+            $this->venueAddress($row),
         );
     }
 
@@ -165,5 +169,16 @@ final class WpdbGuestSessionAccessRepository extends AbstractWpdbRepository impl
     private function usesCompactLui60Rsvp(string $eventName): bool
     {
         return str_starts_with(strtolower(trim($eventName)), 'lui @ 60 reference reconciliation');
+    }
+
+    /** @param array<string, mixed> $row */
+    private function venueAddress(array $row): ?string
+    {
+        $parts = array_values(array_filter(array_map(
+            fn (string $field): ?string => $this->nullableString($row[$field] ?? null),
+            ['address_line_1', 'address_line_2', 'city', 'region', 'postal_code', 'country_code'],
+        ), static fn (?string $value): bool => $value !== null && trim($value) !== ''));
+
+        return $parts === [] ? null : implode(', ', $parts);
     }
 }

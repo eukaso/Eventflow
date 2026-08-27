@@ -17,6 +17,8 @@ final class WpdbGuestSessionAccessRepositoryTest extends TestCase
             'invitation_id'=>'81','primary_name'=>'Guest','primary_email'=>'guest@example.test','primary_phone'=>'+15875550100','capacity'=>'2','response_status'=>'pending','response_revision'=>'0',
             'allow_guest_edits'=>'1','welcome_message'=>'Welcome','confirmation_message'=>null,'surprise_notice'=>null,
             'dress_code'=>'Formal','confirmation_opens_at'=>null,'confirmation_closes_at'=>null,
+            'venue_name'=>'Venice Banquet Hall','address_line_1'=>'4310 104 Ave NE','address_line_2'=>'#2202',
+            'city'=>'Calgary','region'=>'AB','postal_code'=>'T3N 1W2','country_code'=>'CA',
         ];
         $repository = new WpdbGuestSessionAccessRepository(new WpdbAdapter($wpdb), new WpdbTableNames('wp_'));
 
@@ -28,6 +30,8 @@ final class WpdbGuestSessionAccessRepositoryTest extends TestCase
         self::assertTrue($context?->collectDietaryRequirements);
         self::assertTrue($context?->collectAccessibilityRequirements);
         self::assertTrue($context?->allowGuestEdits);
+        self::assertSame('Venice Banquet Hall', $context?->venueName);
+        self::assertSame('4310 104 Ave NE, #2202, Calgary, AB, T3N 1W2, CA', $context?->venueAddress);
         self::assertStringContainsString('i.event_id=44 AND i.invitation_id=81', $wpdb->queries[0]);
         self::assertStringNotContainsString('token_lookup', $wpdb->queries[0]);
     }

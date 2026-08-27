@@ -84,6 +84,11 @@ final class Sprint12OrganizerInvitationWorkspaceValidationTest extends TestCase
         self::assertStringContainsString('September 2, 2026', $script);
         self::assertStringContainsString('font-size:18px;font-weight:700', $script);
         self::assertStringContainsString('`${html}<p style="margin-top:24px;">', $script);
+        self::assertStringContainsString('invitationCardImageFromTemplates', $script);
+        self::assertStringContainsString("new DOMParser().parseFromString(String(template.body), 'text/html')", $script);
+        self::assertStringContainsString("candidate.alt || ''", $script);
+        self::assertStringContainsString('officialInvitationCardRequired', $script);
+        self::assertStringContainsString('Choose the official invitation-card image before sending this event email.', $script);
     }
 
     private function source(string $path): string

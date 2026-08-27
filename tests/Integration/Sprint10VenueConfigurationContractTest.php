@@ -27,6 +27,7 @@ final class Sprint10VenueConfigurationContractTest extends TestCase
         self::assertStringContainsString('public VenueService $venues',$foundation);
         self::assertStringContainsString('public EventConfigurationService $eventConfigurations',$foundation);
         self::assertStringContainsString('new WordPressVenueAuthority()',$foundation);
+        self::assertStringContainsString("user_can(\$userId, 'manage_options')", $this->source('src/Infrastructure/WordPress/WordPressVenueAuthority.php'));
     }
 
     public function testPackageExplicitlyDefersTransportExposure(): void

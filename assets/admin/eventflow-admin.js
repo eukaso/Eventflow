@@ -740,7 +740,11 @@
         headers: mutationHeaders(),
         body: JSON.stringify({
           name: String(field(venueForm, 'name').value).trim(),
+          address_line_1: nullableText(venueForm, 'address_line_1'),
+          address_line_2: nullableText(venueForm, 'address_line_2'),
           city: nullableText(venueForm, 'city'),
+          region: nullableText(venueForm, 'region'),
+          postal_code: nullableText(venueForm, 'postal_code'),
           country_code: nullableText(venueForm, 'country_code')?.toUpperCase() || null,
           default_capacity: capacity === '' ? null : Number(capacity),
         }),
@@ -1638,6 +1642,26 @@
     }
   };
 
+  const invitationCardImageFromTemplates = (templates) => {
+    const candidates = [...templates].reverse().filter((template) => template.channel === 'email' && String(template.body || '').trim());
+    for (const template of candidates) {
+      const document = new DOMParser().parseFromString(String(template.body), 'text/html');
+      const image = Array.from(document.querySelectorAll('img')).find((candidate) => String(candidate.alt || '').trim().toLocaleLowerCase() === 'invitation card');
+      const source = String(image?.getAttribute('src') || '').trim();
+      if (!source) continue;
+      try {
+        const parsed = new URL(source, window.location.origin);
+        if (['http:', 'https:'].includes(parsed.protocol)) return parsed.href;
+      } catch (error) {
+        // Continue to an older published email template.
+      }
+    }
+    return '';
+  };
+
+  const officialInvitationCardRequired = () => String(invitationChannel.value || 'email') === 'email'
+    && String(activeEvent?.name || '').trim().toLocaleLowerCase().startsWith('lui @ 60');
+
   const invitationMergeValues = (test = false) => ({
     recipient_name: test ? String(invitationTestName.value || 'Test Guest').trim() : '{{recipient_name}}',
     event_name: test ? String(activeEvent?.name || 'Your event') : '{{event_name}}',
@@ -1761,6 +1785,11 @@
       invitationTestAddress.focus();
       return;
     }
+    if (officialInvitationCardRequired() && !validInvitationImageUrl()) {
+      invitationTestStatus.textContent = 'Choose the official invitation-card image before sending this event email.';
+      invitationImage.focus();
+      return;
+    }
     if (!window.confirm(`Send one test ${channel.toUpperCase()} to ${address}?`)) return;
     const rendered = invitationContent(true);
     invitationTestSend.disabled = true;
@@ -1799,6 +1828,11 @@
     }
     if (String(invitationImage.value || '').trim() && !validInvitationImageUrl()) {
       invitationReviewStatus.textContent = 'Choose a valid public invitation-card image URL before reviewing.';
+      invitationImage.focus();
+      return;
+    }
+    if (officialInvitationCardRequired() && !validInvitationImageUrl()) {
+      invitationReviewStatus.textContent = 'Choose the official invitation-card image before reviewing this event email.';
       invitationImage.focus();
       return;
     }
@@ -1953,6 +1987,9 @@
 
   const renderTemplates = (templates) => {
     communicationTemplates = templates;
+    if (!String(invitationImage.value || '').trim()) {
+      invitationImage.value = invitationCardImageFromTemplates(templates);
+    }
     templateList.replaceChildren();
     campaignTemplate.replaceChildren();
     templates.filter((template) => template.status === 'published').forEach((template) => {

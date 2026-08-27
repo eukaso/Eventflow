@@ -31,6 +31,8 @@ final readonly class GuestInvitationContext
         public ?string $primaryPhone = null,
         public bool $collectDietaryRequirements = true,
         public bool $collectAccessibilityRequirements = true,
+        public ?string $venueName = null,
+        public ?string $venueAddress = null,
     ) {
         if (
             $invitationId < 1
