@@ -26,12 +26,23 @@ final class Sprint12PersonalizedBulkInvitationValidationTest extends TestCase
     public function testCredentialsRemainInUrlFragmentAndConfigurationRequiresHttps(): void
     {
         $issuer = $this->source('src/Application/Communication/GuestAccessMessageLinkIssuer.php');
-        self::assertStringContainsString("'/#eventflow-invitation='", $issuer);
+        self::assertStringContainsString("'/#i='", $issuer);
+        self::assertStringContainsString("strtr(base64_encode(\$binaryCredential), '+/', '-_')", $issuer);
         self::assertStringContainsString("preg_match('/^https", $issuer);
         self::assertStringNotContainsString('?eventflow-invitation=', $issuer);
+        self::assertStringNotContainsString('?i=', $issuer);
         $composition = $this->source('src/Bootstrap/DatabaseFoundation.php');
         self::assertStringContainsString("defined('EVENTFLOW_GUEST_PAGE_URL')", $composition);
         self::assertStringContainsString("str_starts_with(strtolower(\$guestPageUrl), 'https://')", $composition);
+    }
+
+    public function testGuestClientSupportsCompactAndAlreadyIssuedCredentials(): void
+    {
+        $client = $this->source('assets/guest/eventflow-guest.js');
+        self::assertStringContainsString("parameters.get('i')", $client);
+        self::assertStringContainsString("parameters.get('eventflow-invitation')", $client);
+        self::assertStringContainsString("window.atob", $client);
+        self::assertStringContainsString("binary.length !== 32", $client);
     }
 
     public function testRecipientMergeFieldsIncludeEventAndPersonalization(): void

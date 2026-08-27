@@ -37,7 +37,13 @@ final readonly class GuestAccessMessageLinkIssuer implements MessageGuestLinkIss
             throw new CommunicationException('guest_link_issue_failed');
         }
 
+        $binaryCredential = hex2bin($outcome->response->rawCredential);
+        if ($binaryCredential === false) {
+            throw new CommunicationException('guest_link_issue_failed');
+        }
+        $compactCredential = rtrim(strtr(base64_encode($binaryCredential), '+/', '-_'), '=');
+
         return preg_replace('/#.*$/', '', rtrim($this->guestPageUrl, '/'))
-            . '/#eventflow-invitation=' . $outcome->response->rawCredential;
+            . '/#i=' . $compactCredential;
     }
 }

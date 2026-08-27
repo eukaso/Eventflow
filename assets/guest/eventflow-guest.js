@@ -56,12 +56,27 @@
     if (summary) summary.remove();
   };
 
+  const expandCompactCredential = (value) => {
+    if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(value)) return null;
+    try {
+      const padded = value.replaceAll('-', '+').replaceAll('_', '/') + '=';
+      const binary = window.atob(padded);
+      if (binary.length !== 32) return null;
+      return Array.from(binary, (character) => character.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+    } catch (error) {
+      return null;
+    }
+  };
+
   const cleanCredentialFragment = () => {
     const fragment = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
     const parameters = new URLSearchParams(fragment);
-    const credential = parameters.get('eventflow-invitation');
+    const legacyCredential = parameters.get('eventflow-invitation');
+    const credential = /^[a-f0-9]{64}$/.test(legacyCredential || '')
+      ? legacyCredential
+      : expandCompactCredential(parameters.get('i'));
     window.history.replaceState(null, document.title, `${window.location.pathname}${window.location.search}`);
-    return typeof credential === 'string' && /^[a-f0-9]{64}$/.test(credential) ? credential : null;
+    return credential;
   };
 
   const isInvitationPreviewFragment = () => {
