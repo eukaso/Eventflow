@@ -53,6 +53,23 @@ final class WpdbGuestSessionAccessRepositoryTest extends TestCase
         self::assertFalse($context?->collectAccessibilityRequirements);
     }
 
+    public function testProductionLui60EventUsesCompactRsvp(): void
+    {
+        $wpdb = new GuestSessionAccessWpdb();
+        $wpdb->row = [
+            'event_id'=>'1','event_name'=>'Lui @ 60','timezone'=>'America/Edmonton','starts_at'=>null,'ends_at'=>null,
+            'invitation_id'=>'1','primary_name'=>'Guest','primary_email'=>'guest@example.test','primary_phone'=>'5875550100','capacity'=>'2','response_status'=>'pending','response_revision'=>'0',
+            'allow_guest_edits'=>'1','welcome_message'=>'Welcome','confirmation_message'=>null,'surprise_notice'=>null,
+            'dress_code'=>null,'confirmation_opens_at'=>null,'confirmation_closes_at'=>null,
+        ];
+        $repository = new WpdbGuestSessionAccessRepository(new WpdbAdapter($wpdb), new WpdbTableNames('wp_'));
+
+        $context = $repository->findContext(new EventScope(1), 1);
+
+        self::assertFalse($context?->collectDietaryRequirements);
+        self::assertFalse($context?->collectAccessibilityRequirements);
+    }
+
     public function testLogoutRevokesOnlyExactActiveSessionScope(): void
     {
         $wpdb = new GuestSessionAccessWpdb();

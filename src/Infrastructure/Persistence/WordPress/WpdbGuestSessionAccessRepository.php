@@ -168,7 +168,7 @@ final class WpdbGuestSessionAccessRepository extends AbstractWpdbRepository impl
 
     private function usesCompactLui60Rsvp(string $eventName): bool
     {
-        return str_starts_with(strtolower(trim($eventName)), 'lui @ 60 reference reconciliation');
+        return str_starts_with(strtolower(trim($eventName)), 'lui @ 60');
     }
 
     /** @param array<string, mixed> $row */
