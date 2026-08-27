@@ -38,11 +38,7 @@ final readonly class CurlDeploymentStatusClient implements DeploymentStatusClien
             CURLOPT_HTTPHEADER => ['Accept: application/json'],
             CURLOPT_USERAGENT => 'EventFlow-Deployment-Preflight/1.0',
             CURLOPT_HEADERFUNCTION => static function ($curl, string $line) use (&$headers): int {
-                $parts = explode(':', $line, 2);
-                if (count($parts) === 2) {
-                    $headers[strtolower(trim($parts[0]))] = trim($parts[1]);
-                }
-                return strlen($line);
+                return self::collectHeader($headers, $line);
             },
             CURLOPT_WRITEFUNCTION => function ($curl, string $chunk) use (&$body): int {
                 if (strlen($body) + strlen($chunk) > $this->maximumBytes) {
@@ -71,5 +67,22 @@ final readonly class CurlDeploymentStatusClient implements DeploymentStatusClien
             throw new RuntimeException('deployment_response_invalid');
         }
         return new DeploymentStatusResponse($status, $headers, $decoded);
+    }
+
+    /** @param array<string,string> $headers */
+    private static function collectHeader(array &$headers, string $line): int
+    {
+        $parts = explode(':', $line, 2);
+        if (count($parts) !== 2) {
+            return strlen($line);
+        }
+        $name = strtolower(trim($parts[0]));
+        $value = trim($parts[1]);
+        if ($name === 'cache-control' && isset($headers[$name])) {
+            $headers[$name] .= ', ' . $value;
+        } else {
+            $headers[$name] = $value;
+        }
+        return strlen($line);
     }
 }
