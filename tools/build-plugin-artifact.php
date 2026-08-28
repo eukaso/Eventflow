@@ -54,7 +54,7 @@ try {
     $commit = trim(implode("\n", eventflowGit($root, 'rev-parse HEAD')));
     $commitEpoch = (int) trim(implode("\n", eventflowGit($root, 'show -s --format=%ct HEAD')));
     $plugin = (string) file_get_contents($root . '/eventflow.php');
-    if (preg_match('/^ \* Version: ([0-9]+\.[0-9]+\.[0-9]+(?:-[a-z0-9.-]+)?)$/m', $plugin, $matches) !== 1) {
+    if (preg_match('/^ \* Version: ([0-9]+\.[0-9]+\.[0-9]+(?:-[a-z0-9.-]+)?)\r?$/m', $plugin, $matches) !== 1) {
         throw new RuntimeException('artifact_plugin_version_unavailable');
     }
     $version = $matches[1];

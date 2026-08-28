@@ -32,6 +32,7 @@ final class Sprint12ArtifactGateValidationTest extends TestCase
         foreach (['status --porcelain', 'rev-parse HEAD', '--verify-reproducible', 'artifact_reproducibility_failed'] as $expected) {
             self::assertStringContainsString($expected, $build);
         }
+        self::assertStringContainsString('?)\\r?$/m', $build);
         $verify = $this->source('tools/verify-plugin-artifact.php');
         foreach (['hash_file', 'artifact_payload_manifest_mismatch', 'artifact_payload_set_mismatch', '--directory'] as $expected) {
             self::assertStringContainsString($expected, $verify);
