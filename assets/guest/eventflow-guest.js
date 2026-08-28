@@ -57,11 +57,12 @@
   };
 
   const expandCompactCredential = (value) => {
-    if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(value)) return null;
+    if (typeof value !== 'string' || !/^(?:[A-Za-z0-9_-]{22}|[A-Za-z0-9_-]{43})$/.test(value)) return null;
     try {
-      const padded = value.replaceAll('-', '+').replaceAll('_', '/') + '=';
+      const padding = '='.repeat((4 - (value.length % 4)) % 4);
+      const padded = value.replaceAll('-', '+').replaceAll('_', '/') + padding;
       const binary = window.atob(padded);
-      if (binary.length !== 32) return null;
+      if (binary.length !== 16 && binary.length !== 32) return null;
       return Array.from(binary, (character) => character.charCodeAt(0).toString(16).padStart(2, '0')).join('');
     } catch (error) {
       return null;

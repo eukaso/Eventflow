@@ -6,7 +6,7 @@ final readonly class CredentialDigester
 {
     public function digest(string $rawCredential): string
     {
-        if (!preg_match('/^[a-f0-9]{64}$/', $rawCredential)) {
+        if (!preg_match('/^(?:[a-f0-9]{32}|[a-f0-9]{64})$/', $rawCredential)) {
             throw new \InvalidArgumentException('invalid_raw_credential');
         }
 

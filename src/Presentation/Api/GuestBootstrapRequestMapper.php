@@ -13,7 +13,7 @@ final readonly class GuestBootstrapRequestMapper
             throw new RequestInputException('validation_failed');
         }
         $credential = $json['credential'] ?? null;
-        if (!is_string($credential) || !preg_match('/^[a-f0-9]{64}$/', $credential)) {
+        if (!is_string($credential) || !preg_match('/^(?:[a-f0-9]{32}|[a-f0-9]{64})$/', $credential)) {
             throw new RequestInputException('guest_session_invalid');
         }
         return $credential;

@@ -116,7 +116,11 @@ final readonly class GuestAccessService implements GuestSessionAuthenticator, Gu
                 if ($invitation === null || $invitation->status !== InvitationStatus::ACTIVE) {
                     throw new GuestAccessException('invitation_not_found');
                 }
-                $raw = $this->random->hex(32);
+                // Message links use 128 bits of entropy. This remains safely
+                // unguessable while producing a substantially shorter SMS URL.
+                // Existing 256-bit invitation and message credentials continue
+                // to bootstrap through the same digest-backed repository.
+                $raw = $this->random->hex(16);
                 $credentialId = $this->guestAccess->issueMessageLink(
                     $scope, $invitationId, $messageId, $purpose, $this->digester->digest($raw),
                     $invitation->tokenVersion, $expiresAt, $this->clock->now(),

@@ -1,5 +1,6 @@
 # Changelog
 
+- Shortened credentials generated for future personalized email and SMS links from 43 to 22 URL-safe characters while retaining 128 bits of entropy, fragment-only transport, and full compatibility with every previously issued link.
 - Added a compact Lui @ 60 RSVP profile that retains optional dietary/accessibility fields for other events while hiding them for this rollout, and prepopulates the primary guest's invitation email and phone on their secure form.
 - Fixed personalized RSVP links on WordPress hosts whose REST routes are rewritten by using a versioned, root-scoped Secure/HttpOnly guest-session cookie and retaining a safe PHP cookie fallback when WordPress REST parsing is incomplete.
 - Fixed the public RSVP bootstrap journey so invitation context and response data are loaded sequentially, preventing concurrent guest-session reads from racing immediately after a secure link is accepted.

@@ -42,7 +42,8 @@ final class Sprint12PersonalizedBulkInvitationValidationTest extends TestCase
         self::assertStringContainsString("parameters.get('i')", $client);
         self::assertStringContainsString("parameters.get('eventflow-invitation')", $client);
         self::assertStringContainsString("window.atob", $client);
-        self::assertStringContainsString("binary.length !== 32", $client);
+        self::assertStringContainsString("value.length % 4", $client);
+        self::assertStringContainsString("binary.length !== 16 && binary.length !== 32", $client);
     }
 
     public function testRecipientMergeFieldsIncludeEventAndPersonalization(): void

@@ -118,6 +118,30 @@ final class InvitationGuestAccessServiceTest extends TestCase
         $this->expectException(GuestAccessException::class);
         $fixture->guestService->authenticate($credentials->rawSessionToken);
     }
+
+    public function testMessageLinksUseShortCredentialsAndBootstrapLikeExistingLinks(): void
+    {
+        $fixture = new InvitationFixture();
+        $fixture->create();
+        $outcome = $fixture->guestService->issueMessageLink(
+            $fixture->principal,
+            $fixture->scope,
+            1,
+            77,
+            'invitation',
+            new DateTimeImmutable('2026-09-01 18:00:00', new DateTimeZone('UTC')),
+            'guest-link-short-001',
+        );
+
+        self::assertMatchesRegularExpression('/^[a-f0-9]{32}$/', $outcome->response->rawCredential);
+        self::assertSame(32, strlen($fixture->guestAccess->messageDigest));
+        self::assertSame(
+            PrincipalType::GUEST,
+            $fixture->guestService->authenticate(
+                $fixture->guestService->bootstrap($outcome->response->rawCredential, GuestCredentialType::MESSAGE_LINK)->rawSessionToken,
+            )->type,
+        );
+    }
 }
 
 final class InvitationFixture
@@ -178,10 +202,11 @@ final class InvitationMemoryRepository implements InvitationRepository
 final class GuestMemoryRepository implements GuestAccessRepository
 {
     public string $sessionDigest = '';
+    public string $messageDigest = '';
     public int $usedCount = 0;
     private ?GuestSessionRecord $session = null;
     public function __construct(private readonly InvitationMemoryRepository $invitations, private readonly CredentialDigester $digester) {}
-    public function resolveBootstrapCredential(GuestCredentialType $type, string $digest, DateTimeImmutable $now): ?InvitationRecord { return hash_equals($this->invitations->tokenDigest, $digest) ? $this->invitations->record : null; }
+    public function resolveBootstrapCredential(GuestCredentialType $type, string $digest, DateTimeImmutable $now): ?InvitationRecord { $expected = $type === GuestCredentialType::MESSAGE_LINK ? $this->messageDigest : $this->invitations->tokenDigest; return $expected !== '' && hash_equals($expected, $digest) ? $this->invitations->record : null; }
     public function markCredentialUsed(GuestCredentialType $type, string $digest, InvitationRecord $invitation, DateTimeImmutable $now): void { $this->usedCount++; }
     public function createSession(InvitationRecord $invitation, string $sessionDigest, string $csrfDigest, DateTimeImmutable $expiresAt, DateTimeImmutable $now): GuestSessionRecord
     {
@@ -193,7 +218,7 @@ final class GuestMemoryRepository implements GuestAccessRepository
         return $this->session !== null && hash_equals($this->sessionDigest, $sessionDigest) && $this->invitations->record?->tokenVersion === $this->session->invitationTokenVersion ? $this->session : null;
     }
     public function touchSession(GuestSessionRecord $session, DateTimeImmutable $now): void {}
-    public function issueMessageLink(EventScope $scope, int $invitationId, int $messageId, string $purpose, string $digest, int $tokenVersion, DateTimeImmutable $expiresAt, DateTimeImmutable $now): int { return 9; }
+    public function issueMessageLink(EventScope $scope, int $invitationId, int $messageId, string $purpose, string $digest, int $tokenVersion, DateTimeImmutable $expiresAt, DateTimeImmutable $now): int { $this->messageDigest = $digest; return 9; }
 }
 
 final class InvitationMembershipReader implements MembershipReader { public function findCurrent(EventScope $eventScope, int $userId): ?MembershipSnapshot { return new MembershipSnapshot(1, $eventScope, $userId, EventRole::OWNER, true, null); } }
