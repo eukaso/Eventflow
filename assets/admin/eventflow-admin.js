@@ -20,8 +20,10 @@
   const dashboardMetrics = document.getElementById('eventflow-dashboard-metrics');
   const dashboardSearch = document.getElementById('eventflow-dashboard-search');
   const dashboardStatusFilter = document.getElementById('eventflow-dashboard-status-filter');
-  const dashboardSelectAction = document.getElementById('eventflow-dashboard-select-action');
+  const dashboardSelectPending = document.getElementById('eventflow-dashboard-select-pending');
+  const dashboardSelectIncomplete = document.getElementById('eventflow-dashboard-select-incomplete');
   const dashboardClearSelection = document.getElementById('eventflow-dashboard-clear-selection');
+  const dashboardExport = document.getElementById('eventflow-dashboard-export');
   const dashboardSelection = document.getElementById('eventflow-dashboard-selection');
   const dashboardEmailReminder = document.getElementById('eventflow-dashboard-email-reminder');
   const dashboardSmsReminder = document.getElementById('eventflow-dashboard-sms-reminder');
@@ -361,6 +363,56 @@
     return progress.response;
   };
 
+  const spreadsheetCell = (value) => {
+    let text = String(value ?? '');
+    if (/^[=+\-@]/.test(text)) text = `'${text}`;
+    return `"${text.replaceAll('"', '""')}"`;
+  };
+
+  const downloadDashboardGuestList = () => {
+    if (!activeEvent || dashboardInvitations.length < 1) return;
+    const header = ['Guest code', 'Primary guest', 'Email', 'Phone', 'RSVP status', 'Reserved seats', 'Confirmed seats', 'Companion names', 'Companions confirmed', 'Companion slots', 'Next action'];
+    const rows = dashboardInvitations
+      .filter((invitation) => invitation.archived_at === null)
+      .map((invitation) => {
+        const progress = invitationProgress(invitation);
+        const attendees = activeAttendeesForInvitation(invitation.id, dashboardAttendees);
+        const companionNames = attendees
+          .filter((attendee) => String(attendee.role) === 'companion')
+          .map((attendee) => String(attendee.display_name || '').trim())
+          .filter(Boolean)
+          .join('; ');
+        const nextAction = progress.pending
+          ? 'Awaiting RSVP'
+          : (progress.incomplete ? 'Missing companion names' : (progress.complete ? 'Ready for seating' : 'No reminder needed'));
+        return [
+          invitation.code,
+          invitation.primary_name,
+          invitation.primary_email,
+          invitation.primary_phone,
+          dashboardResponseLabel(progress),
+          progress.capacity,
+          progress.response === 'accepted' ? progress.attendeeCount : 0,
+          companionNames,
+          progress.companions,
+          progress.companionCapacity,
+          nextAction,
+        ];
+      });
+    const csv = [header, ...rows].map((row) => row.map(spreadsheetCell).join(',')).join('\r\n');
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const download = document.createElement('a');
+    const slug = String(activeEvent.slug || activeEvent.name || 'event').toLocaleLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    download.href = url;
+    download.download = `${slug || 'event'}-guest-status-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(download);
+    download.click();
+    download.remove();
+    URL.revokeObjectURL(url);
+    dashboardSelection.textContent = `${rows.length} guest records exported in an Excel-compatible CSV file.`;
+  };
+
   const updateDashboardSelection = () => {
     const actionableIds = new Set(dashboardInvitations.filter((invitation) => invitationProgress(invitation).needsAction).map((invitation) => Number(invitation.id)));
     dashboardSelectedInvitations = new Set(Array.from(dashboardSelectedInvitations).filter((id) => actionableIds.has(id)));
@@ -439,11 +491,13 @@
       ]);
       dashboardInvitations = Array.isArray(invitations.payload.data) ? invitations.payload.data : [];
       dashboardAttendees = Array.isArray(attendees.payload.data) ? attendees.payload.data : [];
+      dashboardExport.disabled = dashboardInvitations.length < 1;
       renderDashboard();
     } catch (error) {
       dashboardMetrics.replaceChildren();
       dashboardGuestBody.replaceChildren();
       dashboardSelection.textContent = 'Guest response statistics are temporarily unavailable. Refresh this event to try again.';
+      dashboardExport.disabled = true;
       dashboardEmailReminder.disabled = true;
       dashboardSmsReminder.disabled = true;
     }
@@ -481,7 +535,7 @@
     overviewFacts.replaceChildren();
     addFact('Timezone', String(event.timezone || 'Not set'));
     addFact('Starts', event.starts_at ? String(event.starts_at) : 'Not scheduled');
-    addFact('Ends', event.ends_at ? String(event.ends_at) : 'Not scheduled');
+    addFact('Ends', event.ends_at ? String(event.ends_at) : 'No scheduled end time');
     addFact('Revision', String(event.revision || 0));
     overviewActions.replaceChildren();
     overviewMessage.textContent = '';
@@ -608,7 +662,7 @@
 
   const fillConfigurationForm = (configuration) => {
     activeConfiguration = configuration;
-    ['invitation_media_id', 'welcome_message', 'confirmation_message', 'dress_code', 'confirmation_opens_at', 'confirmation_closes_at', 'seating_mode', 'allow_guest_edits', 'automatic_seating_enabled']
+    ['invitation_media_id', 'welcome_message', 'confirmation_message', 'surprise_notice', 'dress_code', 'confirmation_opens_at', 'confirmation_closes_at', 'seating_mode', 'allow_guest_edits', 'automatic_seating_enabled']
       .forEach((name) => setField(configurationForm, name, configuration[name]));
     disableForm(configurationForm, false);
   };
@@ -737,6 +791,7 @@
         body: JSON.stringify({
           welcome_message: nullableText(configurationForm, 'welcome_message'),
           confirmation_message: nullableText(configurationForm, 'confirmation_message'),
+          surprise_notice: nullableText(configurationForm, 'surprise_notice'),
           invitation_media_id: String(configuredInvitationMedia.value || '') === '' ? null : Number(configuredInvitationMedia.value),
           dress_code: nullableText(configurationForm, 'dress_code'),
           confirmation_opens_at: nullableText(configurationForm, 'confirmation_opens_at'),
@@ -2225,8 +2280,9 @@
         const eligibleIds = new Set(visibleInvitationRecipients().map((invitation) => Number(invitation.id)));
         selectedInvitationRecipients = new Set(options.recipientIds.map(Number).filter((id) => eligibleIds.has(id)));
         if (options.reminder) {
+          const program = String(activeConfiguration?.surprise_notice || '').trim();
           invitationSubject.value = 'Reminder: please confirm for {{event_name}}';
-          invitationMessage.value = 'Hello {{recipient_name}},\n\nThis is a friendly reminder to confirm your attendance and provide the names of your guest/companions for seating. Please complete this by September 2, 2026.\n\n{{guest_link}}';
+          invitationMessage.value = `Hello {{recipient_name}},\n\nThis is a friendly reminder to confirm your attendance for {{event_name}}. Please complete your RSVP by September 2, 2026.\n\n${program ? `Program: ${program}\n\n` : ''}{{guest_link}}`;
           communicationsNotice.textContent = `${selectedInvitationRecipients.size} guest${selectedInvitationRecipients.size === 1 ? '' : 's'} needing action prepared for a ${String(invitationChannel.value).toUpperCase()} reminder. Review before sending.`;
         }
         renderInvitationRecipients();
@@ -2669,11 +2725,17 @@
   root.addEventListener('input', clearInvalidControl);
   dashboardSearch.addEventListener('input', renderDashboard);
   dashboardStatusFilter.addEventListener('change', renderDashboard);
-  dashboardSelectAction.addEventListener('click', () => {
-    dashboardInvitations.filter((invitation) => invitationProgress(invitation).needsAction)
+  dashboardSelectPending.addEventListener('click', () => {
+    dashboardInvitations.filter((invitation) => invitationProgress(invitation).pending)
       .forEach((invitation) => dashboardSelectedInvitations.add(Number(invitation.id)));
     renderDashboard();
   });
+  dashboardSelectIncomplete.addEventListener('click', () => {
+    dashboardInvitations.filter((invitation) => invitationProgress(invitation).incomplete)
+      .forEach((invitation) => dashboardSelectedInvitations.add(Number(invitation.id)));
+    renderDashboard();
+  });
+  dashboardExport.addEventListener('click', downloadDashboardGuestList);
   dashboardClearSelection.addEventListener('click', () => {
     dashboardSelectedInvitations.clear();
     renderDashboard();

@@ -49,6 +49,7 @@ final readonly class AdminShellView
             <p>See who has replied, who still owes companion names, and prepare targeted reminders without searching through every contact.</p>
           </div>
           <div class="eventflow-dashboard__primary-actions">
+            <button class="button button-secondary" id="eventflow-dashboard-export" type="button" disabled>Download guest list for Excel</button>
             <button class="button button-secondary" id="eventflow-dashboard-email-reminder" type="button" disabled>Prepare email reminder</button>
             <button class="button button-secondary" id="eventflow-dashboard-sms-reminder" type="button" disabled>Prepare SMS reminder</button>
           </div>
@@ -57,7 +58,7 @@ final readonly class AdminShellView
         <div class="eventflow-dashboard__filters">
           <div><label for="eventflow-dashboard-search">Find a guest</label><input id="eventflow-dashboard-search" placeholder="Name, email, phone, or guest code" type="search"></div>
           <div><label for="eventflow-dashboard-status-filter">Response status</label><select id="eventflow-dashboard-status-filter"><option value="all">All guests</option><option value="action_required">Needs a reminder</option><option value="pending">Awaiting RSVP</option><option value="incomplete">Missing companion names</option><option value="accepted">Confirmed</option><option value="declined">Declined</option></select></div>
-          <div class="eventflow-dashboard__selection-actions"><button class="button button-secondary" id="eventflow-dashboard-select-action" type="button">Select guests needing action</button><button class="button-link" id="eventflow-dashboard-clear-selection" type="button">Clear</button></div>
+          <div class="eventflow-dashboard__selection-actions"><button class="button button-secondary" id="eventflow-dashboard-select-pending" type="button">Select awaiting RSVP</button><button class="button button-secondary" id="eventflow-dashboard-select-incomplete" type="button">Select missing companion names</button><button class="button-link" id="eventflow-dashboard-clear-selection" type="button">Clear</button></div>
         </div>
         <p class="eventflow-dashboard__selection" id="eventflow-dashboard-selection" role="status">Loading guest progress…</p>
         <div class="eventflow-dashboard__table-wrap">
@@ -104,6 +105,9 @@ final readonly class AdminShellView
               <textarea class="large-text" id="eventflow-welcome-message" name="welcome_message" rows="4"></textarea>
               <label for="eventflow-confirmation-message">Confirmation message</label>
               <textarea class="large-text" id="eventflow-confirmation-message" name="confirmation_message" rows="4"></textarea>
+              <label for="eventflow-program-details">Program details</label>
+              <textarea class="large-text" id="eventflow-program-details" name="surprise_notice" rows="3" placeholder="4:00 PM — Red Carpet and Cocktail; 5:15 PM — Surprise Celebration with the Celebrant."></textarea>
+              <p class="description">Displayed on the RSVP page and inserted into reminder drafts.</p>
               <label for="eventflow-config-invitation-image-url">Official invitation card</label>
               <div class="eventflow-invitation-image-control">
                 <input id="eventflow-config-invitation-media" name="invitation_media_id" type="hidden">

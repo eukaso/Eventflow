@@ -231,7 +231,7 @@
     welcome.textContent = context.welcome_message || 'You are warmly invited to celebrate with us. Please confirm your attendance and add the names of any companions joining you.';
     facts.replaceChildren();
     addFact('Starts', context.starts_at_display || formatDate(context.starts_at));
-    addFact('Ends', context.ends_at_display || formatDate(context.ends_at));
+    if (context.ends_at || context.ends_at_display) addFact('Ends', context.ends_at_display || formatDate(context.ends_at));
     if (context.venue_name) addFact('Venue', [context.venue_name, context.venue_address].filter(Boolean).join(', '));
     if (context.dress_code) addFact('Dress code', String(context.dress_code));
     notice.textContent = context.surprise_notice || '';

@@ -46,7 +46,7 @@ final class Sprint11EventOverviewValidationTest extends TestCase
     public function testDashboardMakesGuestProgressAndTargetedRemindersVisible(): void
     {
         $view = $this->source('src/Presentation/Admin/AdminShellView.php');
-        foreach (['Event dashboard', 'Needs a reminder', 'Missing companion names', 'Prepare email reminder', 'Prepare SMS reminder'] as $expected) {
+        foreach (['Event dashboard', 'Needs a reminder', 'Missing companion names', 'Prepare email reminder', 'Prepare SMS reminder', 'Download guest list for Excel', 'Select awaiting RSVP', 'Select missing companion names'] as $expected) {
             self::assertStringContainsString($expected, $view);
         }
 
@@ -55,6 +55,12 @@ final class Sprint11EventOverviewValidationTest extends TestCase
             self::assertStringContainsString($expected, $script);
         }
         self::assertStringContainsString("response === 'accepted' && activeAttendees.length < capacity", $script);
+        self::assertStringContainsString('downloadDashboardGuestList', $script);
+        self::assertStringContainsString("type: 'text/csv;charset=utf-8'", $script);
+        self::assertStringContainsString('spreadsheetCell', $script);
+        self::assertStringContainsString("invitationProgress(invitation).pending", $script);
+        self::assertStringContainsString("invitationProgress(invitation).incomplete", $script);
+        self::assertStringContainsString('activeConfiguration?.surprise_notice', $script);
 
         $styles = $this->source('assets/admin/eventflow-admin.css');
         self::assertStringContainsString('.eventflow-dashboard--summary', $styles);

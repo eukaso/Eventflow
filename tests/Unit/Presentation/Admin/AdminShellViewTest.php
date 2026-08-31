@@ -31,6 +31,11 @@ final class AdminShellViewTest extends TestCase
         self::assertStringContainsString('id="eventflow-apply-companion-rollout"', $html);
         self::assertStringContainsString('Apply one-companion limit', $html);
         self::assertStringContainsString('Keep primary-only invitations at 1 total place', $html);
+        self::assertStringContainsString('id="eventflow-dashboard-export"', $html);
+        self::assertStringContainsString('Download guest list for Excel', $html);
+        self::assertStringContainsString('id="eventflow-dashboard-select-pending"', $html);
+        self::assertStringContainsString('id="eventflow-dashboard-select-incomplete"', $html);
+        self::assertStringContainsString('name="surprise_notice"', $html);
         self::assertStringContainsString('id="eventflow-attendee-form"', $html);
         self::assertStringContainsString('copy now; it cannot be shown again', $html);
         self::assertStringContainsString('role="tablist"', $html);
