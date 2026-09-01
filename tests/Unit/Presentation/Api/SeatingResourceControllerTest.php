@@ -6,7 +6,7 @@ use EventFlow\Application\Authorization\PrincipalContext;
 use EventFlow\Application\Error\RequestIdFactory;
 use EventFlow\Application\Idempotency\{IdempotencyOutcome, IdempotencyResultReference};
 use EventFlow\Application\Persistence\EventScope;
-use EventFlow\Application\Seating\{ConfiguredTable, ConstraintLevel, SeatingGroup, SeatingGroupReplacement, SeatingResourceAccess, SeatingSeat, SeatingSeatReplacement, SeatingSnapshot, SeatingTable, SeatingTableReplacement};
+use EventFlow\Application\Seating\{ConfiguredTable, ConstraintLevel, SeatingAssignment, SeatingAttendee, SeatingGroup, SeatingGroupReplacement, SeatingResourceAccess, SeatingSeat, SeatingSeatReplacement, SeatingSnapshot, SeatingTable, SeatingTableReplacement};
 use EventFlow\Application\Security\SecureRandom;
 use EventFlow\Presentation\Api\{ApiResponse, AuthenticatedPrincipalResolver, AuthenticatedRequestContextFactory, RequestInputException, RestRequest, RestRouteRegistry, SeatingResourceController, SeatingResourcePresenter, SeatingResourceRequestMapper, SeatingResourceRouteRegistrar};
 use PHPUnit\Framework\TestCase;
@@ -36,6 +36,8 @@ final class SeatingResourceControllerTest extends TestCase
         $controller = $this->controller(new SeatingResourcePort());
         $list = $controller->listTables($this->request());
         self::assertSame(3, $list->body()['data'][0]['revision']);
+        self::assertSame(1, $list->body()['data'][0]['occupancy']);
+        self::assertSame('Laurel Guest', $list->body()['data'][0]['assigned_attendees'][0]['attendee_name']);
         self::assertArrayNotHasKey('ETag', $list->headers());
         $table = $controller->table($this->request(['table_id' => '5']));
         self::assertSame('"3"', $table->headers()['ETag']);
@@ -129,7 +131,7 @@ final readonly class SeatingResourceRandom implements SecureRandom { public func
 final class SeatingResourcePort implements SeatingResourceAccess
 {
     public ?SeatingTableReplacement $tableReplacement=null; public ?SeatingSeatReplacement $seatReplacement=null; public ?SeatingGroupReplacement $groupReplacement=null; public ?string $key=null; public ?string $seatLabel=null;
-    public function snapshot(PrincipalContext $principal,EventScope $scope):SeatingSnapshot{return new SeatingSnapshot([],[$this->tableRecord()],[$this->seatRecord()],[$this->groupRecord()],[]);}
+    public function snapshot(PrincipalContext $principal,EventScope $scope):SeatingSnapshot{return new SeatingSnapshot([new SeatingAttendee(7,'Laurel Guest')],[$this->tableRecord()],[$this->seatRecord()],[$this->groupRecord()],[new SeatingAssignment(70,7,5,51,'manual')]);}
     public function table(PrincipalContext $principal,EventScope $scope,int $tableId):ConfiguredTable{return new ConfiguredTable($this->tableRecord(),[$this->seatRecord()]);}
     public function seat(PrincipalContext $principal,EventScope $scope,int $seatId):SeatingSeat{return $this->seatRecord();}
     public function group(PrincipalContext $principal,EventScope $scope,int $groupId):SeatingGroup{return $this->groupRecord();}

@@ -10,7 +10,23 @@ final readonly class SeatingResourcePresenter
 {
     public function tables(SeatingSnapshot $snapshot, RequestId $requestId): JsonApiResponse
     {
-        return $this->response(200, ['data' => array_map($this->table(...), $snapshot->tables), 'request_id' => $requestId->value], $requestId);
+        $attendees = [];
+        foreach ($snapshot->attendees as $attendee) $attendees[$attendee->attendeeId] = $attendee->displayName;
+        $assignments = [];
+        foreach ($snapshot->assignments as $assignment) {
+            $assignments[$assignment->tableId][] = [
+                'assignment_id' => $assignment->assignmentId,
+                'attendee_id' => $assignment->attendeeId,
+                'attendee_name' => $attendees[$assignment->attendeeId] ?? ('Attendee ' . $assignment->attendeeId),
+                'seat_id' => $assignment->seatId,
+                'source' => $assignment->source,
+            ];
+        }
+        $tables = array_map(function (SeatingTable $table) use ($assignments): array {
+            $assigned = $assignments[$table->tableId] ?? [];
+            return [...$this->table($table), 'occupancy' => count($assigned), 'assigned_attendees' => $assigned];
+        }, $snapshot->tables);
+        return $this->response(200, ['data' => $tables, 'request_id' => $requestId->value], $requestId);
     }
 
     public function tableDetail(ConfiguredTable $table, RequestId $requestId): JsonApiResponse

@@ -21,6 +21,7 @@ final class CheckInControllerTest extends TestCase
         (new CheckInRouteRegistrar($this->controller(new CheckInPort())))->register($routes);
         self::assertSame([
             'GET eventflow/v1/events/(?P<event_id>\d+)/reception/attendees',
+            'GET eventflow/v1/events/(?P<event_id>\d+)/reception/lookup',
             'POST eventflow/v1/events/(?P<event_id>\d+)/check-ins',
             'POST eventflow/v1/events/(?P<event_id>\d+)/check-ins/bulk',
             'POST eventflow/v1/events/(?P<event_id>\d+)/check-ins/(?P<checkin_id>\d+)/reverse',
@@ -55,6 +56,18 @@ final class CheckInControllerTest extends TestCase
         self::assertSame('/wp-json/eventflow/v1/events/9/check-ins/81', $response->headers()['Location']);
     }
 
+    public function testQrLookupMapsCredentialAndReturnsDuplicateSafeState(): void
+    {
+        $port = new CheckInPort();
+        $response = $this->controller($port)->lookup(new RestRequest(
+            routeParameters: ['event_id' => '9'], queryParameters: ['code' => strtoupper(str_repeat('a', 64))],
+        ));
+        self::assertSame(str_repeat('a', 64), $port->lookupInput);
+        self::assertSame('Guest One', $response->body()['data']['display_name']);
+        self::assertFalse($response->body()['data']['checked_in']);
+        self::assertSame('no-store, max-age=0', $response->headers()['Cache-Control']);
+    }
+
     public function testBulkPreservesInputForAuthoritativeAtomicService(): void
     {
         $port = new CheckInPort();
@@ -85,6 +98,7 @@ final class CheckInControllerTest extends TestCase
         foreach ([
             fn () => $this->controller($port)->search(new RestRequest(routeParameters: ['event_id' => '9'])),
             fn () => $this->controller($port)->search(new RestRequest(routeParameters: ['event_id' => '9'], queryParameters: ['q' => 'Guest', 'limit' => '51'])),
+            fn () => $this->controller($port)->lookup(new RestRequest(routeParameters: ['event_id' => '9'], queryParameters: ['code' => 'not-a-qr-code'])),
             fn () => $this->controller($port)->checkIn(new RestRequest(['Idempotency-Key' => 'checkin-key-002'], ['attendee_id' => '71', 'method' => 'search'], ['event_id' => '9'])),
             fn () => $this->controller($port)->checkIn(new RestRequest(['Idempotency-Key' => 'checkin-key-003'], ['attendee_id' => 71, 'method' => 'unknown'], ['event_id' => '9'])),
             fn () => $this->controller($port)->bulk(new RestRequest(['Idempotency-Key' => 'checkin-key-004'], ['attendee_ids' => [71], 'method' => 'manual', 'admin' => true], ['event_id' => '9'])),
@@ -133,6 +147,7 @@ final class CheckInPort implements ReceptionSearch, CheckInCommands
 {
     public int $calls = 0;
     public array $searchInput = [];
+    public ?string $lookupInput = null;
     public array $checkInInput = [];
     public array $bulkInput = [];
     public array $reverseInput = [];
@@ -141,6 +156,12 @@ final class CheckInPort implements ReceptionSearch, CheckInCommands
     {
         $this->calls++; $this->searchInput = [$query, $limit];
         return [new ReceptionAttendee(71, 'Guest One', 'confirmed', 'Table 1', 'A', false, null, str_repeat('a', 64))];
+    }
+
+    public function lookup(PrincipalContext $principal, EventScope $scope, string $code): ReceptionAttendee
+    {
+        $this->calls++; $this->lookupInput = $code;
+        return new ReceptionAttendee(71, 'Guest One', 'confirmed', 'Table 1', 'A', false, null, $code);
     }
 
     public function checkIn(PrincipalContext $principal, EventScope $scope, int $attendeeId, ?int $stationId, CheckInMethod $method, string $key, ?string $notes = null): IdempotencyOutcome

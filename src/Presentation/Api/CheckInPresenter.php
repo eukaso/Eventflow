@@ -17,6 +17,14 @@ final readonly class CheckInPresenter
         ], $this->headers($requestId));
     }
 
+    public function lookup(ReceptionAttendee $attendee, RequestId $requestId): JsonApiResponse
+    {
+        return new JsonApiResponse(200, [
+            'data' => $this->attendee($attendee),
+            'request_id' => $requestId->value,
+        ], $this->headers($requestId));
+    }
+
     public function checkIn(IdempotencyOutcome $outcome, int $eventId, RequestId $requestId): JsonApiResponse
     {
         $result = $outcome->response;

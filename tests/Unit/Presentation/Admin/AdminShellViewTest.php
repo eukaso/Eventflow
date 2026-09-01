@@ -27,12 +27,13 @@ final class AdminShellViewTest extends TestCase
         self::assertStringContainsString('id="eventflow-membership-form"', $html);
         self::assertStringContainsString('id="eventflow-invitation-form"', $html);
         self::assertStringContainsString('value="2"', $html);
-        self::assertStringContainsString('primary guest plus 1 companion', $html);
+        self::assertStringContainsString('guest plus 1 companion', $html);
         self::assertStringContainsString('id="eventflow-apply-companion-rollout"', $html);
         self::assertStringContainsString('Apply one-companion limit', $html);
         self::assertStringContainsString('Keep primary-only invitations at 1 total place', $html);
         self::assertStringContainsString('id="eventflow-dashboard-export"', $html);
         self::assertStringContainsString('Download guest list for Excel', $html);
+        self::assertStringContainsString('Add or manage guests', $html);
         self::assertStringContainsString('id="eventflow-dashboard-select-pending"', $html);
         self::assertStringContainsString('id="eventflow-dashboard-select-incomplete"', $html);
         self::assertStringContainsString('name="surprise_notice"', $html);
@@ -49,6 +50,8 @@ final class AdminShellViewTest extends TestCase
         self::assertStringContainsString('id="eventflow-reception-search-form" role="search"', $html);
         self::assertStringContainsString('id="eventflow-reception-notice" role="status"', $html);
         self::assertStringContainsString('id="eventflow-reception-bulk-checkin"', $html);
+        self::assertStringContainsString('id="eventflow-reception-qr-form"', $html);
+        self::assertStringContainsString('id="eventflow-reception-camera"', $html);
         self::assertStringContainsString('minlength="2"', $html);
         self::assertStringContainsString('id="eventflow-communications"', $html);
         self::assertStringContainsString('id="eventflow-template-form"', $html);

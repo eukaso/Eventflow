@@ -24,6 +24,9 @@
   const dashboardSelectIncomplete = document.getElementById('eventflow-dashboard-select-incomplete');
   const dashboardClearSelection = document.getElementById('eventflow-dashboard-clear-selection');
   const dashboardExport = document.getElementById('eventflow-dashboard-export');
+  const dashboardManageGuests = document.getElementById('eventflow-dashboard-manage-guests');
+  const dashboardPlanSeating = document.getElementById('eventflow-dashboard-plan-seating');
+  const dashboardOpenCheckin = document.getElementById('eventflow-dashboard-open-checkin');
   const dashboardSelection = document.getElementById('eventflow-dashboard-selection');
   const dashboardEmailReminder = document.getElementById('eventflow-dashboard-email-reminder');
   const dashboardSmsReminder = document.getElementById('eventflow-dashboard-sms-reminder');
@@ -71,6 +74,7 @@
   const recommendationForm = document.getElementById('eventflow-recommendation-form');
   const tableList = document.getElementById('eventflow-table-list');
   const groupList = document.getElementById('eventflow-group-list');
+  const groupAttendees = document.getElementById('eventflow-group-attendees');
   const placementAttendee = document.getElementById('eventflow-placement-attendee');
   const placementTable = document.getElementById('eventflow-placement-table');
   const placementSeat = document.getElementById('eventflow-placement-seat');
@@ -83,6 +87,10 @@
   const receptionBulk = document.getElementById('eventflow-reception-bulk');
   const receptionSelection = document.getElementById('eventflow-reception-selection');
   const receptionBulkCheckIn = document.getElementById('eventflow-reception-bulk-checkin');
+  const receptionQrForm = document.getElementById('eventflow-reception-qr-form');
+  const receptionQrCode = document.getElementById('eventflow-reception-qr-code');
+  const receptionCamera = document.getElementById('eventflow-reception-camera');
+  const receptionCameraPreview = document.getElementById('eventflow-reception-camera-preview');
   const communications = document.getElementById('eventflow-communications');
   const communicationsClose = document.getElementById('eventflow-communications-close');
   const communicationsNotice = document.getElementById('eventflow-communications-notice');
@@ -164,8 +172,11 @@
   let dashboardAttendees = [];
   let dashboardSelectedInvitations = new Set();
   let seatingTables = [];
+  let seatingAttendees = [];
   let seatingRecommendation = null;
   let receptionAttendees = [];
+  let lastReceptionLookupCode = null;
+  let receptionCameraStream = null;
   let communicationTemplates = [];
   let invitationRecipients = [];
   let invitationRecipientAttendees = [];
@@ -967,7 +978,7 @@
     field(invitationForm, 'token_expires_at').disabled = false;
     invitationSubmit.textContent = 'Create invitation';
     invitationEditCancel.hidden = true;
-    invitationEditor.open = false;
+    invitationEditor.open = true;
   };
 
   const startInvitationEdit = async (invitationId) => {
@@ -1045,7 +1056,7 @@
       const eventId = encodeURIComponent(String(activeEvent.id));
       const invitationId = encodeURIComponent(String(invitation.id));
       const invitationPath = `events/${eventId}/invitations/${invitationId}`;
-      actions.appendChild(actionButton('Edit profile', () => startInvitationEdit(invitation.id)));
+      actions.appendChild(actionButton('Edit guest & allocation', () => startInvitationEdit(invitation.id)));
       const invitationAction = async (action, returnsCredential = false, destructive = false) => {
         if (returnsCredential) clearCredential();
         const result = await runPeopleMutation(
@@ -1271,6 +1282,8 @@
     });
   };
 
+  const seatingAttendeeName = (attendeeId) => seatingAttendees.find((attendee) => Number(attendee.id) === Number(attendeeId))?.display_name || `Attendee ${attendeeId}`;
+
   const renderSeatingTables = (tables) => {
     seatingTables = tables;
     tableList.replaceChildren();
@@ -1280,8 +1293,18 @@
       const { card } = recordCard(
         String(table.name || 'Unnamed table'),
         `${(table.seats || []).length} seat${(table.seats || []).length === 1 ? '' : 's'}`,
-        [`Capacity ${table.capacity}`, `Revision ${table.revision}`],
+        [`${Number(table.occupancy || 0)} of ${table.capacity} seats assigned`, `Revision ${table.revision}`],
       );
+      const assigned = document.createElement('ul');
+      assigned.className = 'eventflow-seating-guest-list';
+      (table.assigned_attendees || []).forEach((assignment) => {
+        const item = document.createElement('li');
+        const seat = (table.seats || []).find((candidate) => Number(candidate.id) === Number(assignment.seat_id));
+        item.textContent = `${String(assignment.attendee_name || seatingAttendeeName(assignment.attendee_id))}${seat ? ` — seat ${seat.label}` : ''}`;
+        assigned.appendChild(item);
+      });
+      if (!assigned.childElementCount) appendText(assigned, 'li', 'description', 'No guests assigned yet.');
+      card.insertBefore(assigned, card.lastElementChild);
       const seatList = document.createElement('ul');
       seatList.className = 'eventflow-seat-list';
       (table.seats || []).forEach((seat) => {
@@ -1303,7 +1326,7 @@
       const { card } = recordCard(
         String(group.name || 'Unnamed group'),
         String(group.constraint_level || 'unknown'),
-        [String(group.category || ''), `Priority ${group.priority}`, `Attendees ${(group.attendee_ids || []).join(', ')}`],
+        [String(group.category || ''), `Priority ${group.priority}`, `Guests ${(group.attendee_ids || []).map(seatingAttendeeName).join(', ') || 'None'}`],
       );
       groupList.appendChild(card);
     });
@@ -1338,7 +1361,9 @@
     listElement.className = 'eventflow-recommendation-list';
     (recommendation.placements || []).forEach((placement) => {
       const item = document.createElement('li');
-      item.textContent = `Attendee ${placement.attendee_id} → table ${placement.table_id}${placement.seat_id ? `, seat ${placement.seat_id}` : ''}${placement.reason ? ` — ${placement.reason}` : ''}`;
+      const table = seatingTables.find((candidate) => Number(candidate.id) === Number(placement.table_id));
+      const seat = table?.seats?.find((candidate) => Number(candidate.id) === Number(placement.seat_id));
+      item.textContent = `${seatingAttendeeName(placement.attendee_id)} → ${table?.name || `table ${placement.table_id}`}${seat ? `, seat ${seat.label}` : ''}${placement.reason ? ` — ${placement.reason}` : ''}`;
       listElement.appendChild(item);
     });
     recommendationResult.appendChild(listElement);
@@ -1363,7 +1388,12 @@
     if (tablesResult.status === 'fulfilled') {
       const summaries = Array.isArray(tablesResult.value.payload.data) ? tablesResult.value.payload.data : [];
       const details = await Promise.allSettled(summaries.map((table) => requestJson(`${eventPath}/tables/${encodeURIComponent(String(table.id))}`)));
-      renderSeatingTables(details.filter((detail) => detail.status === 'fulfilled').map((detail) => detail.value.payload.data));
+      const byId = new Map(summaries.map((table) => [Number(table.id), table]));
+      renderSeatingTables(details.filter((detail) => detail.status === 'fulfilled').map((detail) => ({
+        ...detail.value.payload.data,
+        occupancy: byId.get(Number(detail.value.payload.data.id))?.occupancy || 0,
+        assigned_attendees: byId.get(Number(detail.value.payload.data.id))?.assigned_attendees || [],
+      })));
       disableForm(tableForm, false);
     } else {
       tableList.replaceChildren();
@@ -1377,11 +1407,20 @@
       messages.push('Groups unavailable.');
     }
     placementAttendee.replaceChildren();
+    groupAttendees.replaceChildren();
     if (attendeesResult.status === 'fulfilled') {
-      (attendeesResult.value.payload.data || []).filter((attendee) => attendee.status !== 'cancelled').forEach((attendee) => {
+      seatingAttendees = (attendeesResult.value.payload.data || []).filter((attendee) => attendee.status !== 'cancelled');
+      seatingAttendees.forEach((attendee) => {
         placementAttendee.appendChild(option(attendee.id, attendee.display_name));
+        groupAttendees.appendChild(option(attendee.id, attendee.display_name));
       });
-    } else messages.push('Attendees unavailable.');
+    } else {
+      seatingAttendees = [];
+      messages.push('Attendees unavailable.');
+    }
+    if (groupsResult.status === 'fulfilled') {
+      renderSeatingGroups(Array.isArray(groupsResult.value.payload.data) ? groupsResult.value.payload.data : []);
+    }
     if (readinessResult.status === 'fulfilled') {
       renderReadiness(readinessResult.value.payload.data || {});
       if (readinessResult.value.payload.data?.ready) disableForm(recommendationForm, false);
@@ -1425,9 +1464,9 @@
 
   const submitGroup = async (submissionEvent) => {
     submissionEvent.preventDefault();
-    const attendeeIds = String(field(groupForm, 'attendee_ids').value || '').split(',').map((id) => Number(id.trim())).filter((id) => Number.isInteger(id) && id > 0);
+    const attendeeIds = Array.from(groupAttendees.selectedOptions).map((selected) => Number(selected.value)).filter((id) => Number.isInteger(id) && id > 0);
     if (!attendeeIds.length) {
-      seatingNotice.textContent = 'Enter at least one valid attendee ID.';
+      seatingNotice.textContent = 'Select at least one guest name.';
       return;
     }
     const result = await runSeatingMutation(`${seatingPath()}/seating-groups`, {
@@ -1455,7 +1494,10 @@
       override_required_group: false,
       override_reason: null,
     });
-    if (result) seatingNotice.textContent = `Attendee ${attendeeId} was placed by the authoritative seating service.`;
+    if (result) {
+      await loadSeatingData();
+      seatingNotice.textContent = `${seatingAttendeeName(attendeeId)} was placed by the authoritative seating service.`;
+    }
   };
 
   const submitRecommendation = async (submissionEvent) => {
@@ -1499,6 +1541,7 @@
   const refreshReceptionSearch = async () => {
     const query = String(field(receptionSearchForm, 'q').value || '').trim();
     if (query.length < 2) return;
+    lastReceptionLookupCode = null;
     receptionNotice.textContent = 'Searching local reception records…';
     disableForm(receptionSearchForm, true);
     try {
@@ -1520,6 +1563,79 @@
     }
   };
 
+  const lookupReceptionCode = async (candidate) => {
+    const code = String(candidate || '').trim().toLocaleLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(code)) {
+      receptionNotice.textContent = 'That QR code is not a valid EventFlow reception credential.';
+      return;
+    }
+    receptionNotice.textContent = 'Checking the scanned credential…';
+    try {
+      const { payload } = await requestJson(`${receptionEventPath()}/reception/lookup?code=${encodeURIComponent(code)}`);
+      lastReceptionLookupCode = code;
+      receptionAttendees = payload.data ? [payload.data] : [];
+      renderReceptionResults(receptionAttendees);
+      const attendee = receptionAttendees[0];
+      receptionNotice.textContent = attendee?.checked_in
+        ? `${attendee.display_name} is already checked in. No duplicate entry was recorded.`
+        : `${attendee?.display_name || 'Guest'} found. Confirm check-in below.`;
+    } catch (error) {
+      lastReceptionLookupCode = null;
+      receptionAttendees = [];
+      renderReceptionResults([]);
+      const reference = error.requestId ? ` Request ID: ${error.requestId}.` : '';
+      receptionNotice.textContent = `This QR credential could not be matched to an eligible attendee.${reference}`;
+    }
+  };
+
+  const stopReceptionCamera = () => {
+    (receptionCameraStream?.getTracks?.() || []).forEach((track) => track.stop());
+    receptionCameraStream = null;
+    receptionCameraPreview.srcObject = null;
+    receptionCameraPreview.hidden = true;
+    receptionCamera.textContent = 'Use camera scanner';
+  };
+
+  const scanReceptionCamera = async () => {
+    if (receptionCameraStream) {
+      stopReceptionCamera();
+      return;
+    }
+    if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
+      receptionNotice.textContent = 'Camera QR scanning is not supported in this browser. Use a USB/Bluetooth scanner or enter the code above.';
+      receptionQrCode.focus();
+      return;
+    }
+    try {
+      const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+      receptionCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      receptionCameraPreview.srcObject = receptionCameraStream;
+      receptionCameraPreview.hidden = false;
+      receptionCamera.textContent = 'Stop camera';
+      await receptionCameraPreview.play();
+      const detect = async () => {
+        if (!receptionCameraStream) return;
+        try {
+          const codes = await detector.detect(receptionCameraPreview);
+          const match = String(codes[0]?.rawValue || '').match(/[a-f0-9]{64}/i);
+          if (match) {
+            receptionQrCode.value = match[0].toLocaleLowerCase();
+            stopReceptionCamera();
+            await lookupReceptionCode(match[0]);
+            return;
+          }
+        } catch (_error) {
+          // The camera may produce an unreadable frame while focusing.
+        }
+        window.requestAnimationFrame(detect);
+      };
+      window.requestAnimationFrame(detect);
+    } catch (_error) {
+      stopReceptionCamera();
+      receptionNotice.textContent = 'The camera could not be opened. Check camera permission or use a handheld scanner.';
+    }
+  };
+
   const runReceptionMutation = async (path, body, pendingMessage) => {
     receptionNotice.textContent = pendingMessage;
     receptionResults.querySelectorAll('button, input').forEach((control) => { control.disabled = true; });
@@ -1533,7 +1649,8 @@
       receptionNotice.textContent = result.payload.meta?.replayed
         ? 'The protected operation was already recorded. Refreshing current reception state…'
         : 'Arrival state recorded. Refreshing current reception records…';
-      await refreshReceptionSearch();
+      if (lastReceptionLookupCode) await lookupReceptionCode(lastReceptionLookupCode);
+      else await refreshReceptionSearch();
       return true;
     } catch (error) {
       const duplicate = error.code === 'attendee_already_checked_in' || error.code === 'checkin_already_reversed';
@@ -1553,7 +1670,7 @@
     const path = `${receptionEventPath()}/check-ins${bulk ? '/bulk' : ''}`;
     const body = bulk
       ? { attendee_ids: attendeeIds, station_id: context.stationId, method: 'search', notes: context.notes }
-      : { attendee_id: attendeeIds[0], station_id: context.stationId, method: 'search', notes: context.notes };
+      : { attendee_id: attendeeIds[0], station_id: context.stationId, method: lastReceptionLookupCode ? 'qr_code' : 'search', notes: context.notes };
     await runReceptionMutation(path, body, `Recording ${attendeeIds.length} arrival${attendeeIds.length === 1 ? '' : 's'}…`);
   };
 
@@ -1641,6 +1758,9 @@
     communications.hidden = true;
     governance.hidden = true;
     receptionAttendees = [];
+    lastReceptionLookupCode = null;
+    stopReceptionCamera();
+    receptionQrForm.reset();
     receptionSearchForm.reset();
     receptionResults.replaceChildren();
     appendText(receptionResults, 'h4', '', 'Search results');
@@ -2701,8 +2821,10 @@
     overviewMessage.textContent = 'Seating workspace closed.';
   });
   receptionClose.addEventListener('click', () => {
+    stopReceptionCamera();
     reception.hidden = true;
     receptionAttendees = [];
+    lastReceptionLookupCode = null;
     overviewFacts.hidden = false;
     showDashboard();
     overviewMessage.textContent = 'Reception workspace closed.';
@@ -2736,6 +2858,9 @@
     renderDashboard();
   });
   dashboardExport.addEventListener('click', downloadDashboardGuestList);
+  dashboardManageGuests.addEventListener('click', openPeople);
+  dashboardPlanSeating.addEventListener('click', openSeating);
+  dashboardOpenCheckin.addEventListener('click', openReception);
   dashboardClearSelection.addEventListener('click', () => {
     dashboardSelectedInvitations.clear();
     renderDashboard();
@@ -2784,6 +2909,12 @@
     invalidatePreparedInvitation();
     renderInvitationRecipients();
   });
+  receptionQrForm.addEventListener('submit', (submissionEvent) => {
+    submissionEvent.preventDefault();
+    stopReceptionCamera();
+    lookupReceptionCode(receptionQrCode.value);
+  });
+  receptionCamera.addEventListener('click', scanReceptionCamera);
   configuredInvitationImageChoose.addEventListener('click', () => {
     if (!window.wp?.media) {
       setupNotice.textContent = 'The Media Library picker is unavailable.';

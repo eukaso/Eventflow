@@ -24,6 +24,16 @@ final readonly class CheckInController
         );
     }
 
+    public function lookup(RestRequest $request): ApiResponse
+    {
+        $context = $this->contexts->create($request, MutationPreconditionPolicy::NONE);
+        $input = $this->requests->lookup($request);
+        return $this->presenter->lookup(
+            $this->reception->lookup($context->principal, $input->scope, $input->code),
+            $context->requestId,
+        );
+    }
+
     public function checkIn(RestRequest $request): ApiResponse
     {
         $context = $this->contexts->create($request, MutationPreconditionPolicy::IDEMPOTENCY_KEY);

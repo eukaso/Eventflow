@@ -15,6 +15,13 @@ final readonly class CheckInRequestMapper
         return new ReceptionSearchInput($this->scope($request), trim($query), $limit === null ? 20 : $this->queryInt($limit));
     }
 
+    public function lookup(RestRequest $request): ReceptionLookupInput
+    {
+        $code = strtolower(trim((string) ($request->query('code') ?? '')));
+        if (!preg_match('/^[a-f0-9]{64}$/', $code)) throw new RequestInputException('validation_failed');
+        return new ReceptionLookupInput($this->scope($request), $code);
+    }
+
     public function individual(RestRequest $request): CheckInInput
     {
         $json = $this->only($request, ['attendee_id', 'station_id', 'method', 'notes']);

@@ -49,6 +49,9 @@ final readonly class AdminShellView
             <p>See who has replied, who still owes companion names, and prepare targeted reminders without searching through every contact.</p>
           </div>
           <div class="eventflow-dashboard__primary-actions">
+            <button class="button button-primary" id="eventflow-dashboard-manage-guests" type="button">Add or manage guests</button>
+            <button class="button button-secondary" id="eventflow-dashboard-plan-seating" type="button">Seat confirmed guests</button>
+            <button class="button button-secondary" id="eventflow-dashboard-open-checkin" type="button">Reception check-in</button>
             <button class="button button-secondary" id="eventflow-dashboard-export" type="button" disabled>Download guest list for Excel</button>
             <button class="button button-secondary" id="eventflow-dashboard-email-reminder" type="button" disabled>Prepare email reminder</button>
             <button class="button button-secondary" id="eventflow-dashboard-sms-reminder" type="button" disabled>Prepare SMS reminder</button>
@@ -156,7 +159,8 @@ final readonly class AdminShellView
         <div class="eventflow-setup__heading">
           <div>
             <p class="eventflow-admin__eyebrow">People</p>
-            <h3 id="eventflow-people-title">Memberships, invitations, and attendees</h3>
+            <h3 id="eventflow-people-title">Guest management</h3>
+            <p>Add a guest manually, change their contact details, or approve a larger companion allocation.</p>
           </div>
           <button class="button-link" id="eventflow-people-close" type="button">Close people workspace</button>
         </div>
@@ -170,11 +174,11 @@ final readonly class AdminShellView
           </div>
         </div>
         <div class="eventflow-people__tabs" role="tablist" aria-label="People administration">
-          <button aria-controls="eventflow-memberships-panel" aria-selected="true" class="button" id="eventflow-memberships-tab" role="tab" type="button">Team</button>
-          <button aria-controls="eventflow-invitations-panel" aria-selected="false" class="button" id="eventflow-invitations-tab" role="tab" type="button">Invitations</button>
+          <button aria-controls="eventflow-invitations-panel" aria-selected="true" class="button" id="eventflow-invitations-tab" role="tab" type="button">Guests</button>
           <button aria-controls="eventflow-attendees-panel" aria-selected="false" class="button" id="eventflow-attendees-tab" role="tab" type="button">Attendees</button>
+          <button aria-controls="eventflow-memberships-panel" aria-selected="false" class="button" id="eventflow-memberships-tab" role="tab" type="button">Team access</button>
         </div>
-        <section id="eventflow-memberships-panel" role="tabpanel" aria-labelledby="eventflow-memberships-tab">
+        <section id="eventflow-memberships-panel" role="tabpanel" aria-labelledby="eventflow-memberships-tab" hidden>
           <form class="eventflow-inline-form" id="eventflow-membership-form">
             <label for="eventflow-member-user">WordPress user ID</label>
             <input id="eventflow-member-user" min="1" name="user_id" required type="number">
@@ -186,9 +190,9 @@ final readonly class AdminShellView
           </form>
           <div class="eventflow-record-list" id="eventflow-membership-list"></div>
         </section>
-        <section id="eventflow-invitations-panel" role="tabpanel" aria-labelledby="eventflow-invitations-tab" hidden>
-          <details class="eventflow-guest-editor" id="eventflow-invitation-editor">
-            <summary>Add or edit a guest</summary>
+        <section id="eventflow-invitations-panel" role="tabpanel" aria-labelledby="eventflow-invitations-tab">
+          <details class="eventflow-guest-editor" id="eventflow-invitation-editor" open>
+            <summary>Add a guest manually or edit an allocation</summary>
           <form class="eventflow-inline-form eventflow-inline-form--wide" id="eventflow-invitation-form">
             <label for="eventflow-invitation-name">Primary guest</label>
             <input id="eventflow-invitation-name" maxlength="190" name="primary_name" required type="text">
@@ -196,9 +200,9 @@ final readonly class AdminShellView
             <input id="eventflow-invitation-email" name="primary_email" type="email">
             <label for="eventflow-invitation-phone">Phone</label>
             <input id="eventflow-invitation-phone" name="primary_phone" type="tel">
-            <label for="eventflow-invitation-capacity">Total places</label>
+            <label for="eventflow-invitation-capacity">Total seats allocated</label>
             <input aria-describedby="eventflow-invitation-capacity-help" id="eventflow-invitation-capacity" max="65535" min="1" name="capacity" required type="number" value="2">
-            <p class="description" id="eventflow-invitation-capacity-help">Initial rollout: 2 total places (the primary guest plus 1 companion). Increase this only for an approved family exception.</p>
+            <p class="description" id="eventflow-invitation-capacity-help">1 = guest only; 2 = guest plus 1 companion. Enter 3 or more only when approving a family exception. The RSVP form immediately follows this allocation.</p>
             <label for="eventflow-invitation-expiry">Credential expires</label>
             <input id="eventflow-invitation-expiry" name="token_expires_at" placeholder="Optional ISO 8601 timestamp" type="text">
             <label for="eventflow-invitation-notes">Organizer notes</label>
@@ -276,8 +280,9 @@ final readonly class AdminShellView
               <select id="eventflow-group-constraint" name="constraint_level"><option value="preferred">Preferred</option><option value="required">Required</option><option value="informational">Informational</option></select>
               <label for="eventflow-group-priority">Priority</label>
               <input id="eventflow-group-priority" max="65535" min="0" name="priority" type="number" value="100">
-              <label for="eventflow-group-attendees">Attendee IDs</label>
-              <input id="eventflow-group-attendees" name="attendee_ids" placeholder="12, 14, 18" required type="text">
+              <label for="eventflow-group-attendees">Guests in this group</label>
+              <select id="eventflow-group-attendees" multiple name="attendee_ids" required size="8"></select>
+              <p class="description">Select guest names; hold Ctrl (Windows) or Command (Mac) to choose more than one.</p>
               <button class="button button-secondary" type="submit">Add group</button>
             </form>
             <div class="eventflow-record-list" id="eventflow-group-list"></div>
@@ -285,6 +290,7 @@ final readonly class AdminShellView
         </div>
         <section class="eventflow-seating__planner" aria-labelledby="eventflow-planner-title">
           <h4 id="eventflow-planner-title">Manual placement</h4>
+          <p>Choose a confirmed guest by name, then assign their table or exact seat.</p>
           <form class="eventflow-inline-form" id="eventflow-placement-form">
             <label for="eventflow-placement-attendee">Attendee</label>
             <select id="eventflow-placement-attendee" name="attendee_id" required></select>
@@ -314,6 +320,19 @@ final readonly class AdminShellView
           <button class="button-link" id="eventflow-reception-close" type="button">Close reception workspace</button>
         </div>
         <p class="eventflow-setup__notice" id="eventflow-reception-notice" role="status"></p>
+        <section class="eventflow-reception__scanner" aria-labelledby="eventflow-reception-scanner-title">
+          <div>
+            <h4 id="eventflow-reception-scanner-title">Scan a guest QR code</h4>
+            <p>Each confirmed attendee has a unique code. A successful check-in is recorded once; reusing the same code shows that the attendee is already checked in.</p>
+          </div>
+          <form id="eventflow-reception-qr-form">
+            <label for="eventflow-reception-qr-code">Scan or enter QR code</label>
+            <input autocomplete="off" id="eventflow-reception-qr-code" maxlength="64" minlength="64" name="lookup_code" pattern="[a-fA-F0-9]{64}" required type="text">
+            <button class="button button-primary" type="submit">Find guest from QR</button>
+            <button class="button button-secondary" id="eventflow-reception-camera" type="button">Use camera scanner</button>
+          </form>
+          <video id="eventflow-reception-camera-preview" playsinline hidden></video>
+        </section>
         <form class="eventflow-reception__search" id="eventflow-reception-search-form" role="search">
           <div>
             <label for="eventflow-reception-query">Guest or companion name</label>

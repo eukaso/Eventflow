@@ -9,4 +9,5 @@ interface ReceptionSearch
 {
     /** @return list<ReceptionAttendee> */
     public function search(PrincipalContext $principal, EventScope $scope, string $query, int $limit = 20): array;
+    public function lookup(PrincipalContext $principal, EventScope $scope, string $code): ReceptionAttendee;
 }
