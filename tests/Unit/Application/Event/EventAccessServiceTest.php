@@ -78,7 +78,23 @@ final class EventAccessServiceTest extends TestCase
         self::assertSame([], $fixture->audit->actions);
     }
 
-    public function testDraftUpdateRejectsLifecycleMutationOutsideDraft(): void
+    public function testActiveEventAllowsScheduleUpdateAndPreservesStatus(): void
+    {
+        $fixture = new AccessFixture(EventStatus::ACTIVE);
+
+        $outcome = $fixture->service->updateDraft(
+            $fixture->principal,
+            new EventScope(51),
+            new EventDraftPatch(['starts_at' => new DateTimeImmutable('2026-09-01T17:00:00Z'), 'ends_at' => null], 3),
+            'event-update-0003',
+        );
+
+        self::assertSame(EventStatus::ACTIVE, $outcome->response->status);
+        self::assertNull($outcome->response->endsAt);
+        self::assertSame(1, $fixture->events->updates);
+    }
+
+    public function testActiveEventRejectsIdentityMutation(): void
     {
         $fixture = new AccessFixture(EventStatus::ACTIVE);
 
@@ -87,7 +103,7 @@ final class EventAccessServiceTest extends TestCase
                 $fixture->principal,
                 new EventScope(51),
                 new EventDraftPatch(['name' => 'Not Allowed'], 3),
-                'event-update-0003',
+                'event-update-0003-identity',
             );
             self::fail('Expected lifecycle failure.');
         } catch (EventLifecycleException $exception) {
@@ -157,7 +173,7 @@ final class AccessEventRepository implements EventLifecycleRepository
     public function updateDraft(EventRecord $current, CreateEvent $replacement, ?int $actorUserId, DateTimeImmutable $now): EventRecord
     {
         $this->updates++;
-        return $this->record = new EventRecord($current->scope, $replacement->name, $replacement->slug, EventStatus::DRAFT, $replacement->timezone, $replacement->startsAt, $replacement->endsAt, $replacement->venueId, $current->revision + 1);
+        return $this->record = new EventRecord($current->scope, $replacement->name, $replacement->slug, $current->status, $replacement->timezone, $replacement->startsAt, $replacement->endsAt, $replacement->venueId, $current->revision + 1);
     }
 }
 

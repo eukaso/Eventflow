@@ -195,7 +195,7 @@ final class WpdbEventLifecycleRepository extends AbstractWpdbRepository implemen
         ?int $actorUserId,
         DateTimeImmutable $now,
     ): EventRecord {
-        if ($current->status !== EventStatus::DRAFT || ($actorUserId !== null && $actorUserId < 1)) {
+        if (!in_array($current->status, [EventStatus::DRAFT, EventStatus::ACTIVE], true) || ($actorUserId !== null && $actorUserId < 1)) {
             throw new PersistenceException('event_update_invalid');
         }
         $events = $this->table(TableName::EVENTS);
@@ -209,7 +209,7 @@ final class WpdbEventLifecycleRepository extends AbstractWpdbRepository implemen
         $parameters[] = $replacement->timezone;
         if ($replacement->venueId !== null) $parameters[] = $replacement->venueId;
         if ($actorUserId !== null) $parameters[] = $actorUserId;
-        array_push($parameters, $this->timestamp($now), $current->scope->eventId, EventStatus::DRAFT->value, $current->revision);
+        array_push($parameters, $this->timestamp($now), $current->scope->eventId, $current->status->value, $current->revision);
 
         $affected = $this->database->execute(
             "UPDATE {$events} SET event_name = %s, event_slug = %s, starts_at = {$startsSql}, ends_at = {$endsSql}, " .
@@ -225,7 +225,7 @@ final class WpdbEventLifecycleRepository extends AbstractWpdbRepository implemen
             $current->scope,
             $replacement->name,
             $replacement->slug,
-            EventStatus::DRAFT,
+            $current->status,
             $replacement->timezone,
             $replacement->startsAt,
             $replacement->endsAt,

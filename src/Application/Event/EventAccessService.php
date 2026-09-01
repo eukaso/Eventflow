@@ -66,7 +66,11 @@ final readonly class EventAccessService implements EventQueries, EventDraftComma
                     throw new EventLifecycleException('event_not_found');
                 }
                 $this->authorization->requireEventCapability($principal, $scope, Capability::EDIT_EVENT);
-                if ($current->status !== EventStatus::DRAFT) {
+                if (!in_array($current->status, [EventStatus::DRAFT, EventStatus::ACTIVE], true)) {
+                    throw new EventLifecycleException('event_transition_invalid');
+                }
+                if ($current->status === EventStatus::ACTIVE
+                    && array_diff(array_keys($patch->changes), ['timezone', 'starts_at', 'ends_at', 'venue_id']) !== []) {
                     throw new EventLifecycleException('event_transition_invalid');
                 }
                 if ($current->revision !== $patch->expectedRevision) {
